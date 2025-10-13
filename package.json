@@ -1,0 +1,29 @@
+{
+  "name": "sonarminigame",
+  "version": "1.0.0",
+  "description": "Sonar Minigame as part of Portals game jam game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OscarJLouw/oscarjlouw.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OscarJLouw/oscarjlouw.github.io/issues"
+  },
+  "homepage": "https://github.com/OscarJLouw/oscarjlouw.github.io#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.9"
+  }
+}
