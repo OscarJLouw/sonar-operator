@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OscarJLouw/oscarjlouw.github.io.git"
+    "url": "git+https://github.com/OscarJLouw/sonar-operator.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/OscarJLouw/oscarjlouw.github.io/issues"
+    "url": "https://github.com/OscarJLouw/sonar-operator.git/issues"
   },
-  "homepage": "https://github.com/OscarJLouw/oscarjlouw.github.io#readme",
+  "homepage": "https://github.com/OscarJLouw/sonar-operator.git#readme",
   "dependencies": {
     "express": "^5.1.0",
     "three": "^0.180.0"
