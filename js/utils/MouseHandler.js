@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export class MouseHandler {
+export class MouseHandler {    
     constructor(camera) {
         // Singleton pattern
         if (!MouseHandler.instance) {

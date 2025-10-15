@@ -33,36 +33,82 @@ export class SonarMachine extends GameObject {
         this.mesh.position.set(0, 0, 0);
 
         this.AddComponent(this.mesh);
+
+        this.sonarViewController = GameObject.Instantiate(SonarViewController, this.transform, "Sonar ViewCone");
+        this.sonarViewController.transform.scale.set(0.6, 0.6, 1);
+
+        this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob");
+        this.angleKnob.transform.position.set(Math.sin(3.5*Math.PI/2), Math.cos(3.5*Math.PI/2), 0) * 0.9;
+        this.angleKnob.transform.scale.set(0.15, 0.15, 1);
+
+        this.angleRangeKnob = GameObject.Instantiate(Knob, this.transform, "Angle Range Knob");
+        this.angleRangeKnob.transform.position.set(Math.sin(3.25*Math.PI/2), Math.cos(3.25*Math.PI/2), 0) * 0.9;
+        this.angleRangeKnob.transform.scale.set(0.15, 0.15, 1);
+        this.angleRangeKnob.SetClampRotation(true, 0, Math.PI);
+        this.angleRangeKnob.SetRelativeRotationControl(false);
+
+        this.distanceKnob = GameObject.Instantiate(Knob, this.transform, "Distance Knob");
+        this.distanceKnob.transform.position.set(Math.sin(Math.PI*0.25), Math.cos(Math.PI*0.25), 0) * 0.9;
+        this.distanceKnob.transform.scale.set(0.15, 0.15, 1);
+        this.distanceKnob.SetClampRotation(true, 0, Math.PI);
+        this.distanceKnob.SetRelativeRotationControl(false);
+
+        this.distanceRangeKnob = GameObject.Instantiate(Knob, this.transform, "Distance Range Knob");
+        this.distanceRangeKnob.transform.position.set(Math.sin(Math.PI * 0.375), Math.cos(Math.PI * 0.375), 0) * 0.9;
+        this.distanceRangeKnob.transform.scale.set(0.15, 0.15, 1);
+        this.distanceRangeKnob.SetClampRotation(true, 0, Math.PI);
+        this.distanceRangeKnob.SetRelativeRotationControl(false);
     }
 
     Start()
     {
-        this.sonarViewController = new SonarViewController(this.transform, "Sonar ViewCone");
-        this.sonarViewController.transform.scale.set(0.6, 0.6, 1);
-
-        this.angleKnob = new Knob(this.transform, "Angle Knob");
-        this.angleKnob.transform.position.set(Math.sin(3.5*Math.PI/2), Math.cos(3.5*Math.PI/2), 0) * 0.9;
-        this.angleKnob.transform.scale.set(0.15, 0.15, 1);
-
-        this.angleWidthKnob = new Knob(this.transform, "Angle Width Knob");
-        this.angleWidthKnob.transform.position.set(Math.sin(3.25*Math.PI/2), Math.cos(3.25*Math.PI/2), 0) * 0.9;
-        this.angleWidthKnob.transform.scale.set(0.15, 0.15, 1);
-        this.angleWidthKnob.SetClampRotation(true, 0, Math.PI);
-        this.angleWidthKnob.SetRelativeRotationControl(false);
-    }
-
-    OnEnable()
-    {
-        this.mesh.visible = true;
+        this.angleKnob.SetAngle(-Math.PI/2);
+        this.angleRangeKnob.SetPercentage(0.2);
     }
 
     Update(deltaTime)
     {
+        
+    }
+
+
+
+    OnEnable()
+    {
+        this.mesh.visible = true;
+        this.angleKnob.addEventListener("knobAngleChanged", this.OnAngleChanged);
+        this.angleRangeKnob.addEventListener("knobAngleChanged", this.OnAngleRangeChanged);
+        this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
+        this.distanceRangeKnob.addEventListener("knobAngleChanged", this.OnDistanceRangeChanged);
     }
 
     OnDisable()
     {
         this.mesh.visible = false;
+        this.angleKnob.removeEventListener("knobAngleChanged", this.OnAngleChanged);
+        this.angleRangeKnob.removeEventListener("knobAngleChanged", this.OnAngleRangeChanged);
+        this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
+        this.distanceRangeKnob.addEventListener("knobAngleChanged", this.OnDistanceRangeChanged);
+    }
+
+    OnAngleChanged = (e) =>
+    {
+        this.sonarViewController.SetAngle(e.detail.angle);
+    }
+
+    OnAngleRangeChanged = (e) =>
+    {
+        this.sonarViewController.SetAngleRange(1 - e.detail.percentage);
+    }
+
+    OnDistanceChanged = (e) =>
+    {
+        this.sonarViewController.SetDistance(1 - e.detail.percentage);
+    }
+
+    OnDistanceRangeChanged = (e) =>
+    {
+        this.sonarViewController.SetDistanceRange(1 - e.detail.percentage);
     }
 
     OnDestroy()

@@ -16,10 +16,14 @@ export class GameObject
         this.enabled = false;
 
         GameManager.instance.RegisterGameObject(this);
+    }
 
-        this.Awake();
-        this.SetActive(true);
-        this.Start();
+    static Instantiate(Ctor, ...args) {
+        const obj = new Ctor(...args);
+        obj.Awake();
+        obj.SetActive(true);
+        obj.Start();
+        return obj;
     }
 
     // Abstract lifecycle functions. Can be overridden by implementing in derived classes. Called by the GameManager as per the object lifecycle.

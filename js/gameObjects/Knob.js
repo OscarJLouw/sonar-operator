@@ -7,6 +7,8 @@ import { SceneManager } from '../managers/SceneManager';
 export class Knob extends GameObject {
     // Life Cycle
     Awake() {
+        this.events = new EventTarget();
+
         // Variables
         this.mousePositionStart = new THREE.Vector3();
         this.mousePositionCurrent = new THREE.Vector3();
@@ -90,8 +92,7 @@ export class Knob extends GameObject {
         const maxRotateSpeed = 20 * deltaTime;
         var angleDelta = Utils.instance.Clamp(angleDifference, -maxRotateSpeed, maxRotateSpeed);
 
-        if(Math.abs(angleDelta) > 0)
-        {
+        if (Math.abs(angleDelta) > 0) {
             this.SetCurrentAngle(this.currentAngle + angleDelta);
         }
     }
@@ -102,13 +103,22 @@ export class Knob extends GameObject {
         // Clamp the angle if necessary
         if (this.clampRotation) {
             this.currentAngle = Utils.instance.ClampAngle(angle, this.minRotation, this.maxRotation);
-            this.percentage = Utils.instance.AnglePercent(angle, this.minRotation, this.maxRotation);
+            this.percentage = Utils.instance.AngleToPercent(angle, this.minRotation, this.maxRotation);
         } else {
             this.currentAngle = angle;
-            this.percentage = Utils.instance.AnglePercent(angle, 0, Math.PI*2);
+            this.percentage = Utils.instance.AngleToPercent(angle, 0, Math.PI * 2);
         }
 
         this.transform.setRotationFromAxisAngle(Utils.forward, this.currentAngle);
+
+        this.dispatchEvent(new CustomEvent("knobAngleChanged",
+            {
+                detail: {
+                    angle: this.currentAngle,
+                    percentage: this.percentage
+                }
+            }
+        ));
     }
 
     // Interaction Event Handlers
@@ -169,6 +179,17 @@ export class Knob extends GameObject {
         this.transform.setRotationFromAxisAngle(Utils.forward, -angle);
     }
 
+    SetPercentage(percentage)
+    {
+        if (this.clampRotation) {
+            let targetAngle = Utils.instance.PercentToAngle(1 - percentage, this.minRotation, this.maxRotation);
+            this.SetAngle(-targetAngle);
+        } else {
+            let targetAngle = Utils.instance.PercentToAngle(1 - percentage, 0, Math.PI * 2);
+            this.SetAngle(-targetAngle);
+        }
+    }
+
     // Returns angle in terms of clockwise rotation (threejs's default is counter-clockwise)
     GetAngle() {
         return -this.transform.rotation.z;
@@ -184,4 +205,8 @@ export class Knob extends GameObject {
         return Math.atan2(this.targetDirection.y, this.targetDirection.x);
     }
 
+    // Events
+    addEventListener(...args) { this.events.addEventListener(...args); }
+    removeEventListener(...args) { this.events.removeEventListener(...args); }
+    dispatchEvent(event) { return this.events.dispatchEvent(event); }
 }

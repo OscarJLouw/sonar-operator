@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Resizable } from '../utils/ResizeHandler.js';
 import { Sphere } from '../components/Sphere.js';
 import { SonarMachine } from '../gameObjects/SonarMachine.js';
+import { GameObject } from '../gameObjects/GameObject.js';
 
 export class SceneManager extends Resizable {
     constructor() {
@@ -33,7 +34,7 @@ export class SceneManager extends Resizable {
 
         this.scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-        let sonarMachine = new SonarMachine(this.scene, "Sonar Machine");
+        let sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
     }
 
     Update(deltaTime) {

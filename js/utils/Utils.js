@@ -56,7 +56,7 @@ export class Utils {
     }
 
 
-    AnglePercent(angle, start, end) {
+    AngleToPercent(angle, start, end) {
         const TAU = Math.PI * 2;
         const EPS = 1e-12;
 
@@ -90,6 +90,34 @@ export class Utils {
         return distToStart <= distToEnd ? 0 : 1;
     }
 
+    PercentToAngle(percent, start, end) {
+        const TAU = Math.PI * 2;
+        const EPS = 1e-12;
+        const mod = (x, m) => ((x % m) + m) % m;
+        const almostZero = (x) => Math.abs(x) <= EPS;
+
+        const s = mod(start, TAU);
+        const e = mod(end, TAU);
+        let len = mod(e - s, TAU);
+
+        // Distinguish degenerate arcs
+        if (almostZero(len)) {
+            if (start === end) {
+                // Single point arc
+                return s;
+            } else {
+                // Full circle: move percent of a full rotation from start
+                return mod(s + percent * TAU, TAU);
+            }
+        }
+
+        // Clamp percent to [0, 1]
+        const t = Math.min(Math.max(percent, 0), 1);
+
+        // Linear interpolation along the CCW arc
+        return mod(s + t * len, TAU);
+    }
+
     GetSignedAngleDifference(angle1, angle2) {
         const PI = Math.PI;
         const TWO_PI = 2 * PI;
@@ -120,7 +148,9 @@ export class Utils {
         return (interpolatedAngle % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
     }
 
-
+    Lerp(a, b, t) {
+        return a + (b - a) * t;
+    }
 }
 
 export const utils = new Utils();
