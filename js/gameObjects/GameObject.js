@@ -3,12 +3,12 @@ import { GameManager } from '../managers/GameManager';
 
 export class GameObject
 {
-    constructor(parent) 
+    constructor(parent, name = "") 
     {
+        this.name = name;
         this.parent = parent;
         this.transform = new THREE.Group();
         this.id = this.transform.id;
-        console.log(this.id);
 
         this.parent.add(this.transform);
 

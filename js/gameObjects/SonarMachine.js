@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { GameManager } from '../managers/GameManager';
 import { SonarViewController } from './SonarViewController';
+import { Knob } from './Knob';
 
 export class SonarMachine extends GameObject {
 
@@ -10,15 +11,9 @@ export class SonarMachine extends GameObject {
         this.geometry = new THREE.RingGeometry(0.5, 0.6);
 
         // Testing texture loading
+        /*
         const texChecker = pixelTexture(GameManager.instance.loader.load('../../textures/checker.png'));
         texChecker.repeat.set(3, 3);
-        this.material = new THREE.MeshStandardMaterial({map: texChecker});
-
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.mesh.position.set(0, 0, 0);
-
-        this.AddComponent(this.mesh);
-
         function pixelTexture(texture) {
             texture.minFilter = THREE.NearestFilter;
             texture.magFilter = THREE.NearestFilter;
@@ -28,14 +23,26 @@ export class SonarMachine extends GameObject {
             texture.colorSpace = THREE.SRGBColorSpace;
             return texture;
         }
+        */
+
+        this.material = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0.1, 0.1, 0.1)
+        });
+
+        this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.mesh.position.set(0, 0, 0);
+
+        this.AddComponent(this.mesh);
     }
 
     Start()
     {
-        this.mesh.material.color = new THREE.Color(1,0,0);
-        this.mesh.material.needsUpdate = true;
+        this.sonarViewController = new SonarViewController(this.transform, "Sonar ViewCone");
+        this.sonarViewController.transform.scale.set(0.6, 0.6, 1);
 
-        var sonarViewController = new SonarViewController(this.transform);
+        this.knob1 = new Knob(this.transform, "Knob");
+        this.knob1.transform.position.set(Math.sin(3.5*Math.PI/2), Math.cos(3.5*Math.PI/2), 0) * 0.9;
+        this.knob1.transform.scale.set(0.15, 0.15, 1);
     }
 
     OnEnable()
@@ -68,5 +75,10 @@ export class SonarMachine extends GameObject {
         if(this.mesh) this.RemoveComponent(this.mesh);
 
         this.mesh = undefined;
+
+        if(this.knob1)
+        {
+            this.knob1.Destroy();
+        }
     }
 }

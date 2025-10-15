@@ -34,7 +34,7 @@ export class GameManager {
     {
         this.sceneManager = new SceneManager();
         this.mouseHandler = new MouseHandler(this.sceneManager.camera);
-        this.renderManager = new RenderManager(this.sceneManager, true);
+        this.renderManager = new RenderManager(this.sceneManager, false);
     }
 
     StartGame()
@@ -72,7 +72,7 @@ export class GameManager {
 
     RegisterGameObject(gameObject)
     {
-        console.log("Registered gameobject with id " + gameObject.id);
+        console.log("Registered GameObject " + gameObject.name + " with id " + gameObject.id);
         this.gameObjects.set(gameObject.id, gameObject);
     }
 

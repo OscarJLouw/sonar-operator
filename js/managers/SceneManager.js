@@ -33,7 +33,7 @@ export class SceneManager extends Resizable {
 
         this.scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-        let radar = new SonarMachine(this.scene);
+        let sonarMachine = new SonarMachine(this.scene, "Sonar Machine");
     }
 
     Update(deltaTime) {
