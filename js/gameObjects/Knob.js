@@ -17,6 +17,9 @@ export class Knob extends GameObject
         this.targetAngle = 0;
         this.startRotationOffset = 0;
 
+        this.defaultRotationOffset = -Math.PI*0.5;  // make it face upwards by default
+
+        this.useRelativeRotation = true;
         this.clampRotation = false;
         this.minRotation = 0;
         this.maxRotation = Math.PI*2;
@@ -33,7 +36,7 @@ export class Knob extends GameObject
         this.indicatorMesh = new THREE.Mesh(this.indicatorGeometry, this.indicatorMaterial);
         this.indicatorMesh.position.set(0, 0, -0.1);
         this.indicatorMesh.rotateZ(-Math.PI*0.1);
-        this.indicatorMesh.rotateZ(Math.PI/2); // set default angle to face upwards
+        //this.indicatorMesh.rotateZ(Math.PI/2); // set default angle to face upwards
         this.AddComponent(this.indicatorMesh);
 
         // Interaction components
@@ -82,17 +85,47 @@ export class Knob extends GameObject
 
     Update(deltaTime)
     {
-        let targetAngle = this.targetAngle + this.startRotationOffset;
+        let targetAngle = this.targetAngle;
+        
+        if(this.useRelativeRotation)
+        {
+            targetAngle += this.startRotationOffset;
+        }
 
         var angleDifference = Utils.instance.GetSignedAngleDifference(this.currentAngle, targetAngle);
         const maxRotateSpeed = 20* deltaTime;
 
         var angleDelta = Utils.instance.Clamp(angleDifference, -maxRotateSpeed, maxRotateSpeed);
 
-        this.currentAngle += angleDelta;
+        //this.currentAngle += angleDelta;
 
+        //this.currentAngle += angleDelta;
+
+        if(this.clampRotation)
+        {
+            this.currentAngle = Utils.instance.ClampAngle(this.currentAngle + angleDelta, this.minRotation, this.maxRotation);
+        } else 
+        {
+            this.currentAngle = this.currentAngle + angleDelta;
+        }
+        
         //this.currentAngle = Utils.instance.LerpAngle(this.currentAngle, targetAngle, deltaTime * 20);
+        //this.SetRotationWithClamp(this.currentAngle);
         this.transform.setRotationFromAxisAngle(Utils.forward, this.currentAngle);
+
+    }
+
+    SetRotationWithClamp(targetAngle)
+    {
+        let finalAngle = targetAngle;
+        
+        if(this.clampRotation)
+        {
+            finalAngle = Utils.instance.ClampAngle(finalAngle, this.minRotation, this.maxRotation);
+        }
+        
+        this.transform.setRotationFromAxisAngle(Utils.forward, finalAngle);
+
     }
 
     // Interaction Event Handlers
@@ -102,7 +135,7 @@ export class Knob extends GameObject
         this.mousePositionStart.copy(mousePosition)
         this.mousePositionStart.unproject(SceneManager.instance.camera);
 
-        this.targetAngle = this.SetTargetDirection(this.mousePositionStart);
+        this.targetAngle = this.CalculateTargetDirection(this.mousePositionStart);
         //this.currentAngle = this.targetAngle;
 
         this.startRotationOffset = this.transform.rotation.z - this.targetAngle;
@@ -114,14 +147,20 @@ export class Knob extends GameObject
         this.mousePositionCurrent.copy(mousePosition);
         this.mousePositionCurrent.unproject(SceneManager.instance.camera);
 
-        this.targetAngle = this.SetTargetDirection(this.mousePositionCurrent);
+        this.targetAngle = this.CalculateTargetDirection(this.mousePositionCurrent);
 
         //this.transform.setRotationFromAxisAngle(Utils.forward, this.targetAngle + this.startRotationOffset);
     }
 
     OnMouseUp(mousePosition)
     {
-        this.targetAngle = this.currentAngle - this.startRotationOffset;
+        if(this.useRelativeRotation)
+        {
+            this.targetAngle = this.currentAngle - this.startRotationOffset;
+        } else {
+            this.targetAngle = this.currentAngle;
+        }
+
         //const worldPos = mousePosition.unproject(SceneManager.instance.camera);
         //this.transform.position.set(worldPos.x, worldPos.y, this.transform.position.z);
     }
@@ -140,9 +179,14 @@ export class Knob extends GameObject
     // Setters
     SetClampRotation(enableClamp, minRotation, maxRotation)
     {
-        this.enableClamp = enableClamp;
+        this.clampRotation = enableClamp;
         this.minRotation = minRotation;
         this.maxRotation = maxRotation;
+    }
+
+    SetRelativeRotationControl(useRelativeRotation)
+    {
+        this.useRelativeRotation = useRelativeRotation;
     }
 
     // Sets angle from clockwise rotation (threejs's default is counter-clockwise), overriding current user control if necessary
@@ -150,7 +194,7 @@ export class Knob extends GameObject
     {
         if(this.dragging)
         {
-            this.targetAngle = this.SetTargetDirection(this.mousePositionCurrent);
+            this.targetAngle = this.CalculateTargetDirection(this.mousePositionCurrent);
             this.startRotationOffset = angle - this.targetAngle;
         }
         
@@ -166,7 +210,7 @@ export class Knob extends GameObject
 
     // Helper functions
     // Calculates the target direction to a given point and returns the angle
-    SetTargetDirection(targetPoint)
+    CalculateTargetDirection(targetPoint)
     {
         this.targetDirection.copy(targetPoint);
         this.targetDirection.sub(this.transform.position);

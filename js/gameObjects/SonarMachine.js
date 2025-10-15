@@ -43,6 +43,9 @@ export class SonarMachine extends GameObject {
         this.knob1 = new Knob(this.transform, "Knob");
         this.knob1.transform.position.set(Math.sin(3.5*Math.PI/2), Math.cos(3.5*Math.PI/2), 0) * 0.9;
         this.knob1.transform.scale.set(0.15, 0.15, 1);
+        this.knob1.SetClampRotation(true, 0, Math.PI);
+        //this.knob1.SetClampRotation(true, -Math.PI + Math.PI*0.1, Math.PI - Math.PI*0.1);
+        this.knob1.SetRelativeRotationControl(false);
     }
 
     OnEnable()

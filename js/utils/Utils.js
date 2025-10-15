@@ -11,18 +11,68 @@ export class Utils {
         return Utils.instance;
     }
 
-    CreateConstants()
-    {
-        Utils.forward    = new THREE.Vector3(0,0,1);
-        Utils.up         = new THREE.Vector3(0,1,0);
-        Utils.right      = new THREE.Vector3(1,0,0);
+    CreateConstants() {
+        Utils.forward = new THREE.Vector3(0, 0, 1);
+        Utils.up = new THREE.Vector3(0, 1, 0);
+        Utils.right = new THREE.Vector3(1, 0, 0);
     }
 
-    Clamp(x, a, b)
-    {
-        return Math.max( a, Math.min(x, b) );
+    Clamp(x, a, b) {
+        return Math.max(a, Math.min(x, b));
     }
 
+    AngleInArc(angle, start, end) {
+        const TAU = Math.PI * 2;
+        const mod = (x, m) => ((x % m) + m) % m;
+        const a = mod(angle, TAU), s = mod(start, TAU), e = mod(end, TAU);
+        const len = (e - s + TAU) % TAU;
+        if (len === 0) return start === end ? a === s : true;
+        return ((a - s + TAU) % TAU) <= len;
+    }
+
+    ClampAngle(angle, start, end) {
+        const TAU = Math.PI * 2;
+
+        const mod = (x, m) => ((x % m) + m) % m;
+
+        const a = mod(angle, TAU);
+        const s = mod(start, TAU);
+        const e = mod(end, TAU);
+
+        const len = (e - s + TAU) % TAU;
+
+        if (len === 0) {
+            return start === end ? s : a;
+        }
+
+        const rel = (a - s + TAU) % TAU;
+
+        if (rel <= len) return a;
+
+        const toS = Math.min(rel, TAU - rel);
+        const relE = (a - e + TAU) % TAU;
+        const toE = Math.min(relE, TAU - relE);
+        return toS <= toE ? s : e;
+    }
+
+    AnglePercent(angle, start, end) {
+        const TAU = Math.PI * 2;
+        const mod = (x, m) => ((x % m) + m) % m;
+
+        const a = mod(angle, TAU);
+        const s = mod(start, TAU);
+        const e = mod(end, TAU);
+        const len = (e - s + TAU) % TAU;
+
+        if (len === 0) return 0;
+
+        const rel = (a - s + TAU) % TAU;
+        const t = rel / len;
+
+        if (t >= 0 && t <= 1) return t;
+
+        return t < 0 ? 0 : 1;
+    }
 
     GetSignedAngleDifference(angle1, angle2) {
         const PI = Math.PI;
@@ -53,6 +103,8 @@ export class Utils {
         // Normalize the result to ensure it stays within the desired range (e.g., 0 to 2π)
         return (interpolatedAngle % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
     }
+
+
 }
 
 export const utils = new Utils();
