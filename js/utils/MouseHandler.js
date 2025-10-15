@@ -81,13 +81,16 @@ export class MouseHandler {
         this.raycaster.setFromCamera(this.mousePosition, this.camera);
         this.intersectionResults.length = 0;
         this.draggingObjects.length = 0;
+
         this.draggables.forEach(
             draggable =>
             {
-                const intersections = this.raycaster.intersectObject(draggable.targetObject, true, this.intersectionResults);
+                this.intersectionResults.length = 0;
+                const intersections = this.raycaster.intersectObject(draggable.raycastTarget, false, this.intersectionResults);
 
                 if(intersections.length > 0)
                 {
+
                     this.dragging = true;
                     this.draggingObjects.push(draggable);
 
@@ -136,9 +139,10 @@ export class MouseHandler {
 }
 
 export class Draggable extends EventTarget {
-    constructor(targetObject) {
+    constructor(owner, raycastTarget) {
         super();
-        this.targetObject = targetObject;
+        this.owner = owner;
+        this.raycastTarget = raycastTarget;
         this.mousePosition = new THREE.Vector3();
         this.mousePositionLast = new THREE.Vector3();
         this.dragging = false;

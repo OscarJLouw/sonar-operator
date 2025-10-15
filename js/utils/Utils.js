@@ -55,23 +55,39 @@ export class Utils {
         return toS <= toE ? s : e;
     }
 
+
     AnglePercent(angle, start, end) {
         const TAU = Math.PI * 2;
+        const EPS = 1e-12;
+
         const mod = (x, m) => ((x % m) + m) % m;
+        const almostZero = (x) => Math.abs(x) <= EPS;
 
         const a = mod(angle, TAU);
         const s = mod(start, TAU);
         const e = mod(end, TAU);
-        const len = (e - s + TAU) % TAU;
 
-        if (len === 0) return 0;
+        let len = mod(e - s, TAU);
 
-        const rel = (a - s + TAU) % TAU;
-        const t = rel / len;
+        if (almostZero(len)) {
+            if (start === end) {
+                return 0;
+            } else {
+                const relFull = mod(a - s, TAU);
+                return relFull / TAU;
+            }
+        }
 
-        if (t >= 0 && t <= 1) return t;
+        const rel = mod(a - s, TAU);
 
-        return t < 0 ? 0 : 1;
+        if (rel <= len + EPS) {
+            return Math.min(1, Math.max(0, rel / len));
+        }
+
+        const distToStart = Math.min(rel, TAU - rel);
+        const relE = mod(a - e, TAU);
+        const distToEnd = Math.min(relE, TAU - relE);
+        return distToStart <= distToEnd ? 0 : 1;
     }
 
     GetSignedAngleDifference(angle1, angle2) {
