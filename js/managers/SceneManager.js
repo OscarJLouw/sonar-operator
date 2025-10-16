@@ -25,6 +25,13 @@ export class SceneManager extends Resizable {
         this.camera = new THREE.OrthographicCamera(-this.aspectRatio, this.aspectRatio, 1, - 1, 0.1, 10);
         this.camera.position.z = 2;
         this.Resize(this.width, this.height, this.aspectRatio);
+
+        // create an AudioListener and add it to the camera
+        this.listener = new THREE.AudioListener();
+        this.camera.add( this.listener );
+
+        // load a sound and set it as the Audio object's buffer
+        this.audioLoader = new THREE.AudioLoader();
     }
 
     Start() {

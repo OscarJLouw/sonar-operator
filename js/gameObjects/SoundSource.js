@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject';
+import { SceneManager } from '../managers/SceneManager';
 import { Utils } from '../utils/Utils';
 
 export class SoundSource extends GameObject {
@@ -28,13 +29,50 @@ export class SoundSource extends GameObject {
 
         const randomAngle = Math.random() * Math.PI * 2;
         const randomPointOnUnitCircle = new THREE.Vector3(Math.cos(randomAngle), Math.sin(randomAngle), 0);
-        const randomDistance = Math.random() * (maxSpawnRange-minSpawnRange) + minSpawnRange;
+        const randomDistance = Math.random() * (maxSpawnRange - minSpawnRange) + minSpawnRange;
         //const randomDistance = Math.random() * ((maxspawnRange - this.radius) - this.radius) + this.radius;
 
         this.transform.position.copy(randomPointOnUnitCircle);
         this.transform.position.multiplyScalar(randomDistance);
 
         this.wasOverlapping = false;
+    }
+
+    Start() {
+        // create a global audio source
+        const sound = new THREE.Audio(SceneManager.instance.listener);
+
+
+        const soundList =
+            [
+                "/audio/Ambience_Underworld_Voices_Loop.wav",
+                "/audio/Eye_Of_Sonar_01.wav",
+                "/audio/Eye_Of_Sonar_02.wav",
+                "/audio/RearThrusters.ogg",
+                "/audio/Sonar_Of_Destruction.wav",
+                "/audio/TooMuchHeat.ogg",
+                "/audio/Ambience_Underwater_01_Loop.wav",
+                "/audio/Ambience_Scary_Loop.wav",
+                "/audio/343682__mbari_mars__blue-whale-b-call-5x.mp3",
+                "/audio/369510__mbari_mars__blue-whale-d-calls-audible-only-with-appropriate-speakers.mp3",
+                "/audio/404314__mbari_mars__marine-mammal-community.mp3",
+                "/audio/448984__mbari_mars__humpback-whale-song.wav",
+                "/audio/SpookyNoises/Whisper_02.wav",
+                "/audio/SpookyNoises/monster_roar_distant_3.mp3",
+                "/audio/SpookyNoises/Echo_Cymbal_02.wav",
+            ];
+
+        var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
+
+        SceneManager.instance.audioLoader.load(randomSound,
+            function (buffer) {
+                sound.setBuffer(buffer);
+                sound.setLoop(true);
+                sound.setVolume(0.0);
+            }
+        );
+
+        this.sound = sound;
     }
 
     OnEnable() {
@@ -82,16 +120,26 @@ export class SoundSource extends GameObject {
             this.material.opacity = 0.4 + overlap.overlappedCircleAreaPercent * 0.5;
             //this.material.needsUpdate = true;
             this.wasOverlapping = true;
+
+            this.sound.setVolume(overlap.overlappedCircleAreaPercent);
+            if (!this.sound.isPlaying) {
+                this.sound.play();
+            }
+
             //}
         } else {
 
-            //if (this.wasOverlapping) {
-            this.material.color.r = 0;
-            this.material.color.g = 0;
-            this.material.color.b = 0;
-            this.material.opacity = 0.4;
-            this.wasOverlapping = false;
-            //}
+            if (this.wasOverlapping) {
+                this.sound.setVolume(0.0);
+                this.sound.pause();
+
+                this.material.color.r = 0;
+                this.material.color.g = 0;
+                this.material.color.b = 0;
+                this.material.opacity = 0.4;
+                this.wasOverlapping = false;
+
+            }
         }
     }
 
