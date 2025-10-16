@@ -7,18 +7,21 @@ import { SoundSource } from './SoundSource';
 export class SonarMachine extends GameObject {
 
     Awake() {
+        this.sonarViewerScale = 0.6;
+
         // Outer ring
-        this.geometry = new THREE.RingGeometry(0.59, 0.62);
+        this.geometry = new THREE.RingGeometry(0.95 * this.sonarViewerScale, this.sonarViewerScale);
         this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.1, 0.1) });
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.set(0, 0, 0);
 
+
         this.AddComponent(this.mesh);
 
         // Sonar viewer
         this.sonarViewController = GameObject.Instantiate(SonarViewController, this.transform, "Sonar ViewCone");
-        //this.sonarViewController.transform.scale.set(0.6, 0.6, 1);
+        this.sonarViewController.transform.scale.set(this.sonarViewerScale, this.sonarViewerScale, 1);
 
         // Knobs
         this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob");
@@ -49,18 +52,23 @@ export class SonarMachine extends GameObject {
         this.angleRangeKnob.SetPercentage(0.2);
 
         this.soundSources = [];
-        const numSources = 40;
+        const numSources = 10;
         const anglePerSource = Math.PI*2 / numSources;
+
+        this.soundSourceGroup = new THREE.Group();
+        this.transform.add(this.soundSourceGroup);
         var soundSource;
 
         for (let i = 0; i < numSources; i++) {
-            var soundSource = GameObject.Instantiate(SoundSource, this.transform, "Sound Source " + i);
-            const angle = anglePerSource * i;
-            soundSource.transform.position.x = Math.cos(angle) * 0.5;
-            soundSource.transform.position.y = Math.sin(angle) * 0.5;
+            soundSource = GameObject.Instantiate(SoundSource,  this.soundSourceGroup, "Sound Source " + i);
+            //const angle = anglePerSource * i;
+            //soundSource.transform.position.x = Math.cos(angle) * 0.5;
+            //soundSource.transform.position.y = Math.sin(angle) * 0.5;
             
             this.soundSources.push(soundSource);
         }
+
+        this.soundSourceGroup.scale.set(this.sonarViewerScale, this.sonarViewerScale, 1.0);
 
         this.testDelay = 0.1;
         this.testCountdown = this.testDelay;

@@ -21,6 +21,10 @@ export class Utils {
         return Math.max(a, Math.min(x, b));
     }
 
+    NormalizeAngle(angle) {
+        return (angle % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
+    }
+
     AngleInArc(angle, start, end) {
         const TAU = Math.PI * 2;
         const mod = (x, m) => ((x % m) + m) % m;
@@ -150,6 +154,70 @@ export class Utils {
 
     Lerp(a, b, t) {
         return a + (b - a) * t;
+    }
+
+    
+
+
+    CircleLineIntersections(slope, circleX, circleY, circleRadius) 
+    {
+        var a = 1 + slope * slope;
+        var b = 2 * (slope * (0 - circleY) - circleX);
+        var c = circleX * circleX + (0 - circleY) * (0 - circleY) - circleRadius * circleRadius;
+
+        var d = b * b - 4 * a * c;
+
+        if (d === 0) {
+            return [(-b + Math.sqrt(d)) / (2 * a)];
+        } else if (d > 0) {
+            return [(-b + Math.sqrt(d)) / (2 * a), (-b - Math.sqrt(d)) / (2 * a)];
+        } 
+
+        return [];
+    };
+
+    CircleCircleIntersectionPoints(c1x, c1y, r1, c2x, c2y, r2) {
+        const dx = c2x - c1x;
+        const dy = c2y - c1y;
+        const d = Math.sqrt(dx * dx + dy * dy); // Distance between circle centers
+
+        // Check for various intersection scenarios
+        if (d > r1 + r2) {
+            // Circles are too far apart, no intersection
+            return [];
+        }
+        if (d < Math.abs(r1 - r2)) {
+            // One circle is completely inside the other, no intersection
+            return [];
+        }
+        if (d === 0 && r1 === r2) {
+            // Circles are coincident, infinite intersection points (return empty array or handle as needed)
+            return [];
+        }
+
+        // Calculate the intersection points
+        const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+        const h = Math.sqrt(r1 * r1 - a * a);
+
+        const x2 = c1x + (dx * a) / d;
+        const y2 = c1y + (dy * a) / d;
+
+        const intersection1X = x2 + (dy * h) / d;
+        const intersection1Y = y2 - (dx * h) / d;
+
+        const intersection2X = x2 - (dy * h) / d;
+        const intersection2Y = y2 + (dx * h) / d;
+
+        if (h === 0) {
+            // Circles are tangent, only one intersection point
+            return [{ x: intersection1X, y: intersection1Y }];
+        } else {
+            // Two distinct intersection points
+            return [
+                { x: intersection1X, y: intersection1Y },
+                { x: intersection2X, y: intersection2Y }
+            ];
+        }
     }
 }
 

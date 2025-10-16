@@ -14,7 +14,7 @@ export class RenderManager extends Resizable {
 
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.shadowMap.enabled = true;
-        this.renderer.setPixelRatio( window.devicePixelRatio );
+        this.renderer.setPixelRatio( Math.min(window.devicePixelRatio, 3) );
         
         this.composer = new EffectComposer(this.renderer);
 
