@@ -78,7 +78,7 @@ export class SonarViewController extends GameObject {
         let startPoint = Math.max(effectiveDistance - halfDistanceRange, 0);
         let endPoint = Math.min(effectiveDistance + halfDistanceRange, 1);
 
-        const degreesPerSegment = 15;
+        const degreesPerSegment = 10;
         const segments = Math.ceil(this.angularSize / (degreesPerSegment * Math.PI/180));
 
         this.mesh.geometry = new THREE.RingGeometry(startPoint, endPoint, segments, 1, 0, this.angularSize);
@@ -173,5 +173,18 @@ export class SonarViewController extends GameObject {
         this.targetDistanceRange = distanceRange;
     }
 
+    GetArcParameters()
+    {
+        const halfDistanceRange = this.distanceRange * 0.5;
+        let effectiveDistance = Utils.instance.Lerp(halfDistanceRange, 1-halfDistanceRange, this.distance);
 
+        let innerRadius = Math.max(effectiveDistance - halfDistanceRange, 0);
+        let outerRadius = Math.min(effectiveDistance + halfDistanceRange, 1);
+        let thetaMin = this.angle - this.angularSize * 0.5;
+        let thetaMax = this.angle + this.angularSize * 0.5;
+        
+        return {
+            innerRadius, outerRadius, thetaMin, thetaMax
+        }
+    }
 }

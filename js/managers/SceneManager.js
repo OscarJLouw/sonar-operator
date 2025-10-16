@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { Resizable } from '../utils/ResizeHandler.js';
-import { Sphere } from '../components/Sphere.js';
 import { SonarMachine } from '../gameObjects/SonarMachine.js';
 import { GameObject } from '../gameObjects/GameObject.js';
 
