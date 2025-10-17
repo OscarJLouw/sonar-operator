@@ -31,8 +31,8 @@ export class PortalsController
         this.ambienceGain.connect(listener.getInput());
 
         // Create & load sounds
-        this.windSound  = this.MakeLoop("../../audio/Ambience_Wind_Intensity_Soft_Loop.ogg", 0.5);
-        this.oceanSound = this.MakeLoop("../../audio/Ambience_Waves_Ocean_Loop.ogg", 0.6);
+        this.windSound  = this.MakeLoop("../audio/Ambience_Wind_Intensity_Soft_Loop.ogg", 0.5);
+        this.oceanSound = this.MakeLoop("../audio/Ambience_Waves_Ocean_Loop.ogg", 0.6);
     }
 
     FadeInAmbience(targetVolume, fadeTime)
