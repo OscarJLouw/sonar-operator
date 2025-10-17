@@ -43,6 +43,8 @@ export class SceneManager extends Resizable {
         let sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
     }
 
+
+
     Update(deltaTime) {
     }
 

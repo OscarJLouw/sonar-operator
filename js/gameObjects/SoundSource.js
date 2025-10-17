@@ -42,7 +42,7 @@ export class SoundSource extends GameObject {
         // create a global audio source
         const sound = new THREE.Audio(SceneManager.instance.listener);
 
-
+        /*
         const soundList =
             [
                 "/audio/Ambience_Underworld_Voices_Loop.wav",
@@ -61,6 +61,13 @@ export class SoundSource extends GameObject {
                 "/audio/SpookyNoises/monster_roar_distant_3.mp3",
                 "/audio/SpookyNoises/Echo_Cymbal_02.wav",
             ];
+        */
+
+        const soundList =
+        [
+            "/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
+            "/audio/Ambience_Waves_Ocean_Loop.ogg"
+        ];
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 

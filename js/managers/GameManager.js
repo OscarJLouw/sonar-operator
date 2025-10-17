@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RenderManager } from './RenderManager.js';
 import { SceneManager } from './SceneManager.js';
 import { MouseHandler } from '../utils/MouseHandler.js';
+import { PortalsController } from './PortalsController.js';
         
 export class GameManager {
     constructor() {
@@ -27,7 +28,6 @@ export class GameManager {
         this.loader = new THREE.TextureLoader();
         this.clock = new THREE.Clock();
         this.clock.getDelta();
-
     }
 
     CreateManagers()
@@ -35,12 +35,23 @@ export class GameManager {
         this.sceneManager = new SceneManager();
         this.mouseHandler = new MouseHandler(this.sceneManager.camera);
         this.renderManager = new RenderManager(this.sceneManager, false);
+        this.portalsController = new PortalsController();
+
+        window.addEventListener('pointerdown', () => {
+            const ctx = SceneManager.instance.listener.context;
+            if (ctx.state === 'suspended') ctx.resume();
+        }, { once: true });
     }
 
     StartGame()
     {
+
+        this.portalsController.Start();
+
         this.renderManager.SetPixellation(6);
         this.renderManager.SetAnimationLoop(() => this.Update());
+
+        this.portalsController.FadeInAmbience(0.2, 3);
 
         this.sceneManager.Start();
     }
