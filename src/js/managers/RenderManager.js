@@ -6,12 +6,22 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
+import { SceneManager } from './SceneManager';
 
 export class RenderManager extends Resizable {
-    constructor(sceneManager, addPixelatePass = false) {
+    constructor() {
         super();
 
+        // Singleton pattern
+        if (!RenderManager.instance) {
+            RenderManager.instance = this;
+        }
+
+        return RenderManager.instance;
+    }
+
+    Setup(sceneManager, addPixelatePass = false)
+    {
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.shadowMap.enabled = true;
         this.renderer.setPixelRatio( Math.min(window.devicePixelRatio, 3) );
@@ -54,8 +64,44 @@ export class RenderManager extends Resizable {
 
     Resize(width, height, aspectRatio)
     {
-        this.renderer.setSize(width, height);
-        this.composer.setSize(width, height);
+        /*
+        let scaledWidth = width;
+        let scaledHeight = height;
+        if(width > height)
+        {
+            scaledWidth =  height * SceneManager.instance.targetAspectRatio;
+        } else {
+            scaledHeight = width * SceneManager.instance.targetAspectRatio;
+        }
+
+        
+        this.renderer.setSize(scaledWidth, scaledHeight);
+        this.composer.setSize(scaledWidth, scaledHeight);
+        
+
+        //this.renderer.setSize(width, height);
+        //this.composer.setSize(width, height);
+        */
+
+        const arTarget = SceneManager.instance.targetAspectRatio;
+
+        let scaledWidth;
+        let scaledHeight;
+
+        if (aspectRatio > arTarget) {
+            // window is wider than target → fit height
+            scaledHeight = height;
+            scaledWidth  = Math.round(height * arTarget);
+        } else {
+            // window is taller/narrower than target → fit width
+            scaledWidth  = width;
+            scaledHeight = Math.round(width / arTarget); // ← not w * arTarget
+        }
+
+        this.renderer.setSize(scaledWidth, scaledHeight);
+        this.composer.setSize(scaledWidth, scaledHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio ?? 1, 2));
+
         this.Render(0);
     }
 }

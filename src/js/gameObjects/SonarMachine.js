@@ -2,9 +2,14 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { SonarViewController } from './SonarViewController';
 import { Knob } from './Knob';
-import { SoundSource } from './SoundSource';
+import { UnderwaterObject } from './SoundSource';
 
 export class SonarMachine extends GameObject {
+
+    CreateSonarView()
+    {
+        
+    }
 
     Awake() {
         this.sonarViewerScale = 0.6;
@@ -60,7 +65,7 @@ export class SonarMachine extends GameObject {
         var soundSource;
 
         for (let i = 0; i < numSources; i++) {
-            soundSource = GameObject.Instantiate(SoundSource,  this.soundSourceGroup, "Sound Source " + i);
+            soundSource = GameObject.Instantiate(UnderwaterObject,  this.soundSourceGroup, "Sound Source " + i);
             //const angle = anglePerSource * i;
             //soundSource.transform.position.x = Math.cos(angle) * 0.5;
             //soundSource.transform.position.y = Math.sin(angle) * 0.5;

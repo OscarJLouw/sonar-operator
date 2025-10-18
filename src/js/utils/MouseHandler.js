@@ -1,12 +1,11 @@
 import * as THREE from 'three';
+import { RenderManager } from '../managers/RenderManager';
 
 export class MouseHandler {    
-    constructor(camera) {
+    constructor() {
         // Singleton pattern
         if (!MouseHandler.instance) {
             MouseHandler.instance = this;
-
-            this.Setup(camera);
         }
         return MouseHandler.instance;
     }
@@ -61,11 +60,24 @@ export class MouseHandler {
 
     UpdateMousePosition(mouseEvent)
     {
+        // this.renderer must be the same renderer you setSize() on
+        const rect = RenderManager.instance.renderer.domElement.getBoundingClientRect();
+
+        const nx = ( (mouseEvent.clientX - rect.left) / rect.width ) * 2 - 1;
+        const ny = -( (mouseEvent.clientY - rect.top) / rect.height ) * 2 + 1;
+
+        // Raycaster.setFromCamera uses x,y; z is ignored
+        this.mousePositionLast.copy(this.mousePosition);
+        this.mousePosition.set(nx, ny, 0.5);
+
+        /*
         this.mousePositionLast = this.mousePosition;
 
         this.mousePosition.x = ( mouseEvent.clientX / window.innerWidth ) * 2 - 1;
         this.mousePosition.y = -( mouseEvent.clientY / window.innerHeight ) * 2 + 1;
         this.mousePosition.z = -1;
+        */
+
     }
 
     OnMouseDown(mouseEvent)

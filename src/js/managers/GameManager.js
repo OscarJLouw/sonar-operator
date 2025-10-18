@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RenderManager } from './RenderManager.js';
 import { SceneManager } from './SceneManager.js';
+import { AudioManager } from './AudioManager.js';
 import { MouseHandler } from '../utils/MouseHandler.js';
 import { PortalsController } from './PortalsController.js';
         
@@ -17,9 +18,11 @@ export class GameManager {
     Setup() {
         this.gameObjects = new Map();
         this.gameObjectsToDestroy = [];
+        this.gameState = "Initialising";
 
         this.CreateGlobalComponents();
         this.CreateManagers();
+        this.MainMenu();
         this.StartGame();
     }
 
@@ -33,27 +36,41 @@ export class GameManager {
     CreateManagers()
     {
         this.sceneManager = new SceneManager();
-        this.mouseHandler = new MouseHandler(this.sceneManager.camera);
-        this.renderManager = new RenderManager(this.sceneManager, false);
+        this.sceneManager.Setup(1.3333333);
+        this.audioManager = new AudioManager();
+        this.audioManager.Setup(this.sceneManager.camera);
+        this.renderManager = new RenderManager();
+        this.renderManager.Setup(this.sceneManager, false);
+        this.mouseHandler = new MouseHandler();
+        this.mouseHandler.Setup(this.sceneManager.camera);
         this.portalsController = new PortalsController();
 
         window.addEventListener('pointerdown', () => {
-            const ctx = SceneManager.instance.listener.context;
+            const ctx = this.audioManager.listener.context;
             if (ctx.state === 'suspended') ctx.resume();
         }, { once: true });
     }
 
+    MainMenu()
+    {
+        this.StartGame();
+
+    }
+
     StartGame()
     {
+        this.gameState = "MainMenu";
 
-        this.portalsController.Start();
-
-        this.renderManager.SetPixellation(6);
+        //this.renderManager.SetPixellation(6);
         this.renderManager.SetAnimationLoop(() => this.Update());
 
-        this.portalsController.FadeInAmbience(0.2, 3);
+        this.audioManager.Start();
+        this.audioManager.FadeInAmbience(0.2, 3);
 
-        this.sceneManager.Start();
+        this.sceneManager.CreateSonarView();
+
+        // 
+
     }
 
     Update() {

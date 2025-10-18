@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { SceneManager } from '../managers/SceneManager';
 import { Utils } from '../utils/Utils';
+import { AudioManager } from '../managers/AudioManager';
 
-export class SoundSource extends GameObject {
+export class UnderwaterObject extends GameObject {
     // Life Cycle
     Awake() {
         this.events = new EventTarget();
@@ -40,7 +41,7 @@ export class SoundSource extends GameObject {
 
     Start() {
         // create a global audio source
-        const sound = new THREE.Audio(SceneManager.instance.listener);
+        const sound = new THREE.Audio(AudioManager.instance.listener);
 
         /*
         const soundList =
@@ -71,7 +72,7 @@ export class SoundSource extends GameObject {
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 
-        SceneManager.instance.audioLoader.load(randomSound,
+        AudioManager.instance.audioLoader.load(randomSound,
             function (buffer) {
                 sound.setBuffer(buffer);
                 sound.setLoop(true);

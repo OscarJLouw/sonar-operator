@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Resizable } from '../utils/ResizeHandler.js';
-import { SonarMachine } from '../gameObjects/SonarMachine.js';
 import { GameObject } from '../gameObjects/GameObject.js';
+import { SonarMachine } from '../gameObjects/SonarMachine.js';
 
 export class SceneManager extends Resizable {
     constructor() {
@@ -10,50 +10,67 @@ export class SceneManager extends Resizable {
         // Singleton pattern
         if (!SceneManager.instance) {
             SceneManager.instance = this;
-            this.Setup();
-
         }
 
         return SceneManager.instance;
     }
 
-    Setup()
+    Setup(targetAspectRatio)
     {
+        this.targetAspectRatio = targetAspectRatio;
+
         this.scene = new THREE.Scene();
         //this.scene.background = new THREE.Color(0x151729);
 
-        this.camera = new THREE.OrthographicCamera(-this.aspectRatio, this.aspectRatio, 1, - 1, 0.1, 10);
+        this.camera = new THREE.OrthographicCamera(-this.targetAspectRatio, this.targetAspectRatio, 1, - 1, 0.1, 10);
         this.camera.position.z = 2;
         this.Resize(this.width, this.height, this.aspectRatio);
-
-        // create an AudioListener and add it to the camera
-        this.listener = new THREE.AudioListener();
-        this.camera.add( this.listener );
-
-        // load a sound and set it as the Audio object's buffer
-        this.audioLoader = new THREE.AudioLoader();
-    }
-
-    Start() {
-        // Add components to the scene
-        //let sphere = new Sphere(this.scene);
-
         this.scene.add(new THREE.AmbientLight(0xffffff, 1));
-
-        let sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
     }
 
+    CreateSonarView() {
+        this.sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
+    }
 
+    ActivateSonarView(active)
+    {
+        active ? this.sonarMachine.Show() : this.sonarMachine.Hide();
+    }
 
     Update(deltaTime) {
+
     }
 
     Resize(width, height, aspectRatio)
     {
+
+        this.camera.left = -this.targetAspectRatio;
+        this.camera.right = this.targetAspectRatio;
+        this.camera.top = 1;
+        this.camera.bottom = -1;
+
+            /*
+        if(width > height)
+        {
+            this.camera.left = -this.targetAspectRatio;
+            this.camera.right = this.targetAspectRatio;
+            this.camera.top = 1;
+            this.camera.bottom = -1;
+        } else {
+            this.camera.left = -1;
+            this.camera.right = 1;
+            this.camera.top = this.targetAspectRatio;
+            this.camera.bottom = -this.targetAspectRatio;
+        }
+        */
+
+        /*
         this.camera.left = -aspectRatio;
         this.camera.right = aspectRatio;
         this.camera.top = 1;
         this.camera.bottom = -1;
+        */
+
         this.camera.updateProjectionMatrix();
     }
 }
