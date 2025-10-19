@@ -3,6 +3,7 @@ import { GameObject } from './GameObject';
 import { Utils } from '../utils/Utils';
 import { Draggable } from '../utils/MouseHandler';
 import { SceneManager } from '../managers/SceneManager';
+import { MeshManager } from '../managers/MeshManager';
 
 export class Knob extends GameObject {
     // Life Cycle
@@ -25,14 +26,14 @@ export class Knob extends GameObject {
         this.maxRotation = Math.PI * 2;
 
         // Meshes
-        this.knobGeometry = new THREE.RingGeometry(0, 0.85, 32);
-        this.knobMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
+        this.knobGeometry = MeshManager.instance.knobGeometry; //new THREE.RingGeometry(0, 0.85, 32);
+        this.knobMaterial = MeshManager.instance.knobMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
         this.knobMesh = new THREE.Mesh(this.knobGeometry, this.knobMaterial);
         this.knobMesh.position.set(0, 0, -0.2);
         this.AddComponent(this.knobMesh);
 
-        this.indicatorGeometry = new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
-        this.indicatorMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
+        this.indicatorGeometry = MeshManager.instance.indicatorGeometry; //new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
+        this.indicatorMaterial = MeshManager.instance.indicatorMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.indicatorMesh = new THREE.Mesh(this.indicatorGeometry, this.indicatorMaterial);
         this.indicatorMesh.position.set(0, 0, -0.1);
         this.indicatorMesh.rotateZ(-Math.PI * 0.1);
@@ -143,7 +144,7 @@ export class Knob extends GameObject {
         //this.transform.setRotationFromAxisAngle(Utils.forward, this.targetAngle + this.startRotationOffset);
     }
 
-    OnMouseUp(mousePosition) {
+    OnMouseUp(mousePosition, hovered) {
         if (this.useRelativeRotation) {
             this.targetAngle = this.currentAngle - this.startRotationOffset;
         } else {

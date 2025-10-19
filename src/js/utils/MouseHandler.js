@@ -102,7 +102,6 @@ export class MouseHandler {
 
                 if(intersections.length > 0)
                 {
-
                     this.dragging = true;
                     this.draggingObjects.push(draggable);
 
@@ -139,8 +138,19 @@ export class MouseHandler {
 
         if(this.dragging)
         {
+            
+            this.raycaster.setFromCamera(this.mousePosition, this.camera);
+
+
             this.draggingObjects.forEach(releasedObject => {
-                releasedObject.OnMouseUp(this.mousePosition);
+                this.intersectionResults.length = 0;
+                const intersections = this.raycaster.intersectObject(releasedObject.raycastTarget, false, this.intersectionResults);
+                if(intersections.length > 0)
+                {
+                    releasedObject.OnMouseUp(this.mousePosition, true);
+                } else {
+                    releasedObject.OnMouseUp(this.mousePosition, false);
+                }
             });
 
             this.dragging = false;
@@ -194,14 +204,15 @@ export class Draggable extends EventTarget {
         }
     }
 
-    OnMouseUp(mousePosition)
+    OnMouseUp(mousePosition, hovered)
     {
         this.dragging = false;
         this.mousePosition.copy(mousePosition);
-
+        
         const mouseUpEvent = new CustomEvent("onMouseUp", {
             detail: {
-                mousePosition: this.mousePosition
+                mousePosition: this.mousePosition,
+                hovered: hovered
             }
         });
 

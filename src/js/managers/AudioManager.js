@@ -1,86 +1,108 @@
 import * as THREE from 'three';
 import { SceneManager } from './SceneManager.js';
 
-export class AudioManager 
-{
-    constructor() {
-        // Singleton pattern
-        if (!AudioManager.instance) {
-            AudioManager.instance = this;
-        }
-
-        return AudioManager.instance;
+export class AudioManager {
+  constructor() {
+    if (!AudioManager.instance) {
+      AudioManager.instance = this;
     }
+    return AudioManager.instance;
+  }
 
-    Setup(camera)
-    {
-        // create an AudioListener and add it to the camera
-        this.listener = new THREE.AudioListener();
-        camera.add( this.listener );
+  manifest = {
+    wind:  { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true },
+    ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg',        volume: 0.6, loop: true },
+    // add more: uiClick, explosion, etc...
+  };
 
-        // load a sound and set it as the Audio object's buffer
-        this.audioLoader = new THREE.AudioLoader();
+  async Setup(camera) {
+    // Listener
+    this.listener = new THREE.AudioListener();
+    camera.add(this.listener);
+
+    // Loader
+    this.audioLoader = new THREE.AudioLoader();
+    this.audioContext = this.listener.context;
+
+    // Ambience bus (starts near zero)
+    this.ambienceGain = this.audioContext.createGain();
+    this.ambienceGain.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
+    this.ambienceGain.connect(this.listener.getInput());
+
+    // 1) Preload + decode all buffers
+    this.buffers = await this.#preloadAll(this.manifest);
+
+    // 2) Build THREE.Audio objects (not playing yet)
+    this.sounds = this.#buildSounds(this.buffers, this.manifest);
+  }
+
+  async Start() {
+    await this.#unlockAudio();
+
+    // Start loops if not already started
+    const loopKeys = ['wind', 'ocean'];
+    for (const k of loopKeys) {
+      const s = this.sounds?.[k];
+      if (s && !s.isPlaying) s.play();
     }
+  }
 
-    Start(){
-        this.CreateAmbientSounds();
+  FadeInAmbience(targetVolume, fadeTime) {
+    const p = this.ambienceGain.gain;
+    const now = this.audioContext.currentTime;
+    const v0 = Math.max(0.0001, p.value);
+
+    p.cancelScheduledValues(now);
+    p.setValueAtTime(v0, now);
+    p.linearRampToValueAtTime(targetVolume, now + fadeTime);
+  }
+
+  FadeOutAmbience(fadeTime) {
+    const p = this.ambienceGain.gain;
+    const now = this.audioContext.currentTime;
+    const v0 = Math.max(0.0001, p.value);
+
+    p.cancelScheduledValues(now);
+    p.setValueAtTime(v0, now);
+    p.linearRampToValueAtTime(0.0001, now + fadeTime);
+  }
+
+  // ---------- internals ----------
+
+  async #preloadAll(manifest) {
+    const entries = Object.entries(manifest);
+    const buffers = await Promise.all(
+      entries.map(async ([key, spec]) => {
+        const buffer = await this.audioLoader.loadAsync(spec.path);
+        return [key, buffer];
+      })
+    );
+    return Object.fromEntries(buffers);
+  }
+
+  #buildSounds(buffers, manifest) {
+    const out = {};
+    for (const [key, spec] of Object.entries(manifest)) {
+      const sound = new THREE.Audio(this.listener);
+      sound.setBuffer(buffers[key]);
+      sound.setLoop(!!spec.loop);
+      sound.setVolume(spec.volume ?? 1.0);
+
+      // Route through ambience bus (so we can group-fade)
+      sound.setFilters([this.ambienceGain]);
+
+      out[key] = sound;
     }
+    return out;
+  }
 
-    CreateAmbientSounds()
-    {
-        const listener = this.listener;
-
-        // Use the SAME context as the Three.js listener
-        this.audioContext = listener.context;
-
-        // Group gain for ambience (start near zero; avoid 0 for exponential ramps)
-        this.ambienceGain = this.audioContext.createGain();
-        this.ambienceGain.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
-
-        // Route ambience group into the listener's input (NOT the AudioContext directly)
-        this.ambienceGain.connect(listener.getInput());
-
-        // Create & load sounds
-        this.windSound  = this.MakeLoop("./audio/Ambience_Wind_Intensity_Soft_Loop.ogg", 0.5);
-        this.oceanSound = this.MakeLoop("./audio/Ambience_Waves_Ocean_Loop.ogg", 0.6);
+  async #unlockAudio() {
+    try {
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+    } catch (e) {
+      console.warn('Audio resume failed:', e);
     }
-
-    FadeInAmbience(targetVolume, fadeTime)
-    {
-        const p = this.ambienceGain.gain;
-        const now = this.audioContext.currentTime;
-        const v0 = Math.max(0.0001, p.value);
-
-        p.cancelScheduledValues(now);
-        p.setValueAtTime(v0, now);
-        // Use linear ramp for predictable fades; swap to exponential if you prefer
-        p.linearRampToValueAtTime(targetVolume, now + fadeTime);
-
-        /*
-        this.windSound.play();
-        this.oceanSound.play();
-        this.windSound.connect(this.ambienceGain);
-        this.oceanSound.connect(this.ambienceGain);
-
-        this.ambienceGain.gain.exponentialRampToValueAtTime(targetVolume, this.audioContext.currentTime + time);
-        */
-    }
-
-    MakeLoop(path, volume = 0)
-    {
-        const listener = this.listener;
-        const sound = new THREE.Audio(listener);
-
-        this.audioLoader.load(path, (buffer) => {
-            sound.setBuffer(buffer);
-            sound.setLoop(true);
-            sound.setVolume(volume);
-
-            sound.setFilters([ this.ambienceGain ]);
-
-            sound.play(); // safe to autoplay; page may still require a user gesture to resume context
-        });
-
-        return sound;
-    }
+  }
 }

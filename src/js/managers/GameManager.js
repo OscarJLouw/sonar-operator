@@ -4,7 +4,10 @@ import { SceneManager } from './SceneManager.js';
 import { AudioManager } from './AudioManager.js';
 import { MouseHandler } from '../utils/MouseHandler.js';
 import { PortalsController } from './PortalsController.js';
-        
+import { MainMenu } from '../gameObjects/UI/MainMenu.js';
+import { GameObject } from '../gameObjects/GameObject.js';
+import { MeshManager } from './MeshManager.js';
+
 export class GameManager {
     constructor() {
         // Singleton pattern
@@ -15,35 +18,39 @@ export class GameManager {
         return GameManager.instance;
     }
 
-    Setup() {
+    async Setup() {
         this.gameObjects = new Map();
         this.gameObjectsToDestroy = [];
         this.gameState = "Initialising";
 
         this.CreateGlobalComponents();
-        this.CreateManagers();
+        await this.CreateManagers();
+        this.InitialiseGame();
         this.MainMenu();
-        this.StartGame();
+        //this.StartGame();
     }
 
-    CreateGlobalComponents()
-    {
+    CreateGlobalComponents() {
         this.loader = new THREE.TextureLoader();
         this.clock = new THREE.Clock();
         this.clock.getDelta();
     }
 
-    CreateManagers()
-    {
+    async CreateManagers() {
         this.sceneManager = new SceneManager();
         this.sceneManager.Setup(1.3333333);
+        this.meshManager = new MeshManager();
+        await this.meshManager.Setup();
         this.audioManager = new AudioManager();
-        this.audioManager.Setup(this.sceneManager.camera);
+        await this.audioManager.Setup(this.sceneManager.camera);
         this.renderManager = new RenderManager();
         this.renderManager.Setup(this.sceneManager, false);
         this.mouseHandler = new MouseHandler();
         this.mouseHandler.Setup(this.sceneManager.camera);
         this.portalsController = new PortalsController();
+
+        this.mainMenu = GameObject.Instantiate(MainMenu, this.sceneManager.scene, "Main Menu");
+        this.mainMenu.Setup(this);
 
         window.addEventListener('pointerdown', () => {
             const ctx = this.audioManager.listener.context;
@@ -51,18 +58,21 @@ export class GameManager {
         }, { once: true });
     }
 
-    MainMenu()
+    InitialiseGame()
     {
-        this.StartGame();
-
+        this.renderManager.SetAnimationLoop(() => this.Update());
     }
 
-    StartGame()
-    {
-        this.gameState = "MainMenu";
+    MainMenu() {
+        this.gameState = "Main Menu";
+        this.mainMenu.Show();
+        //this.StartGame();
+    }
 
+    StartGame() {
+
+        this.gameState = "Starting";
         //this.renderManager.SetPixellation(6);
-        this.renderManager.SetAnimationLoop(() => this.Update());
 
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
@@ -79,16 +89,14 @@ export class GameManager {
         this.sceneManager.Update(deltaTime);
 
         this.gameObjects.forEach(gameObject => {
-            if(gameObject.enabled)
-            {
+            if (gameObject.enabled) {
                 gameObject.Update(deltaTime);
             }
         });
 
         this.renderManager.Render(deltaTime);
 
-        if(this.gameObjectsToDestroy.length > 0)
-        {
+        if (this.gameObjectsToDestroy.length > 0) {
             // clean up destroyed gameObjects
             this.gameObjectsToDestroy.forEach(gameObject => {
                 this.gameObjects.delete(gameObject.id);
@@ -98,14 +106,12 @@ export class GameManager {
         }
     }
 
-    RegisterGameObject(gameObject)
-    {
+    RegisterGameObject(gameObject) {
         console.log("Registered GameObject " + gameObject.name + " with id " + gameObject.id);
         this.gameObjects.set(gameObject.id, gameObject);
     }
 
-    DestroyGameObject(gameObject)
-    {
+    DestroyGameObject(gameObject) {
         this.gameObjectsToDestroy.push(gameObject);
         gameObject.SetActive(false);
     }

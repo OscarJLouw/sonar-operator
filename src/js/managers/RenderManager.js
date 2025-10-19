@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import { Resizable } from '../utils/ResizeHandler';
-
-
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
@@ -25,7 +23,11 @@ export class RenderManager extends Resizable {
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.shadowMap.enabled = true;
         this.renderer.setPixelRatio( Math.min(window.devicePixelRatio, 3) );
-        
+
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.toneMapping = THREE.NoToneMapping; 
+        this.renderer.toneMappingExposure = 1.0;
+
         this.composer = new EffectComposer(this.renderer);
 
         if(addPixelatePass)
@@ -64,25 +66,10 @@ export class RenderManager extends Resizable {
 
     Resize(width, height, aspectRatio)
     {
-        /*
-        let scaledWidth = width;
-        let scaledHeight = height;
-        if(width > height)
-        {
-            scaledWidth =  height * SceneManager.instance.targetAspectRatio;
-        } else {
-            scaledHeight = width * SceneManager.instance.targetAspectRatio;
-        }
-
-        
-        this.renderer.setSize(scaledWidth, scaledHeight);
-        this.composer.setSize(scaledWidth, scaledHeight);
-        
-
         //this.renderer.setSize(width, height);
         //this.composer.setSize(width, height);
-        */
-
+        //this.Render(0);
+        
         const arTarget = SceneManager.instance.targetAspectRatio;
 
         let scaledWidth;
