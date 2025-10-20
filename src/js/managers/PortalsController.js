@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { SceneManager } from './SceneManager.js';
 
-export class PortalsController 
-{
+export class PortalsController {
     constructor() {
         // Singleton pattern
         if (!PortalsController.instance) {
@@ -12,8 +11,33 @@ export class PortalsController
         return PortalsController.instance;
     }
 
-    Setup()
-    {
-        
+    TaskStates = {
+        AnyToNotActive: "ToNotActive",
+        AnyToActive: "SetAnyToActive",
+        AnyToComplete: "SetAnyToCompleted",
+
+        NotActiveToActive: "SetNotActiveToActive",
+        NotActiveToComplete: "SetNotActiveToCompleted",
+
+        ActiveToNotActive: "SetActiveToNotActive",
+        ActiveToComplete: "SetActiveToCompleted",
+
+        CompleteToNotActive: "SetCompletedToNotActive",
+        CompleteToActive: "SetCompletedToActive",
+    }
+
+    Setup() {
+    }
+
+    StartGame() {
+        this.SendMessage("StartGame", this.TaskStates.NotActiveToActive);
+    }
+
+    SendMessage(taskName, targetState) {
+        const message = {
+            TaskName: taskName,
+            TaskTargetState: targetState
+        };
+        PortalsSdk.sendMessageToUnity(JSON.stringify(message));
     }
 }

@@ -74,6 +74,8 @@ export class GameManager {
         this.gameState = "Starting";
         //this.renderManager.SetPixellation(6);
 
+        this.portalsController.StartGame();
+
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
