@@ -93,7 +93,10 @@ export class GameManager {
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
+        this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
+
         this.sceneManager.CreateSonarView();
+        // this.sceneManager.ActivateSonarView(false); // TODO: Hide sonar machine
 
         // 
 

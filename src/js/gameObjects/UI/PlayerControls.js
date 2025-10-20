@@ -4,68 +4,95 @@ import { Button } from "./Button";
 
 export class PlayerControls extends GameObject {
     Setup(playerMovementController) {
+        this.events = new EventTarget();
+
         this.playerMovementController = playerMovementController;
 
+        this.buttons = new Map();
+
+        this.forwardsButton = this.CreateButton("Forwards Button", playerMovementController.directions.Forward);
+        this.forwardsButton.transform.position.set(0, -0.5, 0);
+
         this.backwardsButton = this.CreateButton("Backwards Button", playerMovementController.directions.Back);
+        this.backwardsButton.transform.position.set(0, -0.8, 0);
 
-        this.buttons = 
-        [
-            this.backwardsButton
-        ];
+        this.leftButton = this.CreateButton("Left Button", playerMovementController.directions.Left);
+        this.leftButton.transform.position.set(-0.4, -0.65, 0);
 
-        this.Hide();
+        this.rightButton = this.CreateButton("Right Button", playerMovementController.directions.Right);
+        this.rightButton.transform.position.set(0.4, -0.65, 0);
+
+        this.rotateLeftButton = this.CreateButton("Rotate Left Button", playerMovementController.directions.RotateLeft);
+        this.rotateLeftButton.transform.position.set(-0.8, -0.8, 0);
+
+        this.rotateRightButton = this.CreateButton("Rotate Right Button", playerMovementController.directions.RotateRight);
+        this.rotateRightButton.transform.position.set(0.8, -0.8, 0);
+
+        this.HideAll();
+
+        this.handleStateChange = event => this.OnStateChange(event.detail.previousState, event.detail.newState);
+        this.playerMovementController.addEventListener("onEnterState", this.handleStateChange);
     }
 
-
-    CreateButton(buttonName, moveDirection)
-    {
+    CreateButton(buttonName, moveDirection) {
         var newButton = GameObject.Instantiate(Button, this.transform, buttonName);
-        newButton.SetClickAction(this.playerMovementController.Move.bind(null, moveDirection));
+        newButton.direction = moveDirection;
+        newButton.SetClickAction(this.playerMovementController.Move.bind(this.playerMovementController, moveDirection));
 
-        const size = 0.4;
-        newButton.transform.scale.set(size * 3.38659793814, size, 0.1);
-        newButton.transform.position.set(0, -0.5, 0);
+        const size = 0.3;
+        newButton.transform.scale.set(size, size, 0.1);
         newButton.material.color.setHex(0x00ff00);
 
+        this.buttons.set(moveDirection, newButton);
         return newButton;
     }
 
+    ShowButton(direction) {
+        var button = this.buttons.get(direction);
 
-    ShowForwardButton(visible) {
-
+        if (button != undefined) {
+            button.Show();
+        }
     }
 
-    ShowBackButton(visible) {
+    HideButton(direction) {
+        var button = this.buttons.get(direction);
 
+        if (button != undefined) {
+            button.Hide();
+        }
     }
 
-    ShowLeftButton(visible) {
-
-    }
-
-    ShowRightButton(visible) {
-
-    }
-
-    ShowRotateLeftButton(visible) {
-
-    }
-
-    ShowRotateRightButton(visible) {
-
-    }
-
-    ButtonClicked(button)
-    {
+    ButtonClicked(button) {
         playerMovementController.Move(button.direction);
     }
 
-    Show() {
+    ShowAll() {
+        this.buttons.forEach((button, direction) => {
+            button.Show();
+        });
     }
 
-    Hide() {
-        this.buttons.forEach(button => {
+    HideAll() {
+        this.buttons.forEach((button, direction) => {
             button.Hide();
         });
     }
+
+    OnStateChange(previousState, newState) {
+        this.HideAll();
+
+        var exits = this.playerMovementController.GetExits(newState);
+
+        exits.forEach((exit) => {
+            this.ShowButton(exit.direction);
+        });
+
+    }
+
+
+    // Events
+    addEventListener(...args) { this.events.addEventListener(...args); }
+    removeEventListener(...args) { this.events.removeEventListener(...args); }
+    dispatchEvent(event) { return this.events.dispatchEvent(event); }
 }

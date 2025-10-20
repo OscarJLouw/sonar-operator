@@ -4,7 +4,7 @@ import { SceneManager } from '../managers/SceneManager';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../managers/AudioManager';
 
-export class UnderwaterObject extends GameObject {
+export class SonarTarget extends GameObject {
     // Life Cycle
     Awake() {
         this.events = new EventTarget();

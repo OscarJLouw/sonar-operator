@@ -11,22 +11,23 @@ export class PortalsController {
         return PortalsController.instance;
     }
 
-    TaskStates = {
-        AnyToNotActive: "ToNotActive",
-        AnyToActive: "SetAnyToActive",
-        AnyToComplete: "SetAnyToCompleted",
 
-        NotActiveToActive: "SetNotActiveToActive",
-        NotActiveToComplete: "SetNotActiveToCompleted",
-
-        ActiveToNotActive: "SetActiveToNotActive",
-        ActiveToComplete: "SetActiveToCompleted",
-
-        CompleteToNotActive: "SetCompletedToNotActive",
-        CompleteToActive: "SetCompletedToActive",
-    }
 
     Setup() {
+        this.TaskStates = {
+            AnyToNotActive: "ToNotActive",
+            AnyToActive: "SetAnyToActive",
+            AnyToComplete: "SetAnyToCompleted",
+
+            NotActiveToActive: "SetNotActiveToActive",
+            NotActiveToComplete: "SetNotActiveToCompleted",
+
+            ActiveToNotActive: "SetActiveToNotActive",
+            ActiveToComplete: "SetActiveToCompleted",
+
+            CompleteToNotActive: "SetCompletedToNotActive",
+            CompleteToActive: "SetCompletedToActive",
+        }
     }
 
     StartGame() {

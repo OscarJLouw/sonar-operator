@@ -1,7 +1,9 @@
 import { PortalsController } from "./PortalsController";
 
-export class PlayerMovementController {
+export class PlayerMovementController extends EventTarget {
     constructor() {
+        super();
+
         // Singleton pattern
         if (!PlayerMovementController.instance) {
             PlayerMovementController.instance = this;
@@ -20,8 +22,13 @@ export class PlayerMovementController {
             RotateRight: "Rotate Right"
         }
 
-        this.cameraStates =
+        this.states =
         {
+            None:
+            {
+                taskName: "None"
+            },
+
             Entry:
             {
                 taskName: "P01_Entry",
@@ -56,128 +63,166 @@ export class PlayerMovementController {
         // Define exit arrow directions
         this.stateExits = new Map();
 
+        // Null state, where all arrows are hidden
+        this.stateExits.set(this.states.None, []);
+
+
         // Entry state
-        this.stateExits.set(this.cameraStates.Entry,
+        this.stateExits.set(this.states.Entry,
             [
                 {
                     direction: this.directions.Forward,
-                    targetState: this.cameraStates.SittingAtSonar
+                    targetState: this.states.SittingAtSonar
                 },
                 {
                     direction: this.directions.Left,
-                    targetState: this.cameraStates.Desk
+                    targetState: this.states.Desk
                 },
                 {
                     direction: this.directions.Right,
-                    targetState: this.cameraStates.Porthole
+                    targetState: this.states.Porthole
                 },
                 {
                     direction: this.directions.RotateLeft,
-                    targetState: this.cameraStates.Door
+                    targetState: this.states.Door
                 },
                 {
                     direction: this.directions.RotateRight,
-                    targetState: this.cameraStates.Door
+                    targetState: this.states.Door
                 }
             ]
         );
 
         // Door 
-        this.stateExits.set(this.cameraStates.Door,
+        this.stateExits.set(this.states.Door,
             [
                 {
                     direction: this.directions.RotateLeft,
-                    targetState: this.cameraStates.Entry
+                    targetState: this.states.Entry
                 },
                 {
                     direction: this.directions.RotateRight,
-                    targetState: this.cameraStates.Entry
+                    targetState: this.states.Entry
                 }
             ]
         );
 
         // Sitting at sonar
-        this.stateExits.set(this.cameraStates.SittingAtSonar,
+        this.stateExits.set(this.states.SittingAtSonar,
             [
                 {
                     direction: this.directions.Forward,
-                    targetState: this.cameraStates.UsingSonar
+                    targetState: this.states.UsingSonar
                 },
                 {
                     direction: this.directions.RotateLeft,
-                    targetState: this.cameraStates.Desk
+                    targetState: this.states.Desk
                 },
                 {
                     direction: this.directions.RotateRight,
-                    targetState: this.cameraStates.FacingRoomFromSitting
+                    targetState: this.states.FacingRoomFromSitting
                 }
             ]
         );
 
         // Using sonar
-        this.stateExits.set(this.cameraStates.UsingSonar,
+        this.stateExits.set(this.states.UsingSonar,
             [
                 {
                     direction: this.directions.Back,
-                    targetState: this.cameraStates.SittingAtSonar
+                    targetState: this.states.SittingAtSonar
                 }
             ]
         );
 
         // Desk
-        this.stateExits.set(this.cameraStates.Desk,
-            [{
-                direction: this.directions.RotateLeft,
-                targetState: this.cameraStates.FacingRoomFromSitting
-            },
-            {
-                direction: this.directions.RotateRight,
-                targetState: this.cameraStates.SittingAtSonar
-            }
+        this.stateExits.set(this.states.Desk,
+            [
+                {
+                    direction: this.directions.RotateLeft,
+                    targetState: this.states.FacingRoomFromSitting
+                },
+                {
+                    direction: this.directions.RotateRight,
+                    targetState: this.states.SittingAtSonar
+                }
             ]
         );
 
         // Facing Room From Sitting
-        this.stateExits.set(this.cameraStates.FacingRoomFromSitting,
+        this.stateExits.set(this.states.FacingRoomFromSitting,
             [
                 {
                     direction: this.directions.Left,
-                    targetState: this.cameraStates.Porthole
+                    targetState: this.states.Porthole
                 },
                 {
                     direction: this.directions.Right,
-                    targetState: this.cameraStates.Door
+                    targetState: this.states.Door
                 },
                 {
                     direction: this.directions.RotateLeft,
-                    targetState: this.cameraStates.SittingAtSonar
+                    targetState: this.states.SittingAtSonar
                 },
                 {
                     direction: this.directions.RotateRight,
-                    targetState: this.cameraStates.Desk
+                    targetState: this.states.Desk
                 }
             ]
         );
 
         // Porthole
-        this.stateExits.set(this.cameraStates.Porthole,
+        this.stateExits.set(this.states.Porthole,
             [
                 {
                     direction: this.directions.Back,
-                    targetState: this.cameraStates.FacingRoomFromSitting
+                    targetState: this.states.FacingRoomFromSitting
                 }
             ]
         );
 
-        this.currentState = this.cameraStates.Entry;
+        this.EnterState(this.states.None);
     }
 
-    Move(direction)
-    {
+    EnterState(targetState) {
+        const onEnterStateEvent = new CustomEvent("onEnterState",
+            {
+                detail: {
+                    previousState: this.currentState,
+                    newState: targetState
+                }
+            });
+
+        this.dispatchEvent(onEnterStateEvent);
+
+        this.currentState = targetState;
+
+        if (targetState == this.stateExits.None) {
+            this.exits = null;
+            return;
+        }
+
+        this.exits = this.GetExits(this.currentState);
+        this.MoveToCamera(this.currentState.taskName);
+    }
+
+    GetExits(state) {
+        var exits = this.stateExits.get(state);
+        if (exits === undefined) {
+            console.log("State exits not found for " + state + "!");
+            return null;
+        }
+
+        return exits;
+    }
+
+    Move(direction) {
+        var targetState = this.exits.find(x => x.direction == direction).targetState;
         console.log(direction);
+        this.EnterState(targetState);
     }
 
     MoveToCamera(cameraStateName) {
-        PortalsController.instance.SendMessage(cameraStateName, PortalsController.TaskStates.AnyToCompleted);
+        PortalsController.instance.SendMessage(cameraStateName, PortalsController.instance.TaskStates.AnyToCompleted);
     }
 }
