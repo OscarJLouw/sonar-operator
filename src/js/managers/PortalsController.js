@@ -11,8 +11,6 @@ export class PortalsController {
         return PortalsController.instance;
     }
 
-
-
     Setup() {
         this.TaskStates = {
             AnyToNotActive: "ToNotActive",
@@ -40,5 +38,7 @@ export class PortalsController {
             TaskTargetState: targetState
         };
         PortalsSdk.sendMessageToUnity(JSON.stringify(message));
+
+        console.log("Set task: " + taskName + " to " + targetState);
     }
 }

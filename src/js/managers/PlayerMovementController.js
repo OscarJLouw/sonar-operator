@@ -203,7 +203,7 @@ export class PlayerMovementController extends EventTarget {
         }
 
         this.exits = this.GetExits(this.currentState);
-        this.MoveToCamera(this.currentState.taskName);
+        this.MoveToCamera(this.currentState);
     }
 
     GetExits(state) {
@@ -218,11 +218,10 @@ export class PlayerMovementController extends EventTarget {
 
     Move(direction) {
         var targetState = this.exits.find(x => x.direction == direction).targetState;
-        console.log(direction);
         this.EnterState(targetState);
     }
 
-    MoveToCamera(cameraStateName) {
-        PortalsController.instance.SendMessage(cameraStateName, PortalsController.instance.TaskStates.AnyToCompleted);
+    MoveToCamera(cameraState) {
+        PortalsController.instance.SendMessage(cameraState.taskName, PortalsController.instance.TaskStates.AnyToComplete);
     }
 }
