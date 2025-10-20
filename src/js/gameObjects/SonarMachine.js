@@ -50,13 +50,16 @@ export class SonarMachine extends GameObject {
         this.distanceRangeKnob.transform.scale.set(0.15, 0.15, 1);
         this.distanceRangeKnob.SetClampRotation(true, 0, Math.PI);
         this.distanceRangeKnob.SetRelativeRotationControl(false);
+
+        // Sound sources
+        this.soundSources = [];
+
     }
 
     Start() {
         this.angleKnob.SetAngle(-Math.PI / 2);
         this.angleRangeKnob.SetPercentage(0.2);
 
-        this.soundSources = [];
         const numSources = 10;
         const anglePerSource = Math.PI*2 / numSources;
 
@@ -80,11 +83,18 @@ export class SonarMachine extends GameObject {
 
     }
 
-    Update(deltaTime) {
-
+    Update(deltaTime) 
+    {
         this.testCountdown -= deltaTime;
         if(this.testCountdown<= 0)
         {
+            this.testCountdown = this.testDelay;
+
+            if(!this.sonarViewController.HasArcChangedSinceLastChecked())
+            {
+                // hasn't changed, don't bother updating sound sources
+                return;
+            }
 
             const arcParameters = this.sonarViewController.GetArcParameters();
 
@@ -92,14 +102,28 @@ export class SonarMachine extends GameObject {
                 soundSource.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax);
             });
 
-            this.testCountdown = this.testDelay;
 
         }
     }
 
+    SetVisible(visible)
+    {
+        this.mesh.visible = visible;
+        this.mesh.layers.set(visible ? 0 : 1);
+
+        this.angleKnob.SetActive(visible);
+        this.angleRangeKnob.SetActive(visible);
+        this.distanceKnob.SetActive(visible);
+        this.distanceRangeKnob.SetActive(visible);
+        this.sonarViewController.SetActive(visible);
+
+        this.soundSources.forEach(soundSource => {
+            soundSource.SetVisible(visible);
+        });
+    }
 
     OnEnable() {
-        this.mesh.visible = true;
+        this.SetVisible(true);
         this.angleKnob.addEventListener("knobAngleChanged", this.OnAngleChanged);
         this.angleRangeKnob.addEventListener("knobAngleChanged", this.OnAngleRangeChanged);
         this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
@@ -107,7 +131,7 @@ export class SonarMachine extends GameObject {
     }
 
     OnDisable() {
-        this.mesh.visible = false;
+        this.SetVisible(false);
         this.angleKnob.removeEventListener("knobAngleChanged", this.OnAngleChanged);
         this.angleRangeKnob.removeEventListener("knobAngleChanged", this.OnAngleRangeChanged);
         this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
@@ -149,6 +173,8 @@ export class SonarMachine extends GameObject {
             this.angleKnob.Destroy();
         }
     }
+
+
 
     
 }

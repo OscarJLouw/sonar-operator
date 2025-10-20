@@ -75,16 +75,12 @@ export class PlayerMovementController extends EventTarget {
                     targetState: this.states.SittingAtSonar
                 },
                 {
-                    direction: this.directions.Left,
-                    targetState: this.states.Desk
-                },
-                {
                     direction: this.directions.Right,
                     targetState: this.states.Porthole
                 },
                 {
-                    direction: this.directions.RotateLeft,
-                    targetState: this.states.Door
+                    direction: this.directions.Left,
+                    targetState: this.states.Desk
                 },
                 {
                     direction: this.directions.RotateRight,
@@ -98,10 +94,6 @@ export class PlayerMovementController extends EventTarget {
             [
                 {
                     direction: this.directions.RotateLeft,
-                    targetState: this.states.Entry
-                },
-                {
-                    direction: this.directions.RotateRight,
                     targetState: this.states.Entry
                 }
             ]

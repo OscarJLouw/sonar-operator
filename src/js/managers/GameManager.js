@@ -21,6 +21,7 @@ export class GameManager {
     }
 
     async Setup() {
+
         this.gameObjects = new Map();
         this.gameObjectsToDestroy = [];
         this.gameState = "Initialising";
@@ -66,7 +67,6 @@ export class GameManager {
         this.mainMenu = GameObject.Instantiate(MainMenu, this.sceneManager.scene, "Main Menu");
         this.mainMenu.Setup(this);
 
-
         window.addEventListener('pointerdown', () => {
             const ctx = this.audioManager.listener.context;
             if (ctx.state === 'suspended') ctx.resume();
@@ -93,9 +93,10 @@ export class GameManager {
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
+        this.sceneManager.StartGame();
+
         this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
 
-        this.sceneManager.CreateSonarView();
         // this.sceneManager.ActivateSonarView(false); // TODO: Hide sonar machine
 
         // 
@@ -134,6 +135,7 @@ export class GameManager {
         this.gameObjectsToDestroy.push(gameObject);
         gameObject.SetActive(false);
     }
+
 }
 
 export const gameManager = new GameManager();

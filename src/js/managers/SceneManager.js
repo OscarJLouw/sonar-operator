@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Resizable } from '../utils/ResizeHandler.js';
 import { GameObject } from '../gameObjects/GameObject.js';
 import { SonarMachine } from '../gameObjects/SonarMachine.js';
+import { PlayerMovementController } from './PlayerMovementController.js';
 
 export class SceneManager extends Resizable {
     constructor() {
@@ -17,6 +18,8 @@ export class SceneManager extends Resizable {
 
     Setup(targetAspectRatio)
     {
+        this.events = new EventTarget();
+
         this.targetAspectRatio = targetAspectRatio;
 
         this.scene = new THREE.Scene();
@@ -26,15 +29,37 @@ export class SceneManager extends Resizable {
         this.camera.position.z = 2;
         this.Resize(this.width, this.height, this.aspectRatio);
         this.scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+    }
+
+    StartGame()
+    {
+        this.CreateSonarView();
+
+        this.handleMovementStateChange = event => this.OnMovementStateChange(event.detail.previousState, event.detail.newState);
+        PlayerMovementController.instance.addEventListener("onEnterState", this.handleMovementStateChange);
     }
 
     CreateSonarView() {
         this.sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
+        this.sonarMachine.SetActive(false);
     }
 
     ActivateSonarView(active)
     {
-        active ? this.sonarMachine.Show() : this.sonarMachine.Hide();
+        this.sonarMachine.SetActive(active);
+    }
+
+    OnMovementStateChange(previousState, newState)
+    {
+        if(newState == PlayerMovementController.instance.states.UsingSonar)
+        {
+            this.sonarMachine.SetActive(true);
+        } else if(previousState == PlayerMovementController.instance.states.UsingSonar)
+        {
+            this.sonarMachine.SetActive(false);
+
+        }
     }
 
     Update(deltaTime) {
@@ -49,28 +74,12 @@ export class SceneManager extends Resizable {
         this.camera.top = 1;
         this.camera.bottom = -1;
 
-            /*
-        if(width > height)
-        {
-            this.camera.left = -this.targetAspectRatio;
-            this.camera.right = this.targetAspectRatio;
-            this.camera.top = 1;
-            this.camera.bottom = -1;
-        } else {
-            this.camera.left = -1;
-            this.camera.right = 1;
-            this.camera.top = this.targetAspectRatio;
-            this.camera.bottom = -this.targetAspectRatio;
-        }
-        */
-
-        /*
-        this.camera.left = -aspectRatio;
-        this.camera.right = aspectRatio;
-        this.camera.top = 1;
-        this.camera.bottom = -1;
-        */
-
         this.camera.updateProjectionMatrix();
     }
+
+    
+    // Events
+    addEventListener(...args) { this.events.addEventListener(...args); }
+    removeEventListener(...args) { this.events.removeEventListener(...args); }
+    dispatchEvent(event) { return this.events.dispatchEvent(event); }
 }

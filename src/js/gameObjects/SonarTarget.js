@@ -37,6 +37,11 @@ export class SonarTarget extends GameObject {
         this.transform.position.multiplyScalar(randomDistance);
 
         this.wasOverlapping = false;
+
+        this.dirty = true;
+
+        this.positionLast = new THREE.Vector3(999999, 999999, 999999);
+        this.radiusLast = this.radius;
     }
 
     Start() {
@@ -65,10 +70,10 @@ export class SonarTarget extends GameObject {
         */
 
         const soundList =
-        [
-            "/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
-            "/audio/Ambience_Waves_Ocean_Loop.ogg"
-        ];
+            [
+                "/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
+                "/audio/Ambience_Waves_Ocean_Loop.ogg"
+            ];
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 
@@ -84,11 +89,16 @@ export class SonarTarget extends GameObject {
     }
 
     OnEnable() {
-        this.mesh.visible = true;
+        this.SetVisible(true);
     }
 
     OnDisable() {
-        this.mesh.visible = false;
+        this.SetVisible(false);
+    }
+
+    SetVisible(visible) {
+        this.mesh.visible = visible;
+        this.mesh.layers.set(visible ? 0 : 1);
     }
 
     OnDestroy() {
@@ -108,13 +118,36 @@ export class SonarTarget extends GameObject {
     }
 
     SetArcParameters(innerRadius, outerRadius, thetaMin, thetaMax) {
+        this.dirty = true;
         this.arcInnerRadius = innerRadius;
         this.arcOuterRadius = outerRadius;
         this.arcThetaMin = thetaMin;
         this.arcThetaMax = thetaMax;
     }
 
+    CheckMovedOrScaled() {
+        if (!Utils.instance.VectorEquals(this.positionLast, this.transform.position) || this.radiusLast != this.radius) {
+            this.dirty = true;
+            this.positionLast.set(this.transform.position.x, this.transform.position.y, this.transform.position.z);
+            this.radiusLast = this.radius;
+            return true;
+        }
+
+        return false;
+    }
+
+
     Update(deltaTime) {
+        //this.transform.position.x += (Math.random() - 0.5) * deltaTime * 3;
+        //this.transform.position.y += (Math.random() - 0.5) * deltaTime * 3;
+
+        this.CheckMovedOrScaled();
+        
+        if (!this.dirty) {
+            return;
+        }
+
+
         var overlap = this.CalculateOverlapAndDistance(
             this.arcInnerRadius, this.arcOuterRadius, this.arcThetaMin, this.arcThetaMax,
             this.transform.position.x, this.transform.position.y, this.radius);
@@ -149,6 +182,8 @@ export class SonarTarget extends GameObject {
 
             }
         }
+
+        this.dirty = false;
     }
 
     CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) {

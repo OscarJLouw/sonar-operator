@@ -49,7 +49,7 @@ export class Button extends GameObject {
     Hide() {
         this.visible = false;
         this.mesh.visible = false;
-        this.mesh.layers.set(2); // move to hidden layer, ignoring raycasts
+        this.mesh.layers.set(1); // move to hidden layer, ignoring raycasts
 
         this.DisableEvents();
     }

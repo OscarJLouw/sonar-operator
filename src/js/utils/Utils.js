@@ -219,6 +219,10 @@ export class Utils {
             ];
         }
     }
+
+    VectorEquals(vector1, vector2, epsilon = Number.EPSILON ) {
+        return ( ( Math.abs( vector1.x - vector2.x ) < epsilon ) && ( Math.abs( vector1.y - vector2.y ) < epsilon ) && ( Math.abs( vector1.z - vector2.z ) < epsilon ) );
+    }
 }
 
 export const utils = new Utils();

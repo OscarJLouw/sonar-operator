@@ -49,7 +49,11 @@ export class Knob extends GameObject {
 
     OnEnable() {
         this.knobMesh.visible = true;
+        this.knobMesh.layers.set(0);
 
+        this.indicatorMesh.visible = true;
+        this.indicatorMesh.layers.set(0);
+        
         this.draggable.addEventListener("onMouseDown", this.handleMouseDown);
         this.draggable.addEventListener("onDrag", this.handleDrag);
         this.draggable.addEventListener("onMouseUp", this.handleMouseUp);
@@ -57,6 +61,10 @@ export class Knob extends GameObject {
 
     OnDisable() {
         this.knobMesh.visible = false;
+        this.knobMesh.layers.set(1); // move to hidden layer, ignoring raycasts
+
+        this.indicatorMesh.visible = false;
+        this.indicatorMesh.layers.set(1);
 
         this.draggable.removeEventListener("onMouseDown", this.handleMouseDown);
         this.draggable.removeEventListener("onDrag", this.handleDrag);
