@@ -10,8 +10,8 @@ export class AudioManager {
   }
 
   manifest = {
-    wind:  { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true },
-    ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg',        volume: 0.6, loop: true },
+    wind: { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true },
+    ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true },
     // add more: uiClick, explosion, etc...
   };
 

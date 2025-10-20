@@ -17,6 +17,7 @@ export class MouseHandler {
         this.mousePositionLast = new THREE.Vector3()
         this.mousePosition = new THREE.Vector3()
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.layers.set(0);
         this.camera = camera;
 
         this.mousePressed = false;

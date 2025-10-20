@@ -7,6 +7,8 @@ import { PortalsController } from './PortalsController.js';
 import { MainMenu } from '../gameObjects/UI/MainMenu.js';
 import { GameObject } from '../gameObjects/GameObject.js';
 import { MeshManager } from './MeshManager.js';
+import { PlayerMovementController } from './PlayerMovementController.js';
+import { PlayerControls } from '../gameObjects/UI/PlayerControls.js';
 
 export class GameManager {
     constructor() {
@@ -39,18 +41,31 @@ export class GameManager {
     async CreateManagers() {
         this.sceneManager = new SceneManager();
         this.sceneManager.Setup(1.3333333);
+
         this.meshManager = new MeshManager();
         await this.meshManager.Setup();
+
         this.audioManager = new AudioManager();
         await this.audioManager.Setup(this.sceneManager.camera);
+
         this.renderManager = new RenderManager();
         this.renderManager.Setup(this.sceneManager, false);
+
         this.mouseHandler = new MouseHandler();
         this.mouseHandler.Setup(this.sceneManager.camera);
+
         this.portalsController = new PortalsController();
+        this.portalsController.Setup();
+
+        this.playerMovementController = new PlayerMovementController();
+        this.playerMovementController.Setup();
+
+        this.playerControls = GameObject.Instantiate(PlayerControls, this.sceneManager.scene, "Player Controls UI");
+        this.playerControls.Setup(this.playerMovementController);
 
         this.mainMenu = GameObject.Instantiate(MainMenu, this.sceneManager.scene, "Main Menu");
         this.mainMenu.Setup(this);
+
 
         window.addEventListener('pointerdown', () => {
             const ctx = this.audioManager.listener.context;
@@ -58,8 +73,7 @@ export class GameManager {
         }, { once: true });
     }
 
-    InitialiseGame()
-    {
+    InitialiseGame() {
         this.renderManager.SetAnimationLoop(() => this.Update());
     }
 

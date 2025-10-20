@@ -15,7 +15,7 @@ export class Button extends GameObject {
         this.clickCallback = null;
 
         this.geometry = MeshManager.instance.buttonGeometry; //new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
-        this.material = MeshManager.instance.buttonMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
+        this.material = MeshManager.instance.buttonMaterial.clone(); //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.set(0, 0, 1);
         this.AddComponent(this.mesh);
@@ -39,6 +39,7 @@ export class Button extends GameObject {
     Show() {
         this.visible = true;
         this.mesh.visible = true;
+        this.mesh.layers.set(0); // move to visible layer, accepting raycasts
 
         if (this.active) {
             this.ActivateEvents();
@@ -48,6 +49,7 @@ export class Button extends GameObject {
     Hide() {
         this.visible = false;
         this.mesh.visible = false;
+        this.mesh.layers.set(2); // move to hidden layer, ignoring raycasts
 
         this.DisableEvents();
     }
