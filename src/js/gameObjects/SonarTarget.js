@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject';
-import { SceneManager } from '../managers/SceneManager';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../managers/AudioManager';
 
@@ -24,6 +23,10 @@ export class SonarTarget extends GameObject {
 
         this.transform.position.copy(randomPointOnUnitCircle);
         this.transform.position.multiplyScalar(randomDistance);
+
+        this.worldTransform = new THREE.Group();
+        this.parent.add(this.worldTransform);
+        this.worldTransform.position.copy(this.transform.position);
 
         this.wasOverlapping = false;
 
@@ -93,6 +96,7 @@ export class SonarTarget extends GameObject {
     }
 
     OnDestroy() {
+        this.OnRemoved();
     }
 
     SetArcParameters(innerRadius, outerRadius, thetaMin, thetaMax) {
@@ -172,9 +176,20 @@ export class SonarTarget extends GameObject {
         ));
     }
 
-    CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) {
+    OnRemoved() {
+        this.dispatchEvent(new CustomEvent("onRemoved",
+            {
+                detail: {
+                    target: this,
+                }
+            }
+        ));
+    }
+
+    CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) { 
         const EPS = 1e-10;
         const circleDistanceToCenter = Math.hypot(circleXPos, circleYPos);
+        const circleArea = Math.PI * circleRadius * circleRadius;
 
         // Circle is entirely outside the outer radius or inner radius, so we can exit
         if (circleDistanceToCenter - circleRadius > outerRadius + EPS) {
@@ -184,7 +199,12 @@ export class SonarTarget extends GameObject {
             return GetReturnValue(false, 0);
         }
 
-        const circleArea = Math.PI * circleRadius * circleRadius;
+        if(circleDistanceToCenter < circleRadius)
+        {
+            // If it's touching the boat we'll just treat it as seen I guess
+            return GetReturnValue(true, 1);
+        }
+
         let finalArea = circleArea;
 
         // Store which radiuses we cross

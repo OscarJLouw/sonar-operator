@@ -2,16 +2,11 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { SonarViewController } from './SonarViewController';
 import { Knob } from './Knob';
-import { SonarTarget } from './SonarTarget';
 import { MeshManager } from '../managers/MeshManager';
+import { SonarTarget } from './SonarTarget';
 import { SonarTargetVisual } from './SonarTargetVisual';
 
 export class SonarMachine extends GameObject {
-
-    CreateSonarView()
-    {
-        
-    }
 
     Awake() {
         this.sonarViewerScale = 0.8;
@@ -97,7 +92,12 @@ export class SonarMachine extends GameObject {
         // Sound sources
         this.sonarTargets = [];
         this.sonarTargetVisuals = [];
+    }
 
+    SetWorld(world)
+    {
+        this.world = world;
+        this.world.addEventListener("onTargetSpawned", this.OnTargetSpawned);
     }
 
     CreateBasePlate(knob,halfBasePlate, scaleMultiplier = 1)
@@ -126,30 +126,49 @@ export class SonarMachine extends GameObject {
 
         const numSources = 10;
 
-        this.sonarTargetsGroup = new THREE.Group();
-        this.AddComponent(this.sonarTargetsGroup);
-
         this.sonarVisualsGroup = new THREE.Group();
         this.AddComponent(this.sonarVisualsGroup);
 
-        var sonarTarget;
-        var sonarTargetVisual;
-
-        for (let i = 0; i < numSources; i++) {
-            sonarTarget = GameObject.Instantiate(SonarTarget,  this.sonarTargetsGroup, "SonarTarget " + i);
-            this.sonarTargets.push(sonarTarget);
-
-            sonarTargetVisual = GameObject.Instantiate(SonarTargetVisual, this.sonarVisualsGroup, "SonarTargetVisual " + i)
-            sonarTargetVisual.SetSonarViewerProperties(this.sonarViewerPositionOffset, this.sonarViewerScale);
-            sonarTargetVisual.Link(sonarTarget);
-            this.sonarTargetVisuals.push(sonarTargetVisual);
-        }
-
-        //this.sonarTargetsGroup.scale.set(this.sonarViewerScale, this.sonarViewerScale, 1.0);
-
         this.testDelay = 0.05;
         this.testCountdown = this.testDelay;
+    }
 
+    AddSonarTarget(sonarTarget, name)
+    {
+        this.sonarTargets.push(sonarTarget);
+        
+        var sonarTargetVisual = GameObject.Instantiate(SonarTargetVisual, this.sonarVisualsGroup, name)
+        sonarTargetVisual.SetSonarViewerProperties(this.sonarViewerPositionOffset, this.sonarViewerScale);
+        sonarTargetVisual.Link(sonarTarget);
+        this.sonarTargetVisuals.push(sonarTargetVisual);
+
+        sonarTarget.addEventListener("onRemoved", this.OnTargetRemoved);
+
+        const arcParameters = this.sonarViewController.GetArcParameters();
+        sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax);
+
+    }
+
+    OnTargetSpawned = (event) =>
+    {
+        this.AddSonarTarget(event.detail.target, "SonarTargetVisual " + event.detail.targetsSpawnedSoFar);
+    }
+
+    OnTargetRemoved = (event) =>
+    {
+        this.RemoveSonarTarget(event.detail.target);
+    }
+
+    RemoveSonarTarget(sonarTarget)
+    {
+        const targetIndex = this.sonarTargets.indexOf(sonarTarget); 
+        if(targetIndex > -1)
+        {
+            //this.sonarTargetVisuals[targetIndex].Unlink();
+            this.sonarTargetVisuals.splice(targetIndex, 1);
+            this.sonarTargets.splice(targetIndex, 1);
+            sonarTarget.removeEventListener("onRemoved", this.OnTargetRemoved);
+        }
     }
 
     Update(deltaTime) 

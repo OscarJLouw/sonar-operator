@@ -28,6 +28,7 @@ export class SonarTargetVisual extends GameObject {
         this.transform.scale.set(this.radius * this.scaleFactor, this.radius * this.scaleFactor, this.radius * this.scaleFactor);
 
         this.sonarTarget.addEventListener("overlapPercentageUpdated", this.OnOverlapPercentageUpdated);
+        this.sonarTarget.addEventListener("onRemoved", this.OnRemoved);
     }
 
     Update(deltaTime) {
@@ -58,6 +59,28 @@ export class SonarTargetVisual extends GameObject {
                 this.material.opacity = 0.4;
             }
         }
+    }
+
+    OnRemoved = (event) =>
+    {
+        this.sonarTarget = null;
+        this.Destroy();
+    }
+
+    OnDestroy()
+    {
+        if (this.geometry) this.geometry.dispose();
+
+        if (this.material) {
+            this.material.dispose();
+        }
+
+        if (this.mesh) this.RemoveComponent(this.mesh);
+
+        this.mesh = undefined;
+
+        //this.sonarTarget.removeEventListener("overlapPercentageUpdated", this.OnOverlapPercentageUpdated);
+        //this.sonarTarget.removeEventListener("onRemoved", this.OnRemoved);
     }
 
     SetVisible(visible) {

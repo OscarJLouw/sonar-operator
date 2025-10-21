@@ -40,6 +40,7 @@ export class GameManager {
     }
 
     async CreateManagers() {
+        
         this.sceneManager = new SceneManager();
         this.sceneManager.Setup(1.3333333);
 
@@ -118,16 +119,38 @@ export class GameManager {
 
         if (this.gameObjectsToDestroy.length > 0) {
             // clean up destroyed gameObjects
-            this.gameObjectsToDestroy.forEach(gameObject => {
-                this.gameObjects.delete(gameObject.id);
-                gameObject.OnDestroy();
-            });
+            var objectsToDestroyThisIteration;
+            var iterations = 0;
+            const maxIterations = 50;
+
+            while(this.gameObjectsToDestroy.length > 0 && iterations < maxIterations)
+            {
+                objectsToDestroyThisIteration = [...this.gameObjectsToDestroy];
+                this.gameObjectsToDestroy.length = 0;
+
+                objectsToDestroyThisIteration.forEach(gameObject => {
+                    console.log("GameManager destroying GameObject: " + gameObject.name + " | ID: ["+gameObject.id+"]");
+
+                    this.gameObjects.delete(gameObject.id);
+                    gameObject.OnDestroy();
+                });
+
+                objectsToDestroyThisIteration.length = 0;
+
+                iterations++;
+            }
+
+            if(iterations >= maxIterations)
+            {
+                console.error("Exceeded max destroy iterations. There's probably a destroy loop of some kind. Current gameObjectsToDestroy: " + this.gameObjectsToDestroy);
+            }
+
             this.gameObjectsToDestroy.length = 0;
         }
     }
 
     RegisterGameObject(gameObject) {
-        console.log("Registered GameObject " + gameObject.name + " with id " + gameObject.id);
+        console.log("GameManager registered GameObject: " + gameObject.name + " | ID: [ " + gameObject.id+"]");
         this.gameObjects.set(gameObject.id, gameObject);
     }
 

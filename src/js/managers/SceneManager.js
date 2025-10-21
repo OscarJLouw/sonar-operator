@@ -3,6 +3,7 @@ import { Resizable } from '../utils/ResizeHandler.js';
 import { GameObject } from '../gameObjects/GameObject.js';
 import { SonarMachine } from '../gameObjects/SonarMachine.js';
 import { PlayerMovementController } from './PlayerMovementController.js';
+import { World } from '../gameObjects/World.js';
 
 export class SceneManager extends Resizable {
     constructor() {
@@ -39,17 +40,26 @@ export class SceneManager extends Resizable {
         this.directionalLight.position.set(3, 5, 10);
     }
 
+    CreateWorld()
+    {
+        this.world = GameObject.Instantiate(World, this.scene, "World");
+    }
+
     StartGame()
     {
+        this.CreateWorld();
         this.CreateSonarView();
 
         this.handleMovementStateChange = event => this.OnMovementStateChange(event.detail.previousState, event.detail.newState);
         PlayerMovementController.instance.addEventListener("onEnterState", this.handleMovementStateChange);
+
+        this.world.StartGame();
     }
 
     CreateSonarView() {
         this.sonarMachine = GameObject.Instantiate(SonarMachine, this.scene, "Sonar Machine");
         this.sonarMachine.SetActive(false);
+        this.sonarMachine.SetWorld(this.world);
     }
 
     ActivateSonarView(active)
