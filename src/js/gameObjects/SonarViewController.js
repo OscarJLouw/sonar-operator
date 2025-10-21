@@ -65,11 +65,15 @@ export class SonarViewController extends GameObject {
     OnEnable() {
         this.mesh.visible = true;
         this.mesh.layers.set(0);
+        this.targetMesh.visible = true;
+        this.targetMesh.layers.set(0);
     }
 
     OnDisable() {
         this.mesh.visible = false;
         this.mesh.layers.set(1);
+        this.targetMesh.visible = false;
+        this.targetMesh.layers.set(1);
     }
 
     OnDestroy() {
