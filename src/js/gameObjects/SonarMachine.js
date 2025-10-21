@@ -15,7 +15,7 @@ export class SonarMachine extends GameObject {
 
     Awake() {
         this.sonarViewerScale = 0.8;
-        this.sonarViewerPositionOffset = new THREE.Vector3(0.4, 0.1);
+        this.sonarViewerPositionOffset = new THREE.Vector3(0.45, 0.1);
 
         // Outer ring
         this.geometry = new THREE.RingGeometry(0.95 * this.sonarViewerScale, this.sonarViewerScale);
@@ -42,6 +42,8 @@ export class SonarMachine extends GameObject {
         const knobScale = 0.1;
         const basePlatesScale = 1;
 
+        const extraXOffset = -0.1;
+
         const angleKnobAngle = 0.83;
         const angleKnobOffset = 1.1;
 
@@ -58,7 +60,7 @@ export class SonarMachine extends GameObject {
         this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob", false, true, false);
         var distance = angleKnobOffset;
         var offsetAngle = angleKnobAngle * fullCircle;
-        this.angleKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.angleKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
         this.angleKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.CreateBasePlate(this.angleKnob, false, basePlatesScale);
 
@@ -66,7 +68,7 @@ export class SonarMachine extends GameObject {
         this.angleRangeKnob = GameObject.Instantiate(Knob, this.transform, "Angle Range Knob", true, true, true);
         var distance = angleRangeKnobOffset;
         offsetAngle = angleRangeKnobAngle * fullCircle;
-        this.angleRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.angleRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
         this.angleRangeKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.angleRangeKnob.SetClampRotation(true, 0, Math.PI);
         //this.angleRangeKnob.SetRelativeRotationControl(false);
@@ -76,7 +78,7 @@ export class SonarMachine extends GameObject {
         this.distanceKnob = GameObject.Instantiate(Knob, this.transform, "Distance Knob", true, true, true);
         distance = distanceKnobOffset;
         offsetAngle = distanceKnobAngle * fullCircle;
-        this.distanceKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.distanceKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
         this.distanceKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.distanceKnob.SetClampRotation(true, 0, Math.PI);
         //this.distanceKnob.SetRelativeRotationControl(false);
@@ -86,7 +88,7 @@ export class SonarMachine extends GameObject {
         this.distanceRangeKnob = GameObject.Instantiate(Knob, this.transform, "Distance Range Knob", true, true, true);
         var distance = distanceRangeKnobOffset;
         offsetAngle = distanceRangeKnobAngle * fullCircle;
-        this.distanceRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.distanceRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
         this.distanceRangeKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.distanceRangeKnob.SetClampRotation(true, 0, Math.PI);
         //this.distanceRangeKnob.SetRelativeRotationControl(false);
@@ -208,19 +210,19 @@ export class SonarMachine extends GameObject {
     }
 
     OnAngleChanged = (e) => {
-        this.sonarViewController.SetAngle(e.detail.angle);
+        this.sonarViewController.SetTargetAngle(e.detail.angle);
     }
 
     OnAngleRangeChanged = (e) => {
-        this.sonarViewController.SetAngleRange(1 - e.detail.percentage);
+        this.sonarViewController.SetTargetAngleRange(1 - e.detail.percentage);
     }
 
     OnDistanceChanged = (e) => {
-        this.sonarViewController.SetDistance(1 - e.detail.percentage);
+        this.sonarViewController.SetTargetDistance(1 - e.detail.percentage);
     }
 
     OnDistanceRangeChanged = (e) => {
-        this.sonarViewController.SetDistanceRange(1 - e.detail.percentage);
+        this.sonarViewController.SetTargetDistanceRange(1 - e.detail.percentage);
     }
 
     OnDestroy() {

@@ -56,7 +56,7 @@ export class GameManager {
         this.mouseHandler.Setup(this.sceneManager.camera);
 
         this.portalsController = new PortalsController();
-        this.portalsController.Setup(true);
+        this.portalsController.Setup(import.meta.env.PROD);
 
         this.playerMovementController = new PlayerMovementController();
         this.playerMovementController.Setup();
