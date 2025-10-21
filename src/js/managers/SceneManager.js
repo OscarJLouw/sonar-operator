@@ -27,9 +27,16 @@ export class SceneManager extends Resizable {
 
         this.camera = new THREE.OrthographicCamera(-this.targetAspectRatio, this.targetAspectRatio, 1, - 1, 0.1, 10);
         this.camera.position.z = 2;
+        //this.camera.position.y = -0.1;
+        //this.camera.lookAt(new THREE.Vector3(0,0,0));
         this.Resize(this.width, this.height, this.aspectRatio);
-        this.scene.add(new THREE.AmbientLight(0xffffff, 1));
+        
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 3);
+        this.scene.add(this.ambientLight);
 
+        this.directionalLight = new THREE.DirectionalLight(0xffffff,10);
+        this.scene.add(this.directionalLight);
+        this.directionalLight.position.set(3, 5, 10);
     }
 
     StartGame()

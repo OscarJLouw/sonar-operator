@@ -32,6 +32,8 @@ export class PlayerControls extends GameObject {
 
         this.handleStateChange = event => this.OnStateChange(event.detail.previousState, event.detail.newState);
         this.playerMovementController.addEventListener("onEnterState", this.handleStateChange);
+
+        this.currentExits = null;
     }
 
     CreateButton(buttonName, moveDirection) {
@@ -79,15 +81,23 @@ export class PlayerControls extends GameObject {
         });
     }
 
+    ShowButtonsForValidExits()
+    {
+        if(this.currentExits == null)
+        {
+            return;
+        }
+
+        this.currentExits.forEach((exit) => {
+            this.ShowButton(exit.direction);
+        });
+    }
+
     OnStateChange(previousState, newState) {
         this.HideAll();
 
-        var exits = this.playerMovementController.GetExits(newState);
-
-        exits.forEach((exit) => {
-            this.ShowButton(exit.direction);
-        });
-
+        this.currentExits = this.playerMovementController.GetExits(newState);
+        this.ShowButtonsForValidExits();
     }
 
 

@@ -11,7 +11,9 @@ export class PortalsController {
         return PortalsController.instance;
     }
 
-    Setup() {
+    Setup(portalsSDKActive) {
+        this.portalsSDKActive = portalsSDKActive;
+
         this.TaskStates = {
             AnyToNotActive: "ToNotActive",
             AnyToActive: "SetAnyToActive",
@@ -33,6 +35,9 @@ export class PortalsController {
     }
 
     SendMessage(taskName, targetState) {
+        if(!this.portalsSDKActive)
+            return;
+        
         const message = {
             TaskName: taskName,
             TaskTargetState: targetState

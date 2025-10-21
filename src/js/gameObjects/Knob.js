@@ -6,6 +6,14 @@ import { SceneManager } from '../managers/SceneManager';
 import { MeshManager } from '../managers/MeshManager';
 
 export class Knob extends GameObject {
+    constructor(parent, name = "", withIndicator = false, showBasePlate = false, halfBasePlate = false)
+    {
+        super(parent, name);
+        this.withIndicator = withIndicator;
+        this.showBasePlate = showBasePlate;
+        this.halfBasePlate = halfBasePlate;
+    }
+
     // Life Cycle
     Awake() {
         this.events = new EventTarget();
@@ -26,65 +34,88 @@ export class Knob extends GameObject {
         this.maxRotation = Math.PI * 2;
 
         // Meshes
-        this.knobGeometry = MeshManager.instance.knobGeometry; //new THREE.RingGeometry(0, 0.85, 32);
-        this.knobMaterial = MeshManager.instance.knobMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
-        this.knobMesh = new THREE.Mesh(this.knobGeometry, this.knobMaterial);
-        this.knobMesh.position.set(0, 0, -0.2);
-        this.AddComponent(this.knobMesh);
+        this.knobColliderGeometry = MeshManager.instance.knobGeometry; //new THREE.RingGeometry(0, 0.85, 32);
+        this.knobColliderMaterial = MeshManager.instance.knobMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
+        this.knobColliderMesh = new THREE.Mesh(this.knobColliderGeometry, this.knobColliderMaterial);
+        this.knobColliderMesh.position.set(0, 0, -0.2);
+        this.AddComponent(this.knobColliderMesh);
 
+        //const knobVisuals = MeshManager.instance.models.knob;
+        if(this.withIndicator)
+        {
+            this.knob = MeshManager.instance.models.knobWithIndicator.scene.clone();
+        } else {
+            this.knob = MeshManager.instance.models.knob.scene.clone();
+        }
+
+        this.knob.scale.set(0.8, 0.8, 0.8);
+        this.knob.layers.set(1);
+        this.knob.rotation.x = Math.PI*0.5;
+        this.AddComponent(this.knob);
+        
+        this.camera = SceneManager.instance.camera;
+        this.cameraForward = new THREE.Vector3();
+        this.camera.getWorldDirection(this.cameraForward);
+        
+        /*
         this.indicatorGeometry = MeshManager.instance.indicatorGeometry; //new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
         this.indicatorMaterial = MeshManager.instance.indicatorMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.indicatorMesh = new THREE.Mesh(this.indicatorGeometry, this.indicatorMaterial);
         this.indicatorMesh.position.set(0, 0, -0.1);
         this.indicatorMesh.rotateZ(-Math.PI * 0.1);
-        //this.indicatorMesh.rotateZ(Math.PI/2); // set default angle to face upwards
-        this.AddComponent(this.indicatorMesh);
+        */
+
+        //this.AddComponent(this.indicatorMesh);
 
         // Interaction components
-        this.draggable = new Draggable(this, this.knobMesh);
+        this.draggable = new Draggable(this, this.knobColliderMesh);
         this.handleMouseDown = event => this.OnMouseDown(event.detail.mousePosition);
         this.handleDrag = event => this.OnDrag(event.detail.mousePosition, event.detail.mousePositionLast);
         this.handleMouseUp = event => this.OnMouseUp(event.detail.mousePosition);
     }
 
     OnEnable() {
-        this.knobMesh.visible = true;
-        this.knobMesh.layers.set(0);
+        this.knobColliderMesh.visible = true;
+        this.knobColliderMesh.layers.set(0);
 
-        this.indicatorMesh.visible = true;
-        this.indicatorMesh.layers.set(0);
+        //this.indicatorMesh.visible = true;
+        //this.indicatorMesh.layers.set(0);
         
+        this.knob.visible = true;
+
         this.draggable.addEventListener("onMouseDown", this.handleMouseDown);
         this.draggable.addEventListener("onDrag", this.handleDrag);
         this.draggable.addEventListener("onMouseUp", this.handleMouseUp);
     }
 
     OnDisable() {
-        this.knobMesh.visible = false;
-        this.knobMesh.layers.set(1); // move to hidden layer, ignoring raycasts
+        this.knobColliderMesh.visible = false;
+        this.knobColliderMesh.layers.set(1); // move to hidden layer, ignoring raycasts
 
-        this.indicatorMesh.visible = false;
-        this.indicatorMesh.layers.set(1);
+        //this.indicatorMesh.visible = false;
+        //this.indicatorMesh.layers.set(1);
 
+        this.knob.visible = true;
+        
         this.draggable.removeEventListener("onMouseDown", this.handleMouseDown);
         this.draggable.removeEventListener("onDrag", this.handleDrag);
         this.draggable.removeEventListener("onMouseUp", this.handleMouseUp);
     }
 
     OnDestroy() {
-        if (this.knobGeometry) this.knobGeometry.dispose();
+        if (this.knobColliderGeometry) this.knobColliderGeometry.dispose();
 
-        if (this.knobMaterial) {
-            if (this.knobMaterial.map) {
-                this.knobMaterial.map.dispose();
+        if (this.knobColliderMaterial) {
+            if (this.knobColliderMaterial.map) {
+                this.knobColliderMaterial.map.dispose();
             }
 
-            this.knobMaterial.dispose();
+            this.knobColliderMaterial.dispose();
         }
 
-        if (this.knobMesh) this.RemoveComponent(this.knobMesh);
+        if (this.knobColliderMesh) this.RemoveComponent(this.knobColliderMesh);
 
-        this.knobMesh = undefined;
+        this.knobColliderMesh = undefined;
     }
 
 
@@ -134,7 +165,7 @@ export class Knob extends GameObject {
     OnMouseDown(mousePosition) {
         // transform mouse pos to world space and cache
         this.mousePositionStart.copy(mousePosition)
-        this.mousePositionStart.unproject(SceneManager.instance.camera);
+        this.mousePositionStart.unproject(this.camera);
 
         this.targetAngle = this.CalculateTargetDirection(this.mousePositionStart);
         //this.currentAngle = this.targetAngle;
@@ -145,7 +176,7 @@ export class Knob extends GameObject {
     OnDrag(mousePosition, mousePositionLast) {
         // transform mouse pos to world space
         this.mousePositionCurrent.copy(mousePosition);
-        this.mousePositionCurrent.unproject(SceneManager.instance.camera);
+        this.mousePositionCurrent.unproject(this.camera);
 
         this.targetAngle = this.CalculateTargetDirection(this.mousePositionCurrent);
 

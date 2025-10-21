@@ -3,6 +3,7 @@ import { GameObject } from './GameObject';
 import { SonarViewController } from './SonarViewController';
 import { Knob } from './Knob';
 import { SonarTarget } from './SonarTarget';
+import { MeshManager } from '../managers/MeshManager';
 
 export class SonarMachine extends GameObject {
 
@@ -21,39 +22,69 @@ export class SonarMachine extends GameObject {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.set(0, 0, 0);
 
-
         this.AddComponent(this.mesh);
 
         // Sonar viewer
         this.sonarViewController = GameObject.Instantiate(SonarViewController, this.transform, "Sonar ViewCone");
         this.sonarViewController.transform.scale.set(this.sonarViewerScale, this.sonarViewerScale, 1);
 
-        // Knobs
-        this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob");
+        // Knob angle indicator base plate meshes
+        this.basePlateMesh = MeshManager.instance.models.basePlateFull.scene;
+        this.halfBasePlateMesh = MeshManager.instance.models.basePlateHalf.scene;
+        this.basePlates = [];
+
+        ////// Knobs
+
+        // Angle knob
+        this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob", false, true, false);
         this.angleKnob.transform.position.set(Math.sin(3.5 * Math.PI / 2), Math.cos(3.5 * Math.PI / 2), 0) * 0.9;
-        this.angleKnob.transform.scale.set(0.15, 0.15, 1);
+        this.angleKnob.transform.scale.set(0.15, 0.15, 0.15);
+        this.CreateBasePlate(this.angleKnob, false);
 
-        this.angleRangeKnob = GameObject.Instantiate(Knob, this.transform, "Angle Range Knob");
+        // Angle range knob
+        this.angleRangeKnob = GameObject.Instantiate(Knob, this.transform, "Angle Range Knob", true, true, true);
         this.angleRangeKnob.transform.position.set(Math.sin(3.25 * Math.PI / 2), Math.cos(3.25 * Math.PI / 2), 0) * 0.9;
-        this.angleRangeKnob.transform.scale.set(0.15, 0.15, 1);
+        this.angleRangeKnob.transform.scale.set(0.15, 0.15, 0.15);
         this.angleRangeKnob.SetClampRotation(true, 0, Math.PI);
-        this.angleRangeKnob.SetRelativeRotationControl(false);
+        //this.angleRangeKnob.SetRelativeRotationControl(false);
+        this.CreateBasePlate(this.angleRangeKnob, true);
 
-        this.distanceKnob = GameObject.Instantiate(Knob, this.transform, "Distance Knob");
+        // Distance knob
+        this.distanceKnob = GameObject.Instantiate(Knob, this.transform, "Distance Knob", true, true, true);
         this.distanceKnob.transform.position.set(Math.sin(Math.PI * 0.25), Math.cos(Math.PI * 0.25), 0) * 0.9;
-        this.distanceKnob.transform.scale.set(0.15, 0.15, 1);
+        this.distanceKnob.transform.scale.set(0.15, 0.15, 0.15);
         this.distanceKnob.SetClampRotation(true, 0, Math.PI);
-        this.distanceKnob.SetRelativeRotationControl(false);
+        //this.distanceKnob.SetRelativeRotationControl(false);
+        this.CreateBasePlate(this.distanceKnob, true);
 
-        this.distanceRangeKnob = GameObject.Instantiate(Knob, this.transform, "Distance Range Knob");
+        // Distance range knob
+        this.distanceRangeKnob = GameObject.Instantiate(Knob, this.transform, "Distance Range Knob", true, true, true);
         this.distanceRangeKnob.transform.position.set(Math.sin(Math.PI * 0.375), Math.cos(Math.PI * 0.375), 0) * 0.9;
-        this.distanceRangeKnob.transform.scale.set(0.15, 0.15, 1);
+        this.distanceRangeKnob.transform.scale.set(0.15, 0.15, 0.15);
         this.distanceRangeKnob.SetClampRotation(true, 0, Math.PI);
-        this.distanceRangeKnob.SetRelativeRotationControl(false);
+        //this.distanceRangeKnob.SetRelativeRotationControl(false);
+        this.CreateBasePlate(this.distanceRangeKnob, true);
 
         // Sound sources
         this.soundSources = [];
 
+    }
+
+    CreateBasePlate(knob,halfBasePlate)
+    {
+        var basePlate;
+        if(halfBasePlate)
+        {
+            basePlate = this.halfBasePlateMesh.clone();
+        } else {
+            basePlate = this.basePlateMesh.clone();
+        }
+
+        basePlate.rotation.x = Math.PI*0.5;
+        basePlate.position.set(knob.transform.position.x, knob.transform.position.y, knob.transform.position.z);
+        basePlate.scale.set(knob.transform.scale.x, knob.transform.scale.y, knob.transform.scale.z);
+        this.AddComponent(basePlate);
+        this.basePlates.push(basePlate);
     }
 
     Start() {
