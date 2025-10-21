@@ -149,7 +149,7 @@ export class SonarMachine extends GameObject {
         sonarTarget.addEventListener("onRemoved", this.OnTargetRemoved);
 
         const arcParameters = this.sonarViewController.GetArcParameters();
-        sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax);
+        sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax, arcParameters.arcArea);
 
     }
 
@@ -184,7 +184,7 @@ export class SonarMachine extends GameObject {
             const arcParameters = this.sonarViewController.GetArcParameters();
 
             this.sonarTargets.forEach(sonarTarget => {
-                sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax);
+                sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax, arcParameters.arcArea);
             });
         }
     }

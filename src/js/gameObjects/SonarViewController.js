@@ -48,15 +48,19 @@ export class SonarViewController extends GameObject {
             innerRadius: 0,
             outerRadius: 1,
             thetaMin: 0,
-            thetaMax: 0
+            thetaMax: 0,
+            arcArea: 0
         };
 
         this.arcParametersPrevious = {
             innerRadius: 99,
             outerRadius: 99,
             thetaMin: 99,
-            thetaMax: 99
+            thetaMax: 99,
+            arcArea: 0
         };
+
+        this.arcArea = this.CalculateArcArea();
     }
 
     Start() {
@@ -266,6 +270,12 @@ export class SonarViewController extends GameObject {
         this.arcParameters.outerRadius = Math.min(effectiveDistance + halfDistanceRange, 1);
         this.arcParameters.thetaMin = this.angle - this.angularSize * 0.5;
         this.arcParameters.thetaMax = this.angle + this.angularSize * 0.5;
+        this.arcParameters.arcArea = this.CalculateArcArea(
+            this.arcParameters.outerRadius,
+            this.arcParameters.innerRadius,
+            this.arcParameters.thetaMin,
+            this.arcParameters.thetaMax
+        );
     }
 
     HasArcChangedSinceLastChecked() {
@@ -287,5 +297,12 @@ export class SonarViewController extends GameObject {
             return false;
         }
         return true;
+    }
+
+    CalculateArcArea(outerRadius, innerRadius, thetaMin, thetaMax)
+    {
+        // area = pi(R^2 - r^2) * theta / (PI*2)
+        const area = Math.PI * (outerRadius * outerRadius - innerRadius * innerRadius) * (Math.abs(Utils.instance.GetSignedAngleDifference(thetaMin, thetaMax)) / (Math.PI*2));
+        return area;
     }
 }

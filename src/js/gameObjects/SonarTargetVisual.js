@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject';
+import { Utils } from '../utils/Utils';
 
 export class SonarTargetVisual extends GameObject {
     Awake() {
         // Meshes
         this.geometry = new THREE.CircleGeometry(1, 16);
         this.material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0.1, 0.8, 0.8),
+            color: new THREE.Color(0, 0, 0),
             transparent: true,
-            opacity: 0.5
+            opacity: 0
         });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         //this.mesh.layers.set(5);
@@ -46,20 +47,44 @@ export class SonarTargetVisual extends GameObject {
         const overlapping = event.detail.overlapping;
         const wasOverlappingPreviously = event.detail.wasOverlappingPreviously;
         const percentage = event.detail.percentage;
+        const overlappedArea = event.detail.overlapArea;
+        const viewerArea = event.detail.sonarAnnularSegmentArea;
+        const percentageOfViewerOccupied = overlappedArea/viewerArea;
 
-        if (overlapping) {
-            this.material.color.r = percentage;
+        console.log(overlappedArea + " / " + viewerArea + " = " + percentageOfViewerOccupied);
+        
+        if(!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6)
+        {
+            // Not close enough!
+            this.material.color.r = 0;
             this.material.color.g = 0;
             this.material.color.b = 0;
-            this.material.opacity = 0.4 + percentage * 0.5;
-        } else {
+            this.material.opacity = 0; //Utils.instance.Clamp(0.4, 0, 1);
+            return;
+        }
+
+        if (overlapping) {
+            var percentageCorrect = percentageOfViewerOccupied;
+            if(percentageOfViewerOccupied > 1)
+            {
+                percentageCorrect = 1-(percentageOfViewerOccupied-1);
+            }
+
+            percentageCorrect = Utils.instance.Clamp(percentageCorrect, 0, 1);
+            
+            this.material.color.r = 1-percentageCorrect;
+            this.material.color.g = percentageCorrect;
+            this.material.color.b = 0;
+            this.material.opacity = percentageCorrect;
+  
+        } /*else {
             if (wasOverlappingPreviously) {
                 this.material.color.r = 0;
                 this.material.color.g = 0;
                 this.material.color.b = 0;
                 this.material.opacity = 0.4;
             }
-        }
+        }*/
     }
 
     OnRemoved = (event) =>

@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../managers/AudioManager';
+import { Loop } from 'three/tsl';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
     Awake() {
         this.events = new EventTarget();
 
-        const minRadius = 0.02;
+        const minRadius = 0.1;
         const maxRadius = 0.05;
 
         this.radius = Math.random() * (maxRadius - minRadius) + minRadius;
@@ -52,114 +53,11 @@ export class SonarTarget extends GameObject {
     }
 
     Start() {
-        // create a global audio source
-        const sound = new THREE.Audio(AudioManager.instance.listener);
-
-        /*
-        const soundList =
-            [
-                "/audio/Ambience_Underworld_Voices_Loop.wav",
-                "/audio/Eye_Of_Sonar_01.wav",
-                "/audio/Eye_Of_Sonar_02.wav",
-                "/audio/RearThrusters.ogg",
-                "/audio/Sonar_Of_Destruction.wav",
-                "/audio/TooMuchHeat.ogg",
-                "/audio/Ambience_Underwater_01_Loop.wav",
-                "/audio/Ambience_Scary_Loop.wav",
-                "/audio/343682__mbari_mars__blue-whale-b-call-5x.mp3",
-                "/audio/369510__mbari_mars__blue-whale-d-calls-audible-only-with-appropriate-speakers.mp3",
-                "/audio/404314__mbari_mars__marine-mammal-community.mp3",
-                "/audio/448984__mbari_mars__humpback-whale-song.wav",
-                "/audio/SpookyNoises/Whisper_02.wav",
-                "/audio/SpookyNoises/monster_roar_distant_3.mp3",
-                "/audio/SpookyNoises/Echo_Cymbal_02.wav",
-            ];
-        */
-
-        const soundList =
-            [
-                "/audio/question_004.ogg",
-                //"/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
-                //"/audio/Ambience_Waves_Ocean_Loop.ogg"
-            ];
+        const soundList = ["question_004"];
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 
-
-        const ctx = AudioManager.instance.listener.context;
-        this.panner = new PannerNode(ctx, {
-            panningModel: 'HRTF',
-            distanceModel: 'linear',  // or 'linear'
-            refDistance: 1,
-            rolloffFactor: 0,          // set 0 if you want *no* distance attenuation
-            coneInnerAngle: 360,       // omni by default; change if you want directionality
-            coneOuterAngle: 360,
-            coneOuterGain: 0.0
-        });
-
-        this.panner.channelCountMode = 'explicit';
-        this.panner.channelCount = 1;
-
-
-        AudioManager.instance.audioLoader.load(randomSound,
-            (buffer) => {
-                sound.setBuffer(buffer);
-                sound.setLoop(true);
-                sound.setVolume(0.0);
-                sound.setFilters([this.panner]);
-                sound.play();
-            }
-        );
-
-        this.sound = sound;
-
-        this.PlaceSoundAroundHead(this.panner, this.transform.position.x, this.transform.position.y);
-    }
-
-    SetPannerPos(p, x, y, z) {
-        if ('positionX' in p) {
-            p.positionX.value = x; p.positionY.value = y; p.positionZ.value = z;
-        } else if (p.setPosition) {
-            p.setPosition(x, y, z);
-        }
-    }
-
-    SetPannerOrientation(p, x, y, z) {
-        if ('orientationX' in p) {
-            p.orientationX.value = x; p.orientationY.value = y; p.orientationZ.value = z;
-        } else if (p.setOrientation) {
-            p.setOrientation(x, y, z);
-        }
-    }
-
-    // Convenience scratch
-    _tmpL = new THREE.Vector3();
-    _tmpS = new THREE.Vector3();
-
-    PlaceSoundAroundHead(panner) {
-        const R = 1.3;               // radius around the head (meters)
-        const X_SIGN = 1;            // flip to -1 if left/right feels swapped
-        const Z_SIGN = -1;           // +1 if your camera faces +Z; -1 for -Z
-
-        // source world position
-        this._tmpS.copy(this.transform.position); // or getWorldPosition if needed
-
-        // listener world position (camera if your listener is attached to it)
-        AudioManager.instance.listener.getWorldPosition(this._tmpL);
-
-        // RELATIVE offset in your 2D space
-        const dx = this._tmpS.x - this._tmpL.x;
-        const dy = this._tmpS.y - this._tmpL.y;
-
-        // Unit direction around the listener
-        const len = Math.hypot(dx, dy) || 1;
-        const nx = dx / len, ny = dy / len;
-
-        // Map: left/right = X, up/down = Y, constant distance ring at Z = +/-R
-        this.SetPannerPos(panner, X_SIGN * nx * R, ny * R, Z_SIGN * R);
-
-        // If you ever want directionality, also set orientation (forward -Z here)
-        this.SetPannerOrientation(panner, 0, 0, -1);
+        this.audioHandle = AudioManager.instance.spawnRingPanned(randomSound, { bus: "sfx", loop: true, R: 1.3, autostart: false });
     }
 
     OnEnable() {
@@ -175,15 +73,21 @@ export class SonarTarget extends GameObject {
     }
 
     OnDestroy() {
+        if (this.audioHandle) {
+            this.audioHandle.stop();
+            this.audioHandle.free();
+        }
+
         this.OnRemoved();
     }
 
-    SetArcParameters(innerRadius, outerRadius, thetaMin, thetaMax) {
+    SetArcParameters(innerRadius, outerRadius, thetaMin, thetaMax, annularSegmentArea) {
         this.dirty = true;
         this.arcInnerRadius = innerRadius;
         this.arcOuterRadius = outerRadius;
         this.arcThetaMin = thetaMin;
         this.arcThetaMax = thetaMax;
+        this.annularSegmentArea = annularSegmentArea;
     }
 
     CheckMovedOrScaled() {
@@ -199,8 +103,12 @@ export class SonarTarget extends GameObject {
 
 
     Update(deltaTime) {
-        //this.transform.position.x += (Math.random() - 0.5) * deltaTime * 3;
-        //this.transform.position.y += (Math.random() - 0.5) * deltaTime * 3;
+        // spatial placement
+        const dx = this.transform.position.x - AudioManager.instance.listenerRig.position.x;
+        const dy = this.transform.position.y - AudioManager.instance.listenerRig.position.y;
+        //this.audioHandle.place(dx, dy);
+
+        AudioManager.instance.placeAroundHeadFromObject(this.audioHandle.panner, this.transform /* or this */, { R: 1.3 });
 
         this.updateCountdown -= deltaTime;
         if (this.updateCountdown <= 0) {
@@ -215,28 +123,30 @@ export class SonarTarget extends GameObject {
             return;
         }
 
-
         var overlap = this.CalculateOverlapAndDistance(
             this.arcInnerRadius, this.arcOuterRadius, this.arcThetaMin, this.arcThetaMax,
             this.transform.position.x, this.transform.position.y, this.radius);
 
-        if (overlap.hit) {
-            this.OnOverlapUpdated(true, this.wasOverlapping, overlap.overlappedCircleAreaPercent, overlap.area);
+        const START_T = 0.02;  // start when >2%
+        const STOP_T = 0.01;  // stop when <1%
+        const RAMP = 0.08;  // 30ms ramp is usually pop-free
 
-            this.sound.setVolume(overlap.overlappedCircleAreaPercent);
-            if (!this.sound.isPlaying) {
-                this.sound.play();
+        if (overlap.hit) {
+            const v = Utils.instance.Clamp(overlap.overlappedCircleAreaPercent, 0, 1);
+
+            if (!this.audioHandle.isPlaying() && v > START_T) {
+                this.audioHandle.play(0, RAMP); // fade in from 0
             }
+            this.audioHandle.setVolumeSmooth(v, RAMP);
 
             this.wasOverlapping = true;
-            //}
+            this.OnOverlapUpdated(true, this.wasOverlapping, v, overlap.overlappedArea);
         } else {
-
             if (this.wasOverlapping) {
-                this.sound.setVolume(0.0);
-                //this.sound.pause();
-
-                this.OnOverlapUpdated(false, true, 0);
+                this.audioHandle.setVolumeSmooth(0, RAMP);
+                //this.audioHandle.pause(RAMP); // or .stop(RAMP)
+                this.wasOverlapping = false;
+                this.OnOverlapUpdated(false, true, 0, 0);
             }
         }
 
@@ -250,7 +160,8 @@ export class SonarTarget extends GameObject {
                     overlapping: overlapping,
                     wasOverlappingPreviously: wasOverlappingPreviously,
                     overlapArea: area,
-                    percentage: overlapPercentage
+                    percentage: overlapPercentage,
+                    sonarAnnularSegmentArea: this.annularSegmentArea
                 }
             }
         ));
@@ -507,7 +418,6 @@ export class SonarTarget extends GameObject {
 
             // Convert them to angles and normalize to get arc angle
             const angle = Math.abs(Utils.instance.GetSignedAngleDifference(Math.atan2(CA.y, CA.x), Math.atan2(CB.y, CB.x)));
-
             // Get pieArea -> from the radius and angle
             // subtract triangle area from pie area
             return PieSliceArea(circleRadius, angle) - T;
