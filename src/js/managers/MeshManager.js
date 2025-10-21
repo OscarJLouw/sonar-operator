@@ -28,7 +28,7 @@ export class MeshManager {
     }
 
     CreateSharedGeometry() {
-        this.knobGeometry = new THREE.RingGeometry(0, 0.85, 16);
+        this.knobColliderGeometry = new THREE.RingGeometry(0, 1, 16);
         this.indicatorGeometry = new THREE.RingGeometry(0.6, 0.85, 16, 1, 0, Math.PI * 0.2);
         this.buttonGeometry = new THREE.BoxGeometry(1, 1, 0.1);
     }
@@ -64,25 +64,6 @@ export class MeshManager {
 
     }
 
-    SetupColorTexture(texture) {
-        texture.minFilter = THREE.NearestFilter;
-        texture.magFilter = THREE.NearestFilter;
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.generateMipMaps = false;
-        texture.anisotropy = 1;
-        texture.needsUpdate = true;
-        return texture;
-    }
-
-    SetupDataTexture(texture) {
-        texture.minFilter = THREE.NearestFilter;
-        texture.magFilter = THREE.NearestFilter;
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = 1;
-        texture.needsUpdate = true;
-        return texture;
-    }
-
     async LoadModels() {
         console.log("loading models");
         const modelLoader = this.gltfLoader;
@@ -112,6 +93,25 @@ export class MeshManager {
         } catch (error) {
             console.error("Error loading models:", error);
         }
+    }
+    
+    SetupColorTexture(texture) {
+        texture.minFilter = THREE.NearestFilter;
+        texture.magFilter = THREE.NearestFilter;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipMaps = false;
+        texture.anisotropy = 1;
+        texture.needsUpdate = true;
+        return texture;
+    }
+
+    SetupDataTexture(texture) {
+        texture.minFilter = THREE.NearestFilter;
+        texture.magFilter = THREE.NearestFilter;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = 1;
+        texture.needsUpdate = true;
+        return texture;
     }
 
     SetupModelProperties(model) {

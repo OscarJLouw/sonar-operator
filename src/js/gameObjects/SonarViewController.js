@@ -7,7 +7,7 @@ export class SonarViewController extends GameObject {
     // Life cycle
     Awake() {
         this.geometry = new THREE.RingGeometry(0, 1, 32, 1, 0, Math.PI * 0.2);
-        this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
+        this.material = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.set(0, 0, -0.1);
 

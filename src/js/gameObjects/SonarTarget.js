@@ -12,21 +12,10 @@ export class SonarTarget extends GameObject {
         const minRadius = 0.05;
         const maxRadius = 0.15;
 
-
         this.radius = Math.random() * (maxRadius - minRadius) + minRadius;
 
         const minSpawnRange = 0.05 + this.radius;
         const maxSpawnRange = 0.9 - this.radius;
-
-        // Meshes
-        this.geometry = new THREE.CircleGeometry(this.radius, 16);
-        this.material = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(0.1, 0.1, 0.8),
-            transparent: true,
-            opacity: 0.5
-        });
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.AddComponent(this.mesh);
 
         const randomAngle = Math.random() * Math.PI * 2;
         const randomPointOnUnitCircle = new THREE.Vector3(Math.cos(randomAngle), Math.sin(randomAngle), 0);
@@ -42,6 +31,9 @@ export class SonarTarget extends GameObject {
 
         this.positionLast = new THREE.Vector3(999999, 999999, 999999);
         this.radiusLast = this.radius;
+
+        this.updateTime = 0.05;
+        this.updateCountdown = Math.random() * this.updateTime;
     }
 
     Start() {
@@ -97,24 +89,10 @@ export class SonarTarget extends GameObject {
     }
 
     SetVisible(visible) {
-        this.mesh.visible = visible;
-        this.mesh.layers.set(visible ? 0 : 1);
+        
     }
 
     OnDestroy() {
-        if (this.geometry) this.geometry.dispose();
-
-        if (this.material) {
-            if (this.material.map) {
-                this.material.map.dispose();
-            }
-
-            this.material.dispose();
-        }
-
-        if (this.mesh) this.RemoveComponent(this.mesh);
-
-        this.mesh = undefined;
     }
 
     SetArcParameters(innerRadius, outerRadius, thetaMin, thetaMax) {
@@ -141,8 +119,15 @@ export class SonarTarget extends GameObject {
         //this.transform.position.x += (Math.random() - 0.5) * deltaTime * 3;
         //this.transform.position.y += (Math.random() - 0.5) * deltaTime * 3;
 
+        this.updateCountdown -= deltaTime;
+        if (this.updateCountdown <= 0) {
+            this.updateCountdown = this.updateTime;
+        } else {
+            return;
+        }
+
         this.CheckMovedOrScaled();
-        
+
         if (!this.dirty) {
             return;
         }
@@ -153,20 +138,14 @@ export class SonarTarget extends GameObject {
             this.transform.position.x, this.transform.position.y, this.radius);
 
         if (overlap.hit) {
-            //if (!this.wasOverlapping) {
-            this.material.color.r = overlap.overlappedCircleAreaPercent;
-            this.material.color.g = 0;
-            this.material.color.b = 0;
-
-            this.material.opacity = 0.4 + overlap.overlappedCircleAreaPercent * 0.5;
-            //this.material.needsUpdate = true;
-            this.wasOverlapping = true;
+            this.OnOverlapUpdated(true, this.wasOverlapping, overlap.overlappedCircleAreaPercent);
 
             this.sound.setVolume(overlap.overlappedCircleAreaPercent);
             if (!this.sound.isPlaying) {
                 this.sound.play();
             }
 
+            this.wasOverlapping = true;
             //}
         } else {
 
@@ -174,16 +153,23 @@ export class SonarTarget extends GameObject {
                 this.sound.setVolume(0.0);
                 this.sound.pause();
 
-                this.material.color.r = 0;
-                this.material.color.g = 0;
-                this.material.color.b = 0;
-                this.material.opacity = 0.4;
-                this.wasOverlapping = false;
-
+                this.OnOverlapUpdated(false, true, 0);
             }
         }
 
         this.dirty = false;
+    }
+
+    OnOverlapUpdated(overlapping, wasOverlappingPreviously, overlapPercentage) {
+        this.dispatchEvent(new CustomEvent("overlapPercentageUpdated",
+            {
+                detail: {
+                    overlapping: overlapping,
+                    wasOverlappingPreviously: wasOverlappingPreviously,
+                    percentage: overlapPercentage
+                }
+            }
+        ));
     }
 
     CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) {

@@ -34,10 +34,11 @@ export class Knob extends GameObject {
         this.maxRotation = Math.PI * 2;
 
         // Meshes
-        this.knobColliderGeometry = MeshManager.instance.knobGeometry; //new THREE.RingGeometry(0, 0.85, 32);
+        this.knobColliderGeometry = MeshManager.instance.knobColliderGeometry; //new THREE.RingGeometry(0, 0.85, 32);
         this.knobColliderMaterial = MeshManager.instance.knobMaterial; //new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
         this.knobColliderMesh = new THREE.Mesh(this.knobColliderGeometry, this.knobColliderMaterial);
         this.knobColliderMesh.position.set(0, 0, -0.2);
+        this.knobColliderMesh.scale.set(2.5, 2.5, 2.5);
         this.AddComponent(this.knobColliderMesh);
 
         //const knobVisuals = MeshManager.instance.models.knob;
