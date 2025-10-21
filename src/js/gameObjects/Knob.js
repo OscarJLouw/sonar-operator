@@ -76,6 +76,11 @@ export class Knob extends GameObject {
     }
 
     OnEnable() {
+        this.components.forEach(component => {
+            component.visible = true;
+            component.layers.set(0);
+        });
+
         this.knobColliderMesh.visible = true;
         this.knobColliderMesh.layers.set(0);
 
@@ -90,13 +95,17 @@ export class Knob extends GameObject {
     }
 
     OnDisable() {
+        this.components.forEach(component => {
+            component.visible = false;
+            component.layers.set(1);
+        });
+
         this.knobColliderMesh.visible = false;
         this.knobColliderMesh.layers.set(1); // move to hidden layer, ignoring raycasts
 
         //this.indicatorMesh.visible = false;
         //this.indicatorMesh.layers.set(1);
 
-        this.knob.visible = true;
         
         this.draggable.removeEventListener("onMouseDown", this.handleMouseDown);
         this.draggable.removeEventListener("onDrag", this.handleDrag);

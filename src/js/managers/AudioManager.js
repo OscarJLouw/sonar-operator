@@ -16,9 +16,28 @@ export class AudioManager {
   };
 
   async Setup(camera) {
+
     // Listener
     this.listener = new THREE.AudioListener();
-    camera.add(this.listener);
+    this.listenerRig = new THREE.Object3D();
+    this.listenerRig.add(this.listener);
+    SceneManager.instance.scene.add(this.listenerRig);
+
+    /*
+    this.listenerRig.position.copy(camera.position);
+    const p = this.listenerRig.position;
+    this.listenerRig.lookAt(p.x, p.y, p.z - 1);
+    */
+
+    const L = this.listener;
+    if ('forwardX' in L) {
+      L.forwardX.value = 0; L.forwardY.value = 0; L.forwardZ.value = -1;
+      L.upX.value = 0; L.upY.value = 1; L.upZ.value = 0;
+    } else if (L.setOrientation) {
+      L.setOrientation(0, 0, -1, 0, 1, 0);
+    }
+    //camera.add(this.listener);
+
 
     // Loader
     this.audioLoader = new THREE.AudioLoader();
@@ -45,6 +64,17 @@ export class AudioManager {
       const s = this.sounds?.[k];
       if (s && !s.isPlaying) s.play();
     }
+  }
+
+  MakePositionalSound(buffer) {
+    const s = new THREE.PositionalAudio(this.listener);
+    s.setBuffer(buffer);
+    s.setDistanceModel('linear');   // keep rolloff flat
+    s.setRefDistance(1);            // distance reference
+    s.setRolloffFactor(0);          // no distance attenuation
+    if (s.panner) s.panner.panningModel = 'HRTF'; // crucial
+    scene.add(s);
+    return s;
   }
 
   FadeInAmbience(targetVolume, fadeTime) {

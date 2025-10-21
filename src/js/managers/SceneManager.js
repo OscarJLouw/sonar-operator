@@ -17,8 +17,7 @@ export class SceneManager extends Resizable {
         return SceneManager.instance;
     }
 
-    Setup(targetAspectRatio)
-    {
+    Setup(targetAspectRatio) {
         this.events = new EventTarget();
 
         this.targetAspectRatio = targetAspectRatio;
@@ -31,22 +30,20 @@ export class SceneManager extends Resizable {
         //this.camera.position.y = -0.1;
         //this.camera.lookAt(new THREE.Vector3(0,0,0));
         this.Resize(this.width, this.height, this.aspectRatio);
-        
+
         this.ambientLight = new THREE.AmbientLight(0xffffff, 3);
         this.scene.add(this.ambientLight);
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff,10);
+        this.directionalLight = new THREE.DirectionalLight(0xffffff, 10);
         this.scene.add(this.directionalLight);
         this.directionalLight.position.set(3, 5, 10);
     }
 
-    CreateWorld()
-    {
+    CreateWorld() {
         this.world = GameObject.Instantiate(World, this.scene, "World");
     }
 
-    StartGame()
-    {
+    StartGame() {
         this.CreateWorld();
         this.CreateSonarView();
 
@@ -62,18 +59,14 @@ export class SceneManager extends Resizable {
         this.sonarMachine.SetWorld(this.world);
     }
 
-    ActivateSonarView(active)
-    {
+    ActivateSonarView(active) {
         this.sonarMachine.SetActive(active);
     }
 
-    OnMovementStateChange(previousState, newState)
-    {
-        if(newState == PlayerMovementController.instance.states.UsingSonar)
-        {
+    OnMovementStateChange(previousState, newState) {
+        if (newState == PlayerMovementController.instance.states.UsingSonar) {
             this.sonarMachine.SetActive(true);
-        } else if(previousState == PlayerMovementController.instance.states.UsingSonar)
-        {
+        } else if (previousState == PlayerMovementController.instance.states.UsingSonar) {
             this.sonarMachine.SetActive(false);
 
         }
@@ -83,8 +76,7 @@ export class SceneManager extends Resizable {
 
     }
 
-    Resize(width, height, aspectRatio)
-    {
+    Resize(width, height, aspectRatio) {
 
         this.camera.left = -this.targetAspectRatio;
         this.camera.right = this.targetAspectRatio;
@@ -94,7 +86,7 @@ export class SceneManager extends Resizable {
         this.camera.updateProjectionMatrix();
     }
 
-    
+
     // Events
     addEventListener(...args) { this.events.addEventListener(...args); }
     removeEventListener(...args) { this.events.removeEventListener(...args); }

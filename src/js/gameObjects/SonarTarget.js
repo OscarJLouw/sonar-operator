@@ -8,8 +8,8 @@ export class SonarTarget extends GameObject {
     Awake() {
         this.events = new EventTarget();
 
-        const minRadius = 0.05;
-        const maxRadius = 0.15;
+        const minRadius = 0.02;
+        const maxRadius = 0.05;
 
         this.radius = Math.random() * (maxRadius - minRadius) + minRadius;
 
@@ -37,6 +37,18 @@ export class SonarTarget extends GameObject {
 
         this.updateTime = 0.05;
         this.updateCountdown = Math.random() * this.updateTime;
+
+        // Debug
+        this.debug = false;
+        if (this.debug) {
+            this.debugGeometry = new THREE.CircleGeometry(1, 16);
+            this.debugMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(0.9, 0.1, 0.1),
+            });
+            this.debugMesh = new THREE.Mesh(this.debugGeometry, this.debugMaterial);
+            this.AddComponent(this.debugMesh);
+            this.debugMesh.scale.set(this.radius, this.radius, this.radius);
+        }
     }
 
     Start() {
@@ -66,21 +78,88 @@ export class SonarTarget extends GameObject {
 
         const soundList =
             [
-                "/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
-                "/audio/Ambience_Waves_Ocean_Loop.ogg"
+                "/audio/question_004.ogg",
+                //"/audio/Ambience_Wind_Intensity_Soft_Loop.ogg",
+                //"/audio/Ambience_Waves_Ocean_Loop.ogg"
             ];
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 
+
+        const ctx = AudioManager.instance.listener.context;
+        this.panner = new PannerNode(ctx, {
+            panningModel: 'HRTF',
+            distanceModel: 'linear',  // or 'linear'
+            refDistance: 1,
+            rolloffFactor: 0,          // set 0 if you want *no* distance attenuation
+            coneInnerAngle: 360,       // omni by default; change if you want directionality
+            coneOuterAngle: 360,
+            coneOuterGain: 0.0
+        });
+
+        this.panner.channelCountMode = 'explicit';
+        this.panner.channelCount = 1;
+
+
         AudioManager.instance.audioLoader.load(randomSound,
-            function (buffer) {
+            (buffer) => {
                 sound.setBuffer(buffer);
                 sound.setLoop(true);
                 sound.setVolume(0.0);
+                sound.setFilters([this.panner]);
+                sound.play();
             }
         );
 
         this.sound = sound;
+
+        this.PlaceSoundAroundHead(this.panner, this.transform.position.x, this.transform.position.y);
+    }
+
+    SetPannerPos(p, x, y, z) {
+        if ('positionX' in p) {
+            p.positionX.value = x; p.positionY.value = y; p.positionZ.value = z;
+        } else if (p.setPosition) {
+            p.setPosition(x, y, z);
+        }
+    }
+
+    SetPannerOrientation(p, x, y, z) {
+        if ('orientationX' in p) {
+            p.orientationX.value = x; p.orientationY.value = y; p.orientationZ.value = z;
+        } else if (p.setOrientation) {
+            p.setOrientation(x, y, z);
+        }
+    }
+
+    // Convenience scratch
+    _tmpL = new THREE.Vector3();
+    _tmpS = new THREE.Vector3();
+
+    PlaceSoundAroundHead(panner) {
+        const R = 1.3;               // radius around the head (meters)
+        const X_SIGN = 1;            // flip to -1 if left/right feels swapped
+        const Z_SIGN = -1;           // +1 if your camera faces +Z; -1 for -Z
+
+        // source world position
+        this._tmpS.copy(this.transform.position); // or getWorldPosition if needed
+
+        // listener world position (camera if your listener is attached to it)
+        AudioManager.instance.listener.getWorldPosition(this._tmpL);
+
+        // RELATIVE offset in your 2D space
+        const dx = this._tmpS.x - this._tmpL.x;
+        const dy = this._tmpS.y - this._tmpL.y;
+
+        // Unit direction around the listener
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = dx / len, ny = dy / len;
+
+        // Map: left/right = X, up/down = Y, constant distance ring at Z = +/-R
+        this.SetPannerPos(panner, X_SIGN * nx * R, ny * R, Z_SIGN * R);
+
+        // If you ever want directionality, also set orientation (forward -Z here)
+        this.SetPannerOrientation(panner, 0, 0, -1);
     }
 
     OnEnable() {
@@ -92,7 +171,7 @@ export class SonarTarget extends GameObject {
     }
 
     SetVisible(visible) {
-        
+
     }
 
     OnDestroy() {
@@ -142,7 +221,7 @@ export class SonarTarget extends GameObject {
             this.transform.position.x, this.transform.position.y, this.radius);
 
         if (overlap.hit) {
-            this.OnOverlapUpdated(true, this.wasOverlapping, overlap.overlappedCircleAreaPercent);
+            this.OnOverlapUpdated(true, this.wasOverlapping, overlap.overlappedCircleAreaPercent, overlap.area);
 
             this.sound.setVolume(overlap.overlappedCircleAreaPercent);
             if (!this.sound.isPlaying) {
@@ -155,7 +234,7 @@ export class SonarTarget extends GameObject {
 
             if (this.wasOverlapping) {
                 this.sound.setVolume(0.0);
-                this.sound.pause();
+                //this.sound.pause();
 
                 this.OnOverlapUpdated(false, true, 0);
             }
@@ -164,16 +243,28 @@ export class SonarTarget extends GameObject {
         this.dirty = false;
     }
 
-    OnOverlapUpdated(overlapping, wasOverlappingPreviously, overlapPercentage) {
+    OnOverlapUpdated(overlapping, wasOverlappingPreviously, overlapPercentage, area) {
         this.dispatchEvent(new CustomEvent("overlapPercentageUpdated",
             {
                 detail: {
                     overlapping: overlapping,
                     wasOverlappingPreviously: wasOverlappingPreviously,
+                    overlapArea: area,
                     percentage: overlapPercentage
                 }
             }
         ));
+
+        if (this.debug) {
+            if (overlapping) {
+                this.debugMaterial.color.set(0.0, 1.0, 0.0);
+                this.debugMaterial.materialNeedsUpdate = true;
+            }
+            else {
+                this.debugMaterial.color.set(1.0, 0.0, 0.0);
+                this.debugMaterial.materialNeedsUpdate = true;
+            }
+        }
     }
 
     OnRemoved() {
@@ -186,7 +277,7 @@ export class SonarTarget extends GameObject {
         ));
     }
 
-    CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) { 
+    CalculateOverlapAndDistance(innerRadius, outerRadius, thetaMin, thetaMax, circleXPos, circleYPos, circleRadius) {
         const EPS = 1e-10;
         const circleDistanceToCenter = Math.hypot(circleXPos, circleYPos);
         const circleArea = Math.PI * circleRadius * circleRadius;
@@ -199,8 +290,7 @@ export class SonarTarget extends GameObject {
             return GetReturnValue(false, 0);
         }
 
-        if(circleDistanceToCenter < circleRadius)
-        {
+        if (circleDistanceToCenter < circleRadius) {
             // If it's touching the boat we'll just treat it as seen I guess
             return GetReturnValue(true, 1);
         }

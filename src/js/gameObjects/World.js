@@ -81,22 +81,28 @@ export class World extends GameObject {
 
     StartGame()
     {
-        this.spawning = true;
+        this.spawning = false;
         this.spawnTime = 1;
         this.spawnCountdown = this.spawnTime;
         this.maxTargets = 10;
-        this.SetVelocity(0.0, 0.01);
+        this.randomRotate = false;
+        this.SetVelocity(0, 0);
+
+        for(var i = 0; i<5; i++)
+        {
+            this.SpawnSonarTarget();
+        }
     }
 
     Update(deltaTime) {
-        if(!this.spawning)
-            return;
-
-        this.spawnCountdown -= deltaTime;
-        if(this.spawnCountdown <= 0)
+        if(this.spawning)
         {
-            this.spawnCountdown = this.spawnTime;
-            this.SpawnSonarTarget();
+            this.spawnCountdown -= deltaTime;
+            if(this.spawnCountdown <= 0)
+            {
+                this.spawnCountdown = this.spawnTime;
+                this.SpawnSonarTarget();
+            }
         }
 
         if(this.targetCount > this.maxTargets)
@@ -106,8 +112,13 @@ export class World extends GameObject {
 
         this.maxRotationSpeed = Math.PI*0.1;    // 10 seconds to do a full 180
 
-        this.rotationSpeed += (Math.random() - 0.5) * deltaTime;
-        this.rotationSpeed = Utils.instance.Clamp(this.rotationSpeed, -this.maxRotationSpeed, this.maxRotationSpeed);
+        if(this.randomRotate)
+        {
+            this.rotationSpeed += (Math.random() - 0.5) * deltaTime;
+            this.rotationSpeed = Utils.instance.Clamp(this.rotationSpeed, -this.maxRotationSpeed, this.maxRotationSpeed);
+        } else {
+            this.rotationSpeed = 0;
+        }
 
         // Move the ship
         this.shipRoot.rotateZ(this.rotationSpeed * deltaTime);
@@ -121,8 +132,6 @@ export class World extends GameObject {
                 this.shipRoot.position.y + this.workingVector.y * deltaTime,
                 0
         );
-
-
 
         // Move targets
         this.sonarTargets.forEach((sonarTarget) =>

@@ -15,6 +15,7 @@ export class SonarTargetVisual extends GameObject {
         this.AddComponent(this.mesh);
         this.positionOffset = new THREE.Vector3();
         this.scaleFactor = 1;
+        this.SetVisible(false);
     }
 
     SetSonarViewerProperties(offsetPosition, scaleFactor) {

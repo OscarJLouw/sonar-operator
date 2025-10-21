@@ -21,18 +21,26 @@ export class SonarMachine extends GameObject {
 
         this.AddComponent(this.mesh);
 
+        // Viewing area ring
+        this.viewAreaGeometry = new THREE.CircleGeometry(this.sonarViewerScale);
+        this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0, 0, 0) });
+
+        this.viewAreaMesh = new THREE.Mesh(this.viewAreaGeometry, this.viewAreaMaterial);
+        this.viewAreaMesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y,  -1);
+        this.AddComponent(this.viewAreaMesh);
+
         // Sonar viewer
         this.sonarViewController = GameObject.Instantiate(SonarViewController, this.transform, "Sonar ViewCone");
         this.sonarViewController.transform.scale.set(this.sonarViewerScale, this.sonarViewerScale, 1);
         this.sonarViewController.transform.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, this.sonarViewerPositionOffset.z);
-        
+
         // Knob angle indicator base plate meshes
         this.basePlateMesh = MeshManager.instance.models.basePlateFull.scene;
         this.halfBasePlateMesh = MeshManager.instance.models.basePlateHalf.scene;
         this.basePlates = [];
 
         ////// Knobs
-        const fullCircle = Math.PI*2;
+        const fullCircle = Math.PI * 2;
 
         const knobScale = 0.1;
         const basePlatesScale = 1;
@@ -94,23 +102,20 @@ export class SonarMachine extends GameObject {
         this.sonarTargetVisuals = [];
     }
 
-    SetWorld(world)
-    {
+    SetWorld(world) {
         this.world = world;
         this.world.addEventListener("onTargetSpawned", this.OnTargetSpawned);
     }
 
-    CreateBasePlate(knob,halfBasePlate, scaleMultiplier = 1)
-    {
+    CreateBasePlate(knob, halfBasePlate, scaleMultiplier = 1) {
         var basePlate;
-        if(halfBasePlate)
-        {
+        if (halfBasePlate) {
             basePlate = this.halfBasePlateMesh.clone();
         } else {
             basePlate = this.basePlateMesh.clone();
         }
 
-        basePlate.rotation.x = Math.PI*0.5;
+        basePlate.rotation.x = Math.PI * 0.5;
         basePlate.position.set(knob.transform.position.x, knob.transform.position.y, knob.transform.position.z);
         basePlate.scale.set(knob.transform.scale.x * scaleMultiplier, knob.transform.scale.y * scaleMultiplier, knob.transform.scale.z * scaleMultiplier);
 
@@ -133,10 +138,9 @@ export class SonarMachine extends GameObject {
         this.testCountdown = this.testDelay;
     }
 
-    AddSonarTarget(sonarTarget, name)
-    {
+    AddSonarTarget(sonarTarget, name) {
         this.sonarTargets.push(sonarTarget);
-        
+
         var sonarTargetVisual = GameObject.Instantiate(SonarTargetVisual, this.sonarVisualsGroup, name)
         sonarTargetVisual.SetSonarViewerProperties(this.sonarViewerPositionOffset, this.sonarViewerScale);
         sonarTargetVisual.Link(sonarTarget);
@@ -149,21 +153,17 @@ export class SonarMachine extends GameObject {
 
     }
 
-    OnTargetSpawned = (event) =>
-    {
+    OnTargetSpawned = (event) => {
         this.AddSonarTarget(event.detail.target, "SonarTargetVisual " + event.detail.targetsSpawnedSoFar);
     }
 
-    OnTargetRemoved = (event) =>
-    {
+    OnTargetRemoved = (event) => {
         this.RemoveSonarTarget(event.detail.target);
     }
 
-    RemoveSonarTarget(sonarTarget)
-    {
-        const targetIndex = this.sonarTargets.indexOf(sonarTarget); 
-        if(targetIndex > -1)
-        {
+    RemoveSonarTarget(sonarTarget) {
+        const targetIndex = this.sonarTargets.indexOf(sonarTarget);
+        if (targetIndex > -1) {
             //this.sonarTargetVisuals[targetIndex].Unlink();
             this.sonarTargetVisuals.splice(targetIndex, 1);
             this.sonarTargets.splice(targetIndex, 1);
@@ -171,15 +171,12 @@ export class SonarMachine extends GameObject {
         }
     }
 
-    Update(deltaTime) 
-    {
+    Update(deltaTime) {
         this.testCountdown -= deltaTime;
-        if(this.testCountdown<= 0)
-        {
+        if (this.testCountdown <= 0) {
             this.testCountdown = this.testDelay;
 
-            if(!this.sonarViewController.HasArcChangedSinceLastChecked())
-            {
+            if (!this.sonarViewController.HasArcChangedSinceLastChecked()) {
                 // hasn't changed, don't bother updating sound sources
                 return;
             }
@@ -192,8 +189,12 @@ export class SonarMachine extends GameObject {
         }
     }
 
-    SetVisible(visible)
-    {
+    SetVisible(visible) {
+        this.components.forEach(component => {
+            component.visible = visible;
+            component.layers.set(visible ? 0 : 1);
+        });
+
         this.mesh.visible = visible;
         this.mesh.layers.set(visible ? 0 : 1);
 
@@ -266,5 +267,5 @@ export class SonarMachine extends GameObject {
 
 
 
-    
+
 }
