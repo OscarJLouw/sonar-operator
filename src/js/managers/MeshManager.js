@@ -40,7 +40,7 @@ export class MeshManager {
         this.indicatorMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.buttonMaterial = new THREE.MeshBasicMaterial({ transparent: true });//{ color: new THREE.Color(, 0.4, 0.4) });
 
-        this.passiveSonarTargetMaterial = new THREE.MeshBasicMaterial({color: new THREE.Color(0, 0, 0), transparent: true, opacity: 0 });
+        this.passiveSonarTargetMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0 });
     }
 
     async LoadTextures() {

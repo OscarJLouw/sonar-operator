@@ -274,22 +274,13 @@ export class SonarTarget extends GameObject {
         const circleCenterAngle = Math.atan2(circleYPos, circleXPos);
         const circleCenterIntersectsSegment = Utils.instance.AngleInArc(circleCenterAngle, thetaMin, thetaMax);
 
-
         if (thetaMinIntersectsCircle) {
-            //console.log("==================")
-            //console.log("THETA MIN")
             finalArea += RemoveAreasOutsideOfThetaAngle(thetaMin, circleXPos, circleYPos, circleRadius, circleArea, circleOverlapsInnerRadius, circleOverlapsOuterRadius, circleCenterIntersectsSegment);
-            //console.log("==================")
         }
 
         if (thetaMaxIntersectsCircle) {
-            //console.log("==================")
-            //console.log("THETA MAX")
             finalArea += RemoveAreasOutsideOfThetaAngle(thetaMax, circleXPos, circleYPos, circleRadius, circleArea, circleOverlapsInnerRadius, circleOverlapsOuterRadius, circleCenterIntersectsSegment);
-            //console.log("==================")
         }
-
-
 
         return GetReturnValue(true, finalArea);
 
@@ -304,55 +295,12 @@ export class SonarTarget extends GameObject {
         function RemoveAreasOutsideOfThetaAngle(theta, circleX, circleY, circleRadius, circleArea, overlapsInner, overlapsOuter, centerInsideSegment) {
             // Cut the circle into two halves
             var splitData = DivideCircleByRay(theta, circleX, circleY, circleRadius);
-            var nearestCorner = 0;
             var minorSegment = splitData.minorSegmentArea;
             var majorSegment = circleArea - minorSegment;
-            var firstIntersection = splitData.firstIntersection;
-
             var amountToRemove = 0;
-
 
             // Remove the appropriate segment from the final area
             amountToRemove -= (centerInsideSegment ? minorSegment : majorSegment);
-            return amountToRemove;
-
-            //console.log(centerInsideSegment ? "Minor: " + minorSegment * 100 : "Major: " + majorSegment * 100);
-
-            // Add back the corners (which have been subtracted twice now)
-            // INNER RADIUS
-            if (overlapsInner) {
-                nearestCorner = FindCornerFromIntersections(
-                    circleX, circleY, circleRadius, innerRadius, theta, firstIntersection
-                );
-
-                //amountToRemove += nearestCorner;
-
-                amountToRemove += (!centerInsideSegment
-                    ? nearestCorner
-                    : (innerRadiusCircleOverlapArea - nearestCorner));
-
-                //console.log("----------")
-                //console.log("Inner Overlaps, " + (centerInsideSegment ? " Center Inside: " : " Center Outside: "));
-                //console.log((centerInsideSegment ? nearestCorner : (innerRadiusCircleOverlapArea - nearestCorner)) * 100);
-            }
-
-            // OUTER RADIUS
-            if (overlapsOuter) {
-                nearestCorner = FindCornerFromIntersections(
-                    circleX, circleY, circleRadius, outerRadius, theta, firstIntersection
-                );
-
-                //amountToRemove += nearestCorner;
-
-                amountToRemove += (!centerInsideSegment
-                    ? (minorSegment - nearestCorner)
-                    : (circleArea - outerRadiusCircleOverlapArea - minorSegment + nearestCorner));
-
-                //console.log("----------")
-                //console.log("Outer Overlaps, " + (centerInsideSegment ? " Center Inside: " : " Center Outside: "));
-                //console.log((centerInsideSegment ? (minorSegment - nearestCorner) : (circleArea - outerRadiusCircleOverlapArea - minorSegment + nearestCorner)) * 100);
-            }
-
             return amountToRemove;
         }
 
@@ -431,48 +379,6 @@ export class SonarTarget extends GameObject {
             const c = 0.5 * Math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2));
 
             return a + b - c;
-        }
-
-
-        function FindCornerFromIntersections(Cx, Cy, Cr, radius, theta, firstIntersection) {
-            // First intersection between the circle and the ray
-            var Pbl = firstIntersection;
-
-            // Intersection point between theta min and the radius (distance along line)
-            var Pal = { x: Math.cos(theta) * radius, y: Math.sin(theta) * radius }
-
-            // Find the intersection points between the circle and the inner radius
-            const circleIntersections = Utils.instance.CircleCircleIntersectionPoints(0, 0, radius, Cx, Cy, Cr);
-
-            if (circleIntersections.Length < 2) {
-                // They are JUST touching, so I guess we ignore it again
-                return 0;
-            }
-
-            // Determine which intersection point to use based off angle between point and center of B
-            var Pab = circleIntersections[0];
-
-            const angleToCircle = Math.atan2(Cx, Cy);
-            const angleToPal = Math.atan2(Pal.x, Pal.y);
-            const angleToIntersection = Math.atan2(Pab.x, Pab.y);
-
-            // Use the other circle-circle intersection point if the one we chose is further from the circle
-            if (Math.sign(angleToCircle - angleToPal) != Math.sign(angleToCircle - angleToIntersection)) {
-                Pab = circleIntersections[1];
-            }
-
-            // Find the area of the triangle formed by Pal => Pbl => Pab
-            const T = TriangleArea(Pal.x, Pal.y, Pbl.x, Pbl.y, Pab.x, Pab.y);
-
-            // Use ear area function to find the following ears:
-            // Ea => circleA, Pab, Pal
-            // Eb => circleB, Pab, Pbl
-
-            let Ea = EarArea(Pab, Pal, 0, 0, radius);
-            let Eb = EarArea(Pab, Pbl, circleXPos, circleYPos, circleRadius);
-
-            // Final area sums up the triangle with the ears
-            return T + Ea + Eb;
         }
     }
 

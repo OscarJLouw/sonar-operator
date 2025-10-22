@@ -4,15 +4,17 @@ export class SonarTargetConfig {
         name, 
         soundKey, 
         {
-        radius = 0.2, randomizeRadius = false, minRadius = 0.05, maxRadius = 0.25,
-        spawnAtRandomPosition = false, spawnPosition = null,
-        moveOverTime = false, randomMovement = false, xVelocity = 0, yVelocity = 0,
-        visibleOnActiveSonar = false, activeSonarModelKey,
+            randomizeSoundStartTime = true,
+            radius = 0.2, randomizeRadius = false, minRadius = 0.05, maxRadius = 0.25,
+            spawnAtRandomPosition = false, spawnPosition = null,
+            moveOverTime = false, randomMovement = false, xVelocity = 0, yVelocity = 0,
+            visibleOnActiveSonar = false, activeSonarModelKey,
         }
     )
     {
         this.name = name;
         this.soundKey = soundKey;
+        this.randomizeSoundStartTime = randomizeSoundStartTime;
 
         this.radius = radius;
         this.randomizeRadius = randomizeRadius;

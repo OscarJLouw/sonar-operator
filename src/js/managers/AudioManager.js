@@ -25,6 +25,7 @@ export class AudioManager {
     ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
     // example sfx (does NOT autostart)
     question_004: { path: './audio/question_004.ogg', volume: 0.4, loop: false, bus: 'sfx', autostart: false },
+    humpbacks: { path: './audio/humpbacks_COPYRIGHT_UNKNOWN.ogg', volume: 0.4, loop: false, bus: 'sfx', autostart: false },
   };
 
   // --- LIFECYCLE ---
@@ -236,6 +237,7 @@ export class AudioManager {
     xSign = 1,
     zSign = -1,
     autostart = true,
+    randomizeStartTime = true
   } = {}) {
     const sound = this.acquireAudio(key, { bus, loop, volume });
     const panner = this.createPanner({ distanceModel: 'linear', rolloffFactor: 0, refDistance: 1 });
@@ -244,6 +246,9 @@ export class AudioManager {
     const busNode = this.#getBus(bus);
     sound.setFilters([panner]); // only panner in the filter chain
     this.#routeSoundToBus(sound, busNode);
+
+    sound.offset = randomizeStartTime ? Math.random() * sound.buffer.duration : 0;
+    
 
     if (autostart && !sound.isPlaying) sound.play();
 

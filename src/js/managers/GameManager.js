@@ -193,7 +193,7 @@ export class GameManager {
         {
             case states.UsingSonar:
                 // Fade in sonar sound sources
-                this.audioManager.FadeInSonarBus(1, 0.5);
+                this.audioManager.FadeInSonarBus(0.9, 0.5);
                 break;
             default:
                 break;

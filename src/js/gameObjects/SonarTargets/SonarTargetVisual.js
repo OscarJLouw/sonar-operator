@@ -59,10 +59,10 @@ export class SonarTargetVisual extends GameObject {
 
         if (!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6) {
             // Not close enough!
-            this.material.color.r = 1;
-            this.material.color.g = 1;
-            this.material.color.b = 1;
-            this.material.opacity = 0.5; //Utils.instance.Clamp(0.4, 0, 1);
+            this.material.color.r = 0;
+            this.material.color.g = 0;
+            this.material.color.b = 0;
+            this.material.opacity = 0; //Utils.instance.Clamp(0.4, 0, 1);
             return;
         }
 
@@ -74,7 +74,7 @@ export class SonarTargetVisual extends GameObject {
 
             percentageCorrect = Utils.instance.Clamp(percentageCorrect, 0, 1);
 
-            this.material.color.r = 1 - percentageCorrect;
+            //this.material.color.r = 1 - percentageCorrect;
             this.material.color.g = percentageCorrect;
             this.material.color.b = 0;
             this.material.opacity = percentageCorrect;

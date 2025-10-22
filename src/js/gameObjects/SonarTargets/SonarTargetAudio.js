@@ -8,9 +8,8 @@ export class SonarTargetAudio extends GameObject {
     }
 
     CreateFromConfig(targetConfig) {
-        console.log("Created sonar target audio from config, playing sound: " + targetConfig.soundKey);
-
-        this.audioHandle = AudioManager.instance.spawnRingPanned(targetConfig.soundKey, { bus: "sonar", loop: true, R: 1.3, autostart: false });
+        this.targetConfig = targetConfig;
+        this.audioHandle = AudioManager.instance.spawnRingPanned(targetConfig.soundKey, { bus: "sonar", loop: true, R: 1.3, autostart: false, randomizeStartTime: targetConfig.randomizeSoundStartTime });
     }
 
     Link(sonarTarget) {
@@ -21,7 +20,7 @@ export class SonarTargetAudio extends GameObject {
     }
 
     Update(deltaTime) {
-        if(this.audioHandle == null || this.sonarTarget == null)
+        if (this.audioHandle == null || this.sonarTarget == null)
             return;
 
 
@@ -43,10 +42,9 @@ export class SonarTargetAudio extends GameObject {
             const targetVolume = Utils.instance.Clamp(event.detail.percentage, 0, 1);
 
             if (!this.audioHandle.isPlaying() && targetVolume > START_T) {
-                console.log("Started playing " + this.name + ", Volume: " + targetVolume);
                 this.audioHandle.play(0, RAMP); // fade in from 0
             }
-            
+
             this.audioHandle.setVolumeSmooth(targetVolume, RAMP);
 
             this.wasOverlapping = true;
