@@ -38,8 +38,8 @@ export class SonarMachine extends GameObject {
         this.sonarViewController.transform.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, this.sonarViewerPositionOffset.z);
 
         // Knob angle indicator base plate meshes
-        this.basePlateMesh = MeshManager.instance.models.basePlateFull.scene;
-        this.halfBasePlateMesh = MeshManager.instance.models.basePlateHalf.scene;
+        this.basePlateMesh = MeshManager.instance.models.basePlateFull;
+        this.halfBasePlateMesh = MeshManager.instance.models.basePlateHalf;
         this.basePlates = [];
 
         ////// Knobs

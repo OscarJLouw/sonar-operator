@@ -1,4 +1,5 @@
 import { DialogueManager } from "../../managers/DialogueManager";
+import { MeshManager } from "../../managers/MeshManager";
 import { GameObject } from "../GameObject";
 import { Button } from "./Button";
 
@@ -39,6 +40,58 @@ export class PlayerControls extends GameObject {
 
     CreateButton(buttonName, moveDirection) {
         var newButton = GameObject.Instantiate(Button, this.transform, buttonName);
+        var flipX = false;
+        var flipY = false;
+        var offsetY = 0;
+
+
+        switch (moveDirection) {
+            case this.playerMovementController.directions.Back:
+                flipY = true;
+                offsetY = 0.1
+                newButton.arrowMesh = MeshManager.instance.models.arrowStraight.clone();
+                break;
+            case this.playerMovementController.directions.Forward:
+                offsetY = -0.1
+                newButton.arrowMesh = MeshManager.instance.models.arrowStraight.clone();
+                break;
+            case this.playerMovementController.directions.Left:
+                flipX = true;
+            case this.playerMovementController.directions.Right:
+                newButton.arrowMesh = MeshManager.instance.models.arrowCurve.clone();
+                break;
+
+            case this.playerMovementController.directions.RotateLeft:
+                flipX = true;
+            case this.playerMovementController.directions.RotateRight:
+                newButton.arrowMesh = MeshManager.instance.models.arrowRotate.clone();
+                break;
+            default:
+                break;
+        }
+
+        if(flipX)
+        {
+            newButton.arrowMesh.rotateY(-Math.PI);
+            newButton.arrowMesh.rotateX(Math.PI*0.25);
+        } else {
+            newButton.arrowMesh.rotateX(Math.PI*-0.25);
+        }
+        if(flipY)
+        {
+            newButton.arrowMesh.rotateX(-Math.PI);
+
+        }
+
+        newButton.arrowMesh.scale.set(0.6, 0.6, 0.6);
+        newButton.arrowMesh.position.y += offsetY;
+        //newButton.arrowMesh.position.y -= 0.25;
+
+        newButton.AddComponent(newButton.arrowMesh);
+
+
+        newButton.material.opacity = 0;
+
         newButton.direction = moveDirection;
         newButton.SetClickAction(this.playerMovementController.Move.bind(this.playerMovementController, moveDirection));
 
@@ -82,10 +135,8 @@ export class PlayerControls extends GameObject {
         });
     }
 
-    ShowButtonsForValidExits()
-    {
-        if(this.currentExits == null)
-        {
+    ShowButtonsForValidExits() {
+        if (this.currentExits == null) {
             return;
         }
 
@@ -98,12 +149,11 @@ export class PlayerControls extends GameObject {
         this.HideAll();
 
         this.currentExits = this.playerMovementController.GetExits(newState);
-        
-        if(import.meta.env.PROD)
-        {
+
+        if (import.meta.env.PROD) {
             // Hide controls while moving
             await this.#sleep(0.3);
-            if(DialogueManager.instance.active)
+            if (DialogueManager.instance.active)
                 return;
         }
 

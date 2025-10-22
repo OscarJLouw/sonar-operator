@@ -44,9 +44,9 @@ export class Knob extends GameObject {
         //const knobVisuals = MeshManager.instance.models.knob;
         if(this.withIndicator)
         {
-            this.knob = MeshManager.instance.models.knobWithIndicator.scene.clone();
+            this.knob = MeshManager.instance.models.knobWithIndicator.clone();
         } else {
-            this.knob = MeshManager.instance.models.knob.scene.clone();
+            this.knob = MeshManager.instance.models.knob.clone();
         }
 
         this.knob.scale.set(0.8, 0.8, 0.8);

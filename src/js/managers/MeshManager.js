@@ -75,7 +75,8 @@ export class MeshManager {
             './models/BasePlateFull.glb',
             './models/BasePlateHalf.glb',
             './models/Knob.glb',
-            './models/KnobWithIndicator.glb'
+            './models/KnobWithIndicator.glb',
+            './models/ArrowButtons.glb'
         ];
 
         const modelPromises = modelPaths.map(path => {
@@ -89,14 +90,22 @@ export class MeshManager {
 
             this.models =
             {
-                basePlateFull: this.SetupModelProperties(loadedModels[0]),
-                basePlateHalf: this.SetupModelProperties(loadedModels[1]),
-                knob: this.SetupModelProperties(loadedModels[2]),
-                knobWithIndicator: this.SetupModelProperties(loadedModels[3]),
+                basePlateFull: this.SetupModelProperties(loadedModels[0].scene),
+                basePlateHalf: this.SetupModelProperties(loadedModels[1].scene),
+                knob: this.SetupModelProperties(loadedModels[2].scene),
+                knobWithIndicator: this.SetupModelProperties(loadedModels[3].scene),
+                arrowStraight: this.ExtractModel(loadedModels[4], "Arrow_Straight"),
+                arrowCurve: this.ExtractModel(loadedModels[4], "Arrow_Curve"),
+                arrowRotate: this.ExtractModel(loadedModels[4], "Arrow_Rotate"),
             };
         } catch (error) {
             console.error("Error loading models:", error);
         }
+    }
+
+    ExtractModel(model, modelName)
+    {
+        return this.SetupModelProperties(model.scene.getObjectByName(modelName));
     }
     
     SetupColorTexture(texture) {
@@ -119,7 +128,7 @@ export class MeshManager {
     }
 
     SetupModelProperties(model) {
-        model.scene.traverse((node) => {
+        model.traverse((node) => {
             if (!node.isMesh) return;
 
             const materials = Array.isArray(node.material) ? node.material : [node.material];

@@ -42,6 +42,11 @@ export class Button extends GameObject {
         this.mesh.visible = true;
         this.mesh.layers.set(0); // move to visible layer, accepting raycasts
 
+        this.components.forEach((component) =>
+        {
+            component.visible = true;
+        });
+
         if (this.active) {
             this.ActivateEvents();
         }
@@ -51,6 +56,11 @@ export class Button extends GameObject {
         this.visible = false;
         this.mesh.visible = false;
         this.mesh.layers.set(1); // move to hidden layer, ignoring raycasts
+
+        this.components.forEach((component) =>
+        {
+            component.visible = false;
+        });
 
         this.DisableEvents();
     }
