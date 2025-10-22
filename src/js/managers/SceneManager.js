@@ -23,6 +23,7 @@ export class SceneManager extends Resizable {
         this.targetAspectRatio = targetAspectRatio;
 
         this.scene = new THREE.Scene();
+        this.sonarScene = new THREE.Scene();
         //this.scene.background = new THREE.Color(0x151729);
 
         this.camera = new THREE.OrthographicCamera(-this.targetAspectRatio, this.targetAspectRatio, 1, - 1, 0.1, 10);

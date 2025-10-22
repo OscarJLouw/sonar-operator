@@ -69,6 +69,11 @@ export class SonarViewController extends GameObject {
         this.particlesController.SetSonarViewController(this);
     }
 
+    Ping()
+    {
+        this.particlesController.Ping();
+    }
+
     AddSonarTargetVisuals(sonarTargetVisual)
     {
         this.targetVisualsList.push(sonarTargetVisual);

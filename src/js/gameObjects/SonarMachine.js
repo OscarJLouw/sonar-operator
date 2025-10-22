@@ -8,6 +8,7 @@ import { SonarTargetVisual } from './SonarTargets/SonarTargetVisual';
 import { SonarTargetAudio } from './SonarTargets/SonarTargetAudio';
 import { DialogueManager } from '../managers/DialogueManager';
 import { SoundClasses } from './SonarTargets/SonarTargetConfig';
+import { Button } from './UI/Button';
 
 export class SonarMachine extends GameObject {
 
@@ -100,10 +101,21 @@ export class SonarMachine extends GameObject {
         //this.distanceRangeKnob.SetRelativeRotationControl(false);
         this.CreateBasePlate(this.distanceRangeKnob, true, basePlatesScale);
 
+        this.pingButton = GameObject.Instantiate(Button, this.transform, "Ping Button");
+        this.pingButton.transform.scale.set(0.3, 0.2, 1);
+        this.pingButton.transform.position.set(-1, -0.8 , 0);
+        this.pingButton.SetClickAction(this.Ping.bind(this));    // bind the "this" context to the main menu
+        this.pingButton.material.map = MeshManager.instance.textures.startButtonTexture;
+
         // Sound sources
         this.sonarTargets = [];
         this.sonarTargetVisuals = [];
         this.sonarTargetAudios = [];
+    }
+
+    Ping()
+    {
+        this.sonarViewController.Ping();
     }
 
     SetWorld(world) {
