@@ -128,6 +128,7 @@ export class GameManager {
 
     async StartStory()
     {
+        this.storyManager.SetWorld(this.sceneManager.world);
         await this.storyManager.Start();
     }
 

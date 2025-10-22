@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { DialogueManager } from './DialogueManager';
+import { World } from '../gameObjects/World';
 
 export class StoryManager {
     constructor() {
@@ -11,11 +12,11 @@ export class StoryManager {
         return StoryManager.instance;
     }
 
-    Setup(gameManager, dialogueManager, audioManager) {
+    Setup(gameManager, dialogueManager, audioManager, world) {
         this.gameManager = gameManager;
         this.dialogueManager = dialogueManager;
         this.audioManager =  audioManager;
-
+        
         this.CreateDialogues();
     }
 
@@ -36,6 +37,11 @@ export class StoryManager {
             { id: 'unk', text: 'Marking as unknown for now.', next: null },
             { id: 'test1', text: 'Testing second dialogue. {>>>}How does this feel? {>}Better? {>>}Worse?', next: null }
         ]);
+    }
+
+    SetWorld(world)
+    {
+        this.world = world;
     }
 
     async Start()

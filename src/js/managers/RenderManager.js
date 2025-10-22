@@ -60,7 +60,7 @@ export class RenderManager extends Resizable {
     {
         if(this.hasPixelatePass)
         {
-            this.renderPixelatedPass.setPixelSize(pixelSize);
+            this.renderPixelatedPass.setPixelSize(Math.max(1, Math.floor(pixelSize)));
             this.renderPixelatedPass.depthEdgeStrength = 0;
             //this.renderPixelatedPass.normalEdgeStrength = 0;
         }
@@ -74,6 +74,20 @@ export class RenderManager extends Resizable {
         
         const arTarget = SceneManager.instance.targetAspectRatio;
 
+        /*
+        if(this.hasPixelatePass)
+        {
+            const fixedHeight = 180;
+            const fixedWidth  = Math.round(fixedHeight * arTarget);
+
+            this.renderer.setSize(fixedWidth, fixedHeight);
+            this.composer.setSize(fixedWidth, fixedHeight);
+            this.renderer.setPixelRatio(1);
+            this.Render(0);
+            return;
+        }
+        */
+       
         let scaledWidth;
         let scaledHeight;
 
