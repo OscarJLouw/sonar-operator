@@ -13,6 +13,8 @@ export class StoryManager {
     }
 
     Setup(gameManager, dialogueManager, audioManager, world) {
+        this.skipDialogue = true;
+
         this.gameManager = gameManager;
         this.dialogueManager = dialogueManager;
         this.audioManager =  audioManager;
@@ -46,6 +48,11 @@ export class StoryManager {
 
     async Start()
     {
+        if(this.skipDialogue)
+        {
+            return;
+        }
+        
         await this.dialogueManager.start("intro1");
         //await this.#sleep(5);
         // 

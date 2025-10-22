@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { Utils } from '../utils/Utils';
+import { SonarScreenParticles } from './SonarTargets/SonarScreenParticles';
 
 export class SonarViewController extends GameObject {
 
@@ -61,6 +62,8 @@ export class SonarViewController extends GameObject {
         };
 
         this.arcArea = this.CalculateArcArea();
+
+        this.particlesController = GameObject.Instantiate(SonarScreenParticles, this.transform, "Sonar Screen Particles");
     }
 
     Start() {
