@@ -9,6 +9,7 @@ import { GameObject } from '../gameObjects/GameObject.js';
 import { MeshManager } from './MeshManager.js';
 import { PlayerMovementController } from './PlayerMovementController.js';
 import { PlayerControls } from '../gameObjects/UI/PlayerControls.js';
+import { DialogueManager } from './DialogueManager';
 
 export class GameManager {
     constructor() {
@@ -62,6 +63,9 @@ export class GameManager {
         this.playerMovementController = new PlayerMovementController();
         this.playerMovementController.Setup();
 
+        this.dialogueManager = new DialogueManager();
+        this.dialogueManager.Setup({ gameManager: this, audioManager: this.audioManager });
+
         this.playerControls = GameObject.Instantiate(PlayerControls, this.sceneManager.scene, "Player Controls UI");
         this.playerControls.Setup(this.playerMovementController);
 
@@ -76,6 +80,22 @@ export class GameManager {
 
     InitialiseGame() {
         this.renderManager.SetAnimationLoop(() => this.Update());
+
+        this.dialogueManager.registerNodes([
+            { id: 'intro1', speaker: 'XO', text: 'Picking up a contact… {p: 0.6}{>}steady ping, 2-second interval.' , next: 'intro2' },
+            { id: 'intro2', speaker: 'XO', text: 'What are you hearing?', choices: [
+                { text: 'Biophony', next: 'bio', style: 'primary' },
+                { text: 'Geophony', next: 'geo' },
+                { text: 'Anthropogenic', next: 'anthro' },
+                { text: 'Unknown', next: 'unk' },
+                ]
+            },
+            { id: 'bio', text: '{color: #a2f39b}Biophony.{color: #e9ecf1} Humpback song patterns. Good catch.', next: null },
+            { id: 'geo', text: 'No, that rumble isn\'t tectonic.', next: null },
+            { id: 'anthro', text: 'Negative. Not prop cavitation.', next: null },
+            { id: 'unk', text: 'Marking as unknown for now.', next: null },
+            { id: 'test1', text: 'Testing second dialogue. {>>>}How does this feel? {>}Better? {>>}Worse?', next: null }
+        ]);
     }
 
     MainMenu() {
@@ -98,10 +118,25 @@ export class GameManager {
 
         this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
 
+
+        this.StartDialogue();
+
         // this.sceneManager.ActivateSonarView(false); // TODO: Hide sonar machine
 
         // 
 
+    }
+
+    async StartDialogue()
+    {
+        await this.dialogueManager.start('intro1');
+        // here I want to save a variable if they answered Geophony specifically
+        await this.#sleep(5);
+        await this.dialogueManager.start('test1');
+        // here I want to branch if they chose Unknown, or reset the variable above if they answered Geophony again
+
+
+        console.log("dialogue finished");
     }
 
     Update() {
@@ -158,6 +193,7 @@ export class GameManager {
         this.gameObjectsToDestroy.push(gameObject);
         gameObject.SetActive(false);
     }
+    #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
 }
 
