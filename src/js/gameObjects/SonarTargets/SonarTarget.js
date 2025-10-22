@@ -26,7 +26,7 @@ export class SonarTarget extends GameObject {
         this.dirty = true;
 
         // Debug
-        //this.debug = true;
+        this.debug = false;
         if (this.debug) {
             this.debugGeometry = new THREE.CircleGeometry(1, 16);
             this.debugMaterial = new THREE.MeshBasicMaterial({
@@ -144,6 +144,12 @@ export class SonarTarget extends GameObject {
 
             this.wasOverlapping = true;
             this.OnOverlapUpdated(true, this.wasOverlapping, percentage, overlap.overlappedArea);
+
+            const percentageCorrect = overlap.overlappedArea / this.annularSegmentArea;
+            if(percentageCorrect >= this.targetConfig.discoveryThreshold)
+            {
+                this.OnDiscovered();
+            }
         } else {
             if (this.wasOverlapping) {
                 this.wasOverlapping = false;
@@ -177,6 +183,17 @@ export class SonarTarget extends GameObject {
                 this.debugMaterial.materialNeedsUpdate = true;
             }
         }
+    }
+
+    OnDiscovered()
+    {
+        this.dispatchEvent(new CustomEvent("discoveredTarget",
+            {
+                detail: {
+                    target: this
+                }
+            }
+        ));
     }
 
     OnRemoved() {

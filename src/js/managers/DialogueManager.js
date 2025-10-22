@@ -203,10 +203,10 @@ export class DialogueManager {
     }
 
     /** Convenience helper for the recurring sonar multiple-choice case. */
-    async sonarIdentify({ correct, responses, speaker = 'Operator' }) {
+    async sonarIdentify({ promptText = 'What are you hearing?', correct, responses, speaker = 'Operator' }) {
         // responses: { Biophony: string, Geophony: string, Anthropogenic: string, Unknown: string }
         const options = ['Biophony', 'Geophony', 'Anthropogenic', 'Unknown'];
-        const text = 'What are you hearing, cadet?';
+        const text = promptText;
         const choices = options.map(o => ({ text: o, next: null }));
         const selected = await this.prompt({ text, choices, speaker });
         if (!selected) return null;

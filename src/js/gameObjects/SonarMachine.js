@@ -6,6 +6,8 @@ import { MeshManager } from '../managers/MeshManager';
 import { SonarTarget } from './SonarTargets/SonarTarget';
 import { SonarTargetVisual } from './SonarTargets/SonarTargetVisual';
 import { SonarTargetAudio } from './SonarTargets/SonarTargetAudio';
+import { DialogueManager } from '../managers/DialogueManager';
+import { SoundClasses } from './SonarTargets/SonarTargetConfig';
 
 export class SonarMachine extends GameObject {
 
@@ -27,7 +29,7 @@ export class SonarMachine extends GameObject {
         this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0, 0, 0) });
 
         this.viewAreaMesh = new THREE.Mesh(this.viewAreaGeometry, this.viewAreaMaterial);
-        this.viewAreaMesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y,  -1);
+        this.viewAreaMesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, -1);
         this.AddComponent(this.viewAreaMesh);
 
         // Sonar viewer
@@ -153,17 +155,10 @@ export class SonarMachine extends GameObject {
         this.sonarTargetAudios.push(sonarTargetAudio);
 
         sonarTarget.addEventListener("onRemoved", this.OnTargetRemoved);
+        sonarTarget.addEventListener("discoveredTarget", this.OnDiscoveredTarget);
 
         const arcParameters = this.sonarViewController.GetArcParameters();
         sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax, arcParameters.arcArea);
-    }
-
-    OnTargetSpawned = (event) => {
-        this.AddSonarTarget(event.detail.target, "SonarTargetVisual " + event.detail.targetsSpawnedSoFar);
-    }
-
-    OnTargetRemoved = (event) => {
-        this.RemoveSonarTarget(event.detail.target);
     }
 
     RemoveSonarTarget(sonarTarget) {
@@ -176,6 +171,31 @@ export class SonarMachine extends GameObject {
             sonarTarget.removeEventListener("onRemoved", this.OnTargetRemoved);
         }
     }
+
+    OnTargetSpawned = (event) => {
+        this.AddSonarTarget(event.detail.target, "SonarTargetVisual " + event.detail.targetsSpawnedSoFar);
+    }
+
+    OnTargetRemoved = (event) => {
+        this.RemoveSonarTarget(event.detail.target);
+    }
+
+    OnDiscoveredTarget = (event) => {
+        this.DiscoverTarget(event.detail.target);
+    }
+
+    async DiscoverTarget(sonarTarget) {
+        const targetIndex = this.sonarTargets.indexOf(sonarTarget);
+        const soundClass = sonarTarget.targetConfig.soundClass;
+        
+        var dialogueManager = DialogueManager.instance;
+        const { selected, isCorrect } = await dialogueManager.sonarIdentify({
+            correct: soundClass, // 'Biophony' | 'Geophony' | 'Anthropogenic' | 'Unknown'
+            responses:  SoundClasses, // { Biophony: '...', Geophony: '...', ... }
+            speaker: 'Operator'
+        });
+    }
+
 
     Update(deltaTime) {
         this.testCountdown -= deltaTime;

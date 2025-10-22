@@ -1,18 +1,29 @@
 import * as THREE from 'three';
+
+export const SoundClasses = {
+    biophony: 'Biophony',
+    geophony: 'Geophony',
+    anthropogenic: 'Anthropogenic',
+    unknown: 'Unknown'
+}
+
 export class SonarTargetConfig {
     constructor(
-        name, 
-        soundKey, 
+        name,
+        soundKey,
         {
             randomizeSoundStartTime = true,
             radius = 0.2, randomizeRadius = false, minRadius = 0.05, maxRadius = 0.25,
             spawnAtRandomPosition = false, spawnPosition = null,
             moveOverTime = false, randomMovement = false, xVelocity = 0, yVelocity = 0,
             visibleOnActiveSonar = false, activeSonarModelKey,
-        }
-    )
-    {
+            discoveryThreshold = 0.7,
+            soundClass = SoundClasses.biophony
+        } = {}
+    ) {
         this.name = name;
+        this.discoveryThreshold = discoveryThreshold;
+
         this.soundKey = soundKey;
         this.randomizeSoundStartTime = randomizeSoundStartTime;
 
@@ -31,5 +42,7 @@ export class SonarTargetConfig {
 
         this.visibleOnActiveSonar = visibleOnActiveSonar;
         this.activeSonarModelKey = activeSonarModelKey;
+        this.SoundClass = soundClass;
     }
+
 }

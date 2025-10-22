@@ -33,7 +33,7 @@ export class World extends GameObject {
 
     SpawnTargets(numTargets)
     {
-        const testConfig = new SonarTargetConfig("Test config", "humpbacks",
+        const testConfig = new SonarTargetConfig("Humpbacks", "humpbacks",
             {
                 randomizeRadius: true,
                 minRadius:  0.05,
