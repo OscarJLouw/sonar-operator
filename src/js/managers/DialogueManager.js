@@ -3,6 +3,7 @@ import { GameManager } from './GameManager';
 import { AudioManager } from './AudioManager';
 
 /**
+ * From ChatGPT
  * Lightweight branching dialogue system that overlays the Three.js canvas using HTML.
  *
  * Key features:
@@ -74,6 +75,8 @@ export class DialogueManager {
             /** @type {(choice:DialogueChoice, node:DialogueNode)=>void | null} */
             this.onChoice = null; // optional analytics/telemetry
 
+            this.events = new EventTarget();
+
             // DOM
             this.root = null;        // overlay root
             this.nameEl = null;      // speaker label
@@ -144,6 +147,7 @@ export class DialogueManager {
         this.active = true;
         this.root.style.display = 'grid';
         this.currentNodeId = nodeId;
+        this.dispatchEvent(new CustomEvent("dialogueStarted", { detail: { nodeId: nodeId } }));
         this.#bindGlobalSkip();
         while (this.active && this.currentNodeId) {
             const next = await this.#playNode(this.currentNodeId);
@@ -151,6 +155,7 @@ export class DialogueManager {
         }
 
         this.active = false;
+        this.dispatchEvent(new CustomEvent("dialogueEnded", { detail: { reason: 'ended' } }));
         this.#unbindGlobalSkip();
         this.#hideOverlay();
         return; // finished or suspended
@@ -163,6 +168,7 @@ export class DialogueManager {
         this.skipRequested = false;
         this.#unbindGlobalSkip();
         this.#hideOverlay();
+        this.dispatchEvent(new CustomEvent("dialogueEnded", { detail: { reason: 'suspended' } }));
     }
 
     /** Resume from a node (or the last currentNodeId if provided as null). */
@@ -500,7 +506,7 @@ export class DialogueManager {
         this.continueHint = hint;
 
         parent.appendChild(this.root);
-        
+
 
         // --- Input trapping strategy ---
         // Backdrop: full-viewport blocker (prevents gameplay clicks)
@@ -540,6 +546,11 @@ export class DialogueManager {
     // ===== Utils =====
 
     #sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // Events
+    addEventListener(...args) { this.events.addEventListener(...args); }
+    removeEventListener(...args) { this.events.removeEventListener(...args); }
+    dispatchEvent(event) { return this.events.dispatchEvent(event); }
 }
 
 export const dialogueManager = new DialogueManager();

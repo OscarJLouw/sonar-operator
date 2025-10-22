@@ -10,6 +10,7 @@ import { MeshManager } from './MeshManager.js';
 import { PlayerMovementController } from './PlayerMovementController.js';
 import { PlayerControls } from '../gameObjects/UI/PlayerControls.js';
 import { DialogueManager } from './DialogueManager';
+import { StoryManager } from './StoryManager.js';
 
 export class GameManager {
     constructor() {
@@ -52,7 +53,8 @@ export class GameManager {
         await this.audioManager.Setup(this.sceneManager.camera);
 
         this.renderManager = new RenderManager();
-        this.renderManager.Setup(this.sceneManager, false);
+        this.renderManager.Setup(this.sceneManager, true);
+        this.renderManager.SetPixellation(3);
 
         this.mouseHandler = new MouseHandler();
         this.mouseHandler.Setup(this.sceneManager.camera);
@@ -66,11 +68,15 @@ export class GameManager {
         this.dialogueManager = new DialogueManager();
         this.dialogueManager.Setup({ gameManager: this, audioManager: this.audioManager });
 
+        this.storyManager = new StoryManager();
+        this.storyManager.Setup(this, this.dialogueManager, this.audioManager);
+
         this.playerControls = GameObject.Instantiate(PlayerControls, this.sceneManager.scene, "Player Controls UI");
         this.playerControls.Setup(this.playerMovementController);
 
         this.mainMenu = GameObject.Instantiate(MainMenu, this.sceneManager.scene, "Main Menu");
         this.mainMenu.Setup(this);
+
 
         window.addEventListener('pointerdown', () => {
             const ctx = this.audioManager.listener.context;
@@ -80,26 +86,16 @@ export class GameManager {
 
         this.handleMovementStateChange = event => this.OnMovementStateChanged(event.detail.previousState, event.detail.newState);
         this.playerMovementController.addEventListener("onEnterState", this.handleMovementStateChange);
+
+        this.handleDialogueStarted = event => this.OnDialogueStarted(event.detail.nodeId);
+        this.dialogueManager.addEventListener("dialogueStarted", this.handleDialogueStarted);
+        
+        this.handleDialogueEnded = event => this.OnDialogueEnded(event.detail.reason);
+        this.dialogueManager.addEventListener("dialogueEnded", this.handleDialogueEnded);
     }
 
     InitialiseGame() {
         this.renderManager.SetAnimationLoop(() => this.Update());
-
-        this.dialogueManager.registerNodes([
-            { id: 'intro1', speaker: 'XO', text: 'Picking up a contact… {p: 0.6}{>}steady ping, 2-second interval.' , next: 'intro2' },
-            { id: 'intro2', speaker: 'XO', text: 'What are you hearing?', choices: [
-                { text: 'Biophony', next: 'bio', style: 'primary' },
-                { text: 'Geophony', next: 'geo' },
-                { text: 'Anthropogenic', next: 'anthro' },
-                { text: 'Unknown', next: 'unk' },
-                ]
-            },
-            { id: 'bio', text: '{color: #a2f39b}Biophony.{color: #e9ecf1} Humpback song patterns. Good catch.', next: null },
-            { id: 'geo', text: 'No, that rumble isn\'t tectonic.', next: null },
-            { id: 'anthro', text: 'Negative. Not prop cavitation.', next: null },
-            { id: 'unk', text: 'Marking as unknown for now.', next: null },
-            { id: 'test1', text: 'Testing second dialogue. {>>>}How does this feel? {>}Better? {>>}Worse?', next: null }
-        ]);
     }
 
     MainMenu() {
@@ -111,7 +107,6 @@ export class GameManager {
     StartGame() {
 
         this.gameState = "Starting";
-        //this.renderManager.SetPixellation(6);
 
         this.portalsController.StartGame();
 
@@ -123,7 +118,7 @@ export class GameManager {
         this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
 
 
-        this.StartDialogue();
+        this.StartStory();
 
         // this.sceneManager.ActivateSonarView(false); // TODO: Hide sonar machine
 
@@ -131,14 +126,9 @@ export class GameManager {
 
     }
 
-    async StartDialogue()
+    async StartStory()
     {
-        await this.dialogueManager.start('intro1');
-        await this.#sleep(5);
-        await this.dialogueManager.start('test1');
-
-
-        console.log("dialogue finished");
+        await this.storyManager.Start();
     }
 
     Update() {
@@ -209,6 +199,18 @@ export class GameManager {
         }
     }
 
+    OnDialogueStarted(nodeId)
+    {
+        console.log("Dialogue started");
+        this.playerControls.HideAll();
+    }
+
+    OnDialogueEnded(reason)
+    {
+        console.log("Dialogue Ended");
+        this.playerControls.ShowButtonsForValidExits();
+    }
+
     RegisterGameObject(gameObject) {
         console.log("GameManager registered GameObject: " + gameObject.name + " | ID: [ " + gameObject.id+"]");
         this.gameObjects.set(gameObject.id, gameObject);
@@ -218,8 +220,6 @@ export class GameManager {
         this.gameObjectsToDestroy.push(gameObject);
         gameObject.SetActive(false);
     }
-    #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
-
 }
 
 export const gameManager = new GameManager();

@@ -177,16 +177,7 @@ export class PlayerMovementController extends EventTarget {
     }
 
     EnterState(targetState) {
-        const onEnterStateEvent = new CustomEvent("onEnterState",
-            {
-                detail: {
-                    previousState: this.currentState,
-                    newState: targetState
-                }
-            });
-
-        this.dispatchEvent(onEnterStateEvent);
-
+        const previousState = this.currentState;
         this.currentState = targetState;
 
         if (targetState == this.stateExits.None) {
@@ -196,6 +187,16 @@ export class PlayerMovementController extends EventTarget {
 
         this.exits = this.GetExits(this.currentState);
         this.MoveToCamera(this.currentState);
+
+        const onEnterStateEvent = new CustomEvent("onEnterState",
+            {
+                detail: {
+                    previousState: previousState,
+                    newState: targetState
+                }
+            });
+
+        this.dispatchEvent(onEnterStateEvent);
     }
 
     GetExits(state) {

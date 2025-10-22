@@ -88,6 +88,7 @@ export class PlayerControls extends GameObject {
             return;
         }
 
+        console.log("Showed exit controls for ");
         this.currentExits.forEach((exit) => {
             this.ShowButton(exit.direction);
         });

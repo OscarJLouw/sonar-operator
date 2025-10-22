@@ -61,6 +61,8 @@ export class RenderManager extends Resizable {
         if(this.hasPixelatePass)
         {
             this.renderPixelatedPass.setPixelSize(pixelSize);
+            this.renderPixelatedPass.depthEdgeStrength = 0;
+            //this.renderPixelatedPass.normalEdgeStrength = 0;
         }
     }
 
