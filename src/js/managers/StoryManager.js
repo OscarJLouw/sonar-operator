@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import { DialogueManager } from './DialogueManager';
-import { World } from '../gameObjects/World';
+import * as THREE from "three";
+import { DialogueManager } from "./DialogueManager";
+import { World } from "../gameObjects/World";
 
 export class StoryManager {
     constructor() {
@@ -23,19 +23,19 @@ export class StoryManager {
     CreateDialogues()
     {
         this.dialogueManager.registerNodes([
-            { id: 'intro1', speaker: 'XO', text: 'Picking up a contact… {p: 0.6}{>}steady ping, 2-second interval.' , next: 'intro2' },
-            { id: 'intro2', speaker: 'XO', text: 'What are you hearing?', choices: [
-                { text: 'Biophony', next: 'bio', style: 'primary' },
-                { text: 'Geophony', next: 'geo' },
-                { text: 'Anthropogenic', next: 'anthro' },
-                { text: 'Unknown', next: 'unk' },
+            // Introduction
+            { id: "intro1", speaker: "XO", text: "Good evening sonarsman." , next: "intro2" },
+            { id: "intro2", speaker: "XO", text: "{>>}Ready for another...{p: 0.3}{>} long {>>} night shift?", next: "intro3", choices: [
+                {text: "Always ready Commander.", next: "intro3"},
+                {text: "Still waking up, Sir.", next: "intro3"}
+            ]},
+            { id: "intro3", speaker: "XO", text: "Get yourself acquainted with the new space before tonights briefing.", choices: [
+                { text: "Why did we have to move the sonar array down here?", next: "intro_whyMove", style: "primary" },    // highlights a button in green, use with main conversation thread
+                { text: "Copy that.", next: "intro_signOff" }
                 ]
             },
-            { id: 'bio', text: '{color: #a2f39b}Biophony.{color: #e9ecf1} Humpback song patterns. Good catch.', next: null },
-            { id: 'geo', text: 'No, that rumble isn\'t tectonic.', next: null },
-            { id: 'anthro', text: 'Negative. Not prop cavitation.', next: null },
-            { id: 'unk', text: 'Marking as unknown for now.', next: null },
-            { id: 'test1', text: 'Testing second dialogue. {>>>}How does this feel? {>}Better? {>>}Worse?', next: null }
+            { id: "intro_whyMove", text: "{>>>}I'm not happy about it either, {>>}technician, {>>>}but you well know that the engine work cannot be delayed any longer. ", next: "intro_signOff" },
+            { id: "intro_signOff", text: "Report back on the radio when you're ready.", next: null },
         ]);
     }
 
@@ -46,11 +46,9 @@ export class StoryManager {
 
     async Start()
     {
-        await this.dialogueManager.start('intro1');
-        await this.#sleep(5);
-        await this.dialogueManager.start('test1');
-
-        console.log("dialogue finished");
+        await this.dialogueManager.start("intro1");
+        //await this.#sleep(5);
+        // 
     }
 
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }

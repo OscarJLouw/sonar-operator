@@ -31,10 +31,10 @@ export class SceneManager extends Resizable {
         //this.camera.lookAt(new THREE.Vector3(0,0,0));
         this.Resize(this.width, this.height, this.aspectRatio);
 
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 3);
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 1);
         this.scene.add(this.ambientLight);
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 10);
+        this.directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         this.scene.add(this.directionalLight);
         this.directionalLight.position.set(3, 5, 10);
     }
