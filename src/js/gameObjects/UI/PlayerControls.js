@@ -1,3 +1,4 @@
+import { DialogueManager } from "../../managers/DialogueManager";
 import { GameObject } from "../GameObject";
 import { Button } from "./Button";
 
@@ -94,13 +95,24 @@ export class PlayerControls extends GameObject {
         });
     }
 
-    OnStateChange(previousState, newState) {
+    async OnStateChange(previousState, newState) {
         this.HideAll();
 
         this.currentExits = this.playerMovementController.GetExits(newState);
+        
+        if(import.meta.env.PROD)
+        {
+            // Hide controls while moving
+            await this.#sleep(0.3);
+            if(DialogueManager.instance.active)
+                return;
+        }
+
         this.ShowButtonsForValidExits();
     }
 
+    // Utils
+    #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
     // Events
     addEventListener(...args) { this.events.addEventListener(...args); }
