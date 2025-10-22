@@ -36,7 +36,7 @@ export class MeshManager {
     }
 
     CreateSharedMaterials() {
-        this.knobMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4) });
+        this.knobMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.4, 0.4, 0.4), transparent: true, opacity: 0 });
         this.indicatorMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.buttonMaterial = new THREE.MeshBasicMaterial({ transparent: true });//{ color: new THREE.Color(, 0.4, 0.4) });
 

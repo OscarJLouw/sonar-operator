@@ -30,12 +30,13 @@ export class SonarTargetVisual extends GameObject {
 
     Link(sonarTarget) {
         this.CreateFromConfig(sonarTarget.targetConfig);
-        
+
         this.sonarTarget = sonarTarget;
         this.radius = sonarTarget.radius;
         this.transform.scale.set(this.radius * this.scaleFactor, this.radius * this.scaleFactor, this.radius * this.scaleFactor);
 
         this.sonarTarget.addEventListener("overlapPercentageUpdated", this.OnOverlapPercentageUpdated);
+        this.sonarTarget.addEventListener("discoveredTarget", this.OnDiscovered);
         this.sonarTarget.addEventListener("onRemoved", this.OnRemoved);
     }
 
@@ -50,6 +51,9 @@ export class SonarTargetVisual extends GameObject {
     }
 
     OnOverlapPercentageUpdated = (event) => {
+        if (this.discovered)
+            return;
+
         const overlapping = event.detail.overlapping;
         const wasOverlappingPreviously = event.detail.wasOverlappingPreviously;
         const percentage = event.detail.percentage;
@@ -74,7 +78,7 @@ export class SonarTargetVisual extends GameObject {
 
             percentageCorrect = Utils.instance.Clamp(percentageCorrect, 0, 1);
 
-            //this.material.color.r = 1 - percentageCorrect;
+            this.material.color.r = 0; //1 - percentageCorrect;
             this.material.color.g = percentageCorrect;
             this.material.color.b = 0;
             this.material.opacity = percentageCorrect;
@@ -87,6 +91,14 @@ export class SonarTargetVisual extends GameObject {
                 this.material.opacity = 0.4;
             }
         }*/
+    }
+
+    OnDiscovered = (event) => {
+        this.discovered = true;
+        this.material.color.r = 0; //1 - percentageCorrect;
+        this.material.color.g = 1;
+        this.material.color.b = 0;
+        this.material.opacity = 1;
     }
 
     OnRemoved = (event) => {

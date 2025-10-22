@@ -32,6 +32,9 @@ export class GameManager {
         await this.CreateManagers();
         this.InitialiseGame();
         this.MainMenu();
+
+        var loader = document.getElementById('loader');
+        loader.remove();
         //this.StartGame();
     }
 

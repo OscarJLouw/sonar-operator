@@ -25,6 +25,8 @@ export class SonarTarget extends GameObject {
         this.wasOverlapping = false;
         this.dirty = true;
 
+        this.discovered = false;
+
         // Debug
         this.debug = false;
         if (this.debug) {
@@ -38,23 +40,19 @@ export class SonarTarget extends GameObject {
         }
     }
 
-    CreateFromConfig(targetConfig)
-    {
+    CreateFromConfig(targetConfig) {
         this.targetConfig = targetConfig;
 
-        if(targetConfig.randomizeRadius)
-        {
+        if (targetConfig.randomizeRadius) {
             this.radius = this.GetRandomRadius(targetConfig.minRadius, targetConfig.maxRadius);
         } else {
             this.radius = targetConfig.radius;
         }
-        
-        if(targetConfig.spawnAtRandomPosition)
-        {
+
+        if (targetConfig.spawnAtRandomPosition) {
             this.GetRandomPositionOnMap(this.transform.position);
         } else {
-            if(this.targetConfig.spawnPosition != null)
-            {
+            if (this.targetConfig.spawnPosition != null) {
                 this.transform.position.copy(spawnPosition);
             }
         }
@@ -63,13 +61,11 @@ export class SonarTarget extends GameObject {
         this.dirty = true;
     }
 
-    GetRandomRadius(minRadius, maxRadius)
-    {
+    GetRandomRadius(minRadius, maxRadius) {
         return Math.random() * (maxRadius - minRadius) + minRadius;
     }
 
-    GetRandomPositionOnMap(position)
-    {
+    GetRandomPositionOnMap(position) {
         const minSpawnRange = 0.05 + this.radius;
         const maxSpawnRange = 0.9 - this.radius;
 
@@ -145,10 +141,12 @@ export class SonarTarget extends GameObject {
             this.wasOverlapping = true;
             this.OnOverlapUpdated(true, this.wasOverlapping, percentage, overlap.overlappedArea);
 
-            const percentageCorrect = overlap.overlappedArea / this.annularSegmentArea;
-            if(percentageCorrect >= this.targetConfig.discoveryThreshold)
-            {
-                this.OnDiscovered();
+            if (!this.discovered) {
+                const percentageCorrect = overlap.overlappedArea / this.annularSegmentArea;
+                if (percentageCorrect >= this.targetConfig.discoveryThreshold) {
+                    this.discovered = true;
+                    this.OnDiscovered();
+                }
             }
         } else {
             if (this.wasOverlapping) {
@@ -185,8 +183,7 @@ export class SonarTarget extends GameObject {
         }
     }
 
-    OnDiscovered()
-    {
+    OnDiscovered() {
         this.dispatchEvent(new CustomEvent("discoveredTarget",
             {
                 detail: {

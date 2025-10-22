@@ -17,7 +17,7 @@ export class SonarTargetConfig {
             spawnAtRandomPosition = false, spawnPosition = null,
             moveOverTime = false, randomMovement = false, xVelocity = 0, yVelocity = 0,
             visibleOnActiveSonar = false, activeSonarModelKey,
-            discoveryThreshold = 0.7,
+            discoveryThreshold = 0.5,
             soundClass = SoundClasses.biophony
         } = {}
     ) {
