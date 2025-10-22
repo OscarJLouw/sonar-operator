@@ -61,9 +61,25 @@ export class SonarViewController extends GameObject {
             arcArea: 0
         };
 
+        this.targetVisualsList = [];
+
         this.arcArea = this.CalculateArcArea();
 
         this.particlesController = GameObject.Instantiate(SonarScreenParticles, this.transform, "Sonar Screen Particles");
+        this.particlesController.SetSonarViewController(this);
+    }
+
+    AddSonarTargetVisuals(sonarTargetVisual)
+    {
+        this.targetVisualsList.push(sonarTargetVisual);
+    }
+
+    RemoveSonarTargetVisuals(sonarTargetVisual)
+    {
+        const targetIndex = this.targetVisualsList.indexOf(sonarTargetVisual);
+        if (targetIndex > -1) {
+            this.targetVisualsList.splice(targetIndex, 1);
+        }
     }
 
     Start() {
@@ -74,6 +90,7 @@ export class SonarViewController extends GameObject {
         this.mesh.layers.set(0);
         this.targetMesh.visible = true;
         this.targetMesh.layers.set(0);
+        this.particlesController.SetActive(true);
     }
 
     OnDisable() {
@@ -81,6 +98,7 @@ export class SonarViewController extends GameObject {
         this.mesh.layers.set(1);
         this.targetMesh.visible = false;
         this.targetMesh.layers.set(1);
+        this.particlesController.SetActive(false);
     }
 
     OnDestroy() {

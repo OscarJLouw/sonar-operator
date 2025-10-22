@@ -149,6 +149,7 @@ export class SonarMachine extends GameObject {
         sonarTargetVisual.SetSonarViewerProperties(this.sonarViewerPositionOffset, this.sonarViewerScale);
         sonarTargetVisual.Link(sonarTarget);
         this.sonarTargetVisuals.push(sonarTargetVisual);
+        this.sonarViewController.AddSonarTargetVisuals(sonarTargetVisual);
 
         var sonarTargetAudio = GameObject.Instantiate(SonarTargetAudio, this.sonarVisualsGroup, name)
         sonarTargetAudio.Link(sonarTarget);
@@ -164,6 +165,8 @@ export class SonarMachine extends GameObject {
     RemoveSonarTarget(sonarTarget) {
         const targetIndex = this.sonarTargets.indexOf(sonarTarget);
         if (targetIndex > -1) {
+            this.sonarViewController.RemoveSonarTargetVisuals(this.sonarTargetVisuals[targetIndex]);
+
             //this.sonarTargetVisuals[targetIndex].Unlink();
             this.sonarTargetVisuals.splice(targetIndex, 1);
             this.sonarTargetAudios.splice(targetIndex, 1);

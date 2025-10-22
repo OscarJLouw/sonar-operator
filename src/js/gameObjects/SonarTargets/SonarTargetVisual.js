@@ -15,6 +15,8 @@ export class SonarTargetVisual extends GameObject {
         this.positionOffset = new THREE.Vector3();
         this.scaleFactor = 1;
         this.SetVisible(false);
+
+        this.visibilityPercentage = 0;
     }
 
     CreateFromConfig(targetConfig) {
@@ -61,8 +63,16 @@ export class SonarTargetVisual extends GameObject {
         const viewerArea = event.detail.sonarAnnularSegmentArea;
         const percentageOfViewerOccupied = overlappedArea / viewerArea;
 
+        this.overlapping = overlapping;
+        this.overlapPercentage = percentage;
+        this.overlappedArea = overlappedArea;
+        this.viewerArea = viewerArea;
+        this.visibilityPercentage = percentageOfViewerOccupied;
+
+
         if (!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6) {
             // Not close enough!
+            
             this.material.color.r = 0;
             this.material.color.g = 0;
             this.material.color.b = 0;
@@ -76,12 +86,14 @@ export class SonarTargetVisual extends GameObject {
                 percentageCorrect = 1 - (percentageOfViewerOccupied - 1);
             }
 
+
             percentageCorrect = Utils.instance.Clamp(percentageCorrect, 0, 1);
 
+
             this.material.color.r = 0; //1 - percentageCorrect;
-            this.material.color.g = percentageCorrect;
+            this.material.color.g = percentageCorrect*0.1;
             this.material.color.b = 0;
-            this.material.opacity = percentageCorrect;
+            this.material.opacity = percentageCorrect*0.1;
 
         } /*else {
             if (wasOverlappingPreviously) {
