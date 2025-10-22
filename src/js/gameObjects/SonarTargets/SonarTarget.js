@@ -1,36 +1,20 @@
 import * as THREE from 'three';
-import { GameObject } from './GameObject';
-import { Utils } from '../utils/Utils';
-import { AudioManager } from '../managers/AudioManager';
+import { GameObject } from '../GameObject';
+import { Utils } from '../../utils/Utils';
+import { AudioManager } from '../../managers/AudioManager';
+import { SonarTargetConfig } from './SonarTargetConfig';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
     Awake() {
         this.events = new EventTarget();
+        this.targetConfig = null;
 
-        const minRadius = 0.1;
-        const maxRadius = 0.05;
-
-        this.radius = Math.random() * (maxRadius - minRadius) + minRadius;
-
-        const minSpawnRange = 0.05 + this.radius;
-        const maxSpawnRange = 0.9 - this.radius;
-
-        const randomAngle = Math.random() * Math.PI * 2;
-        const randomPointOnUnitCircle = new THREE.Vector3(Math.cos(randomAngle), Math.sin(randomAngle), 0);
-        const randomDistance = Math.random() * (maxSpawnRange - minSpawnRange) + minSpawnRange;
-        //const randomDistance = Math.random() * ((maxspawnRange - this.radius) - this.radius) + this.radius;
-
-        this.transform.position.copy(randomPointOnUnitCircle);
-        this.transform.position.multiplyScalar(randomDistance);
+        this.radius = 0.05;
 
         this.worldTransform = new THREE.Group();
         this.parent.add(this.worldTransform);
         this.worldTransform.position.copy(this.transform.position);
-
-        this.wasOverlapping = false;
-
-        this.dirty = true;
 
         this.positionLast = new THREE.Vector3(999999, 999999, 999999);
         this.radiusLast = this.radius;
@@ -38,8 +22,11 @@ export class SonarTarget extends GameObject {
         this.updateTime = 0.05;
         this.updateCountdown = Math.random() * this.updateTime;
 
+        this.wasOverlapping = false;
+        this.dirty = true;
+
         // Debug
-        this.debug = false;
+        //this.debug = true;
         if (this.debug) {
             this.debugGeometry = new THREE.CircleGeometry(1, 16);
             this.debugMaterial = new THREE.MeshBasicMaterial({
@@ -51,12 +38,50 @@ export class SonarTarget extends GameObject {
         }
     }
 
+    CreateFromConfig(targetConfig)
+    {
+        this.targetConfig = targetConfig;
+
+        if(targetConfig.randomizeRadius)
+        {
+            this.radius = this.GetRandomRadius(targetConfig.minRadius, targetConfig.maxRadius);
+        } else {
+            this.radius = targetConfig.radius;
+        }
+        
+        if(targetConfig.spawnAtRandomPosition)
+        {
+            this.GetRandomPositionOnMap(this.transform.position);
+        } else {
+            if(this.targetConfig.spawnPosition != null)
+            {
+                this.transform.position.copy(spawnPosition);
+            }
+        }
+
+        this.worldTransform.position.copy(this.transform.position);
+        this.dirty = true;
+    }
+
+    GetRandomRadius(minRadius, maxRadius)
+    {
+        return Math.random() * (maxRadius - minRadius) + minRadius;
+    }
+
+    GetRandomPositionOnMap(position)
+    {
+        const minSpawnRange = 0.05 + this.radius;
+        const maxSpawnRange = 0.9 - this.radius;
+
+        const randomAngle = Math.random() * Math.PI * 2;
+        const randomDistance = Math.random() * (maxSpawnRange - minSpawnRange) + minSpawnRange;
+
+        position.x = Math.cos(randomAngle) * randomDistance;
+        position.y = Math.sin(randomAngle) * randomDistance;
+        position.z = 0;
+    }
+
     Start() {
-        const soundList = ["question_004"];
-
-        var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
-
-        this.audioHandle = AudioManager.instance.spawnRingPanned(randomSound, { bus: "sonar", loop: true, R: 1.3, autostart: false });
     }
 
     OnEnable() {
@@ -72,11 +97,6 @@ export class SonarTarget extends GameObject {
     }
 
     OnDestroy() {
-        if (this.audioHandle) {
-            this.audioHandle.stop();
-            this.audioHandle.free();
-        }
-
         this.OnRemoved();
     }
 
@@ -102,13 +122,6 @@ export class SonarTarget extends GameObject {
 
 
     Update(deltaTime) {
-        // spatial placement
-        const dx = this.transform.position.x - AudioManager.instance.listenerRig.position.x;
-        const dy = this.transform.position.y - AudioManager.instance.listenerRig.position.y;
-        //this.audioHandle.place(dx, dy);
-
-        AudioManager.instance.placeAroundHeadFromObject(this.audioHandle.panner, this.transform /* or this */, { R: 1.3 });
-
         this.updateCountdown -= deltaTime;
         if (this.updateCountdown <= 0) {
             this.updateCountdown = this.updateTime;
@@ -126,24 +139,13 @@ export class SonarTarget extends GameObject {
             this.arcInnerRadius, this.arcOuterRadius, this.arcThetaMin, this.arcThetaMax,
             this.transform.position.x, this.transform.position.y, this.radius);
 
-        const START_T = 0.02;  // start when >2%
-        const STOP_T = 0.01;  // stop when <1%
-        const RAMP = 0.08;  // 30ms ramp is usually pop-free
-
         if (overlap.hit) {
-            const v = Utils.instance.Clamp(overlap.overlappedCircleAreaPercent, 0, 1);
-
-            if (!this.audioHandle.isPlaying() && v > START_T) {
-                this.audioHandle.play(0, RAMP); // fade in from 0
-            }
-            this.audioHandle.setVolumeSmooth(v, RAMP);
+            const percentage = Utils.instance.Clamp(overlap.overlappedCircleAreaPercent, 0, 1);
 
             this.wasOverlapping = true;
-            this.OnOverlapUpdated(true, this.wasOverlapping, v, overlap.overlappedArea);
+            this.OnOverlapUpdated(true, this.wasOverlapping, percentage, overlap.overlappedArea);
         } else {
             if (this.wasOverlapping) {
-                this.audioHandle.setVolumeSmooth(0, RAMP);
-                //this.audioHandle.pause(RAMP); // or .stop(RAMP)
                 this.wasOverlapping = false;
                 this.OnOverlapUpdated(false, true, 0, 0);
             }
@@ -158,8 +160,8 @@ export class SonarTarget extends GameObject {
                 detail: {
                     overlapping: overlapping,
                     wasOverlappingPreviously: wasOverlappingPreviously,
-                    overlapArea: area,
                     percentage: overlapPercentage,
+                    overlapArea: area,
                     sonarAnnularSegmentArea: this.annularSegmentArea
                 }
             }

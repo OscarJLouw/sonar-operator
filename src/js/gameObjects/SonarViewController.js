@@ -108,10 +108,7 @@ export class SonarViewController extends GameObject {
         if (this.targetGeometryDirty) {
             this.UpdateTargetGeometry();
         }
-
-        //this.SetAngle(this.angle += deltaTime * Math.PI*2);
     }
-
 
     AnimateToTarget(deltaTime) {
         // Smoothly rotate

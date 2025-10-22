@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject';
-import { SonarTarget } from './SonarTarget';
+import { SonarTarget } from './SonarTargets/SonarTarget';
 import { Utils } from '../utils/Utils';
+import { SonarTargetConfig } from './SonarTargets/SonarTargetConfig';
 
 export class World extends GameObject {
 
@@ -32,8 +33,17 @@ export class World extends GameObject {
 
     SpawnTargets(numTargets)
     {
+        const testConfig = new SonarTargetConfig("Test config", "question_004",
+            {
+                randomizeRadius: true,
+                minRadius:  0.05,
+                maxRadius: 0.1,
+                spawnAtRandomPosition: true
+            }
+        );
+
         for (let i = 0; i < numTargets; i++) {
-            SpawnSonarTarget();
+            this.SpawnSonarTarget(testConfig);
         }
     }
 
@@ -43,8 +53,10 @@ export class World extends GameObject {
         this.velocty.y = y;
     }
 
-    SpawnSonarTarget() {
+    SpawnSonarTarget(targetConfig) {
         var sonarTarget = GameObject.Instantiate(SonarTarget, this.sonarTargetsGroup, "SonarTarget " + this.totalTargetsSpawnedSoFar);
+        sonarTarget.CreateFromConfig(targetConfig);
+
         this.sonarTargets.push(sonarTarget);
         sonarTarget.addEventListener("onRemoved", this.OnTargetRemoved);
 
@@ -52,6 +64,7 @@ export class World extends GameObject {
             {
                 detail: {
                     target: sonarTarget,
+                    targetConfig: targetConfig,
                     targetsSpawnedSoFar: this.totalTargetsSpawnedSoFar
                 }
             }
@@ -88,13 +101,11 @@ export class World extends GameObject {
         this.randomRotate = false;
         this.SetVelocity(0, 0);
 
-        for(var i = 0; i<5; i++)
-        {
-            this.SpawnSonarTarget();
-        }
+        this.SpawnTargets(10);
     }
 
     Update(deltaTime) {
+        /*
         if(this.spawning)
         {
             this.spawnCountdown -= deltaTime;
@@ -104,6 +115,7 @@ export class World extends GameObject {
                 this.SpawnSonarTarget();
             }
         }
+        */
 
         if(this.targetCount > this.maxTargets)
         {

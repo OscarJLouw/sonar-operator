@@ -3,8 +3,9 @@ import { GameObject } from './GameObject';
 import { SonarViewController } from './SonarViewController';
 import { Knob } from './Knob';
 import { MeshManager } from '../managers/MeshManager';
-import { SonarTarget } from './SonarTarget';
-import { SonarTargetVisual } from './SonarTargetVisual';
+import { SonarTarget } from './SonarTargets/SonarTarget';
+import { SonarTargetVisual } from './SonarTargets/SonarTargetVisual';
+import { SonarTargetAudio } from './SonarTargets/SonarTargetAudio';
 
 export class SonarMachine extends GameObject {
 
@@ -100,6 +101,7 @@ export class SonarMachine extends GameObject {
         // Sound sources
         this.sonarTargets = [];
         this.sonarTargetVisuals = [];
+        this.sonarTargetAudios = [];
     }
 
     SetWorld(world) {
@@ -141,16 +143,19 @@ export class SonarMachine extends GameObject {
     AddSonarTarget(sonarTarget, name) {
         this.sonarTargets.push(sonarTarget);
 
-        var sonarTargetVisual = GameObject.Instantiate(SonarTargetVisual, this.sonarVisualsGroup, name)
+        var sonarTargetVisual = GameObject.Instantiate(SonarTargetVisual, this.sonarVisualsGroup, name);
         sonarTargetVisual.SetSonarViewerProperties(this.sonarViewerPositionOffset, this.sonarViewerScale);
         sonarTargetVisual.Link(sonarTarget);
         this.sonarTargetVisuals.push(sonarTargetVisual);
+
+        var sonarTargetAudio = GameObject.Instantiate(SonarTargetAudio, this.sonarVisualsGroup, name)
+        sonarTargetAudio.Link(sonarTarget);
+        this.sonarTargetAudios.push(sonarTargetAudio);
 
         sonarTarget.addEventListener("onRemoved", this.OnTargetRemoved);
 
         const arcParameters = this.sonarViewController.GetArcParameters();
         sonarTarget.SetArcParameters(arcParameters.innerRadius, arcParameters.outerRadius, arcParameters.thetaMin, arcParameters.thetaMax, arcParameters.arcArea);
-
     }
 
     OnTargetSpawned = (event) => {
@@ -166,6 +171,7 @@ export class SonarMachine extends GameObject {
         if (targetIndex > -1) {
             //this.sonarTargetVisuals[targetIndex].Unlink();
             this.sonarTargetVisuals.splice(targetIndex, 1);
+            this.sonarTargetAudios.splice(targetIndex, 1);
             this.sonarTargets.splice(targetIndex, 1);
             sonarTarget.removeEventListener("onRemoved", this.OnTargetRemoved);
         }

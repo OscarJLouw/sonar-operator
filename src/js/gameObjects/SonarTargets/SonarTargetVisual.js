@@ -1,22 +1,26 @@
 import * as THREE from 'three';
-import { GameObject } from './GameObject';
-import { Utils } from '../utils/Utils';
+import { GameObject } from '../GameObject';
+import { Utils } from '../../utils/Utils';
+import { MeshManager } from '../../managers/MeshManager';
 
 export class SonarTargetVisual extends GameObject {
     Awake() {
         // Meshes
-        this.geometry = new THREE.CircleGeometry(1, 16);
-        this.material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0, 0, 0),
-            transparent: true,
-            opacity: 0
-        });
+        this.geometry = MeshManager.instance.passiveSonarTargetGeometry;
+        this.material = MeshManager.instance.passiveSonarTargetMaterial.clone();
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+
         //this.mesh.layers.set(5);
         this.AddComponent(this.mesh);
         this.positionOffset = new THREE.Vector3();
         this.scaleFactor = 1;
         this.SetVisible(false);
+    }
+
+    CreateFromConfig(targetConfig) {
+        if (targetConfig.visibleOnActiveSonar) {
+            this.activeSonarModelKey = targetConfig.activeSonarModelKey;
+        }
     }
 
     SetSonarViewerProperties(offsetPosition, scaleFactor) {
@@ -25,6 +29,8 @@ export class SonarTargetVisual extends GameObject {
     }
 
     Link(sonarTarget) {
+        this.CreateFromConfig(sonarTarget.targetConfig);
+        
         this.sonarTarget = sonarTarget;
         this.radius = sonarTarget.radius;
         this.transform.scale.set(this.radius * this.scaleFactor, this.radius * this.scaleFactor, this.radius * this.scaleFactor);
@@ -49,34 +55,30 @@ export class SonarTargetVisual extends GameObject {
         const percentage = event.detail.percentage;
         const overlappedArea = event.detail.overlapArea;
         const viewerArea = event.detail.sonarAnnularSegmentArea;
-        const percentageOfViewerOccupied = overlappedArea/viewerArea;
+        const percentageOfViewerOccupied = overlappedArea / viewerArea;
 
-        console.log(overlappedArea + " / " + viewerArea + " = " + percentageOfViewerOccupied);
-        
-        if(!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6)
-        {
+        if (!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6) {
             // Not close enough!
-            this.material.color.r = 0;
-            this.material.color.g = 0;
-            this.material.color.b = 0;
-            this.material.opacity = 0; //Utils.instance.Clamp(0.4, 0, 1);
+            this.material.color.r = 1;
+            this.material.color.g = 1;
+            this.material.color.b = 1;
+            this.material.opacity = 0.5; //Utils.instance.Clamp(0.4, 0, 1);
             return;
         }
 
         if (overlapping) {
             var percentageCorrect = percentageOfViewerOccupied;
-            if(percentageOfViewerOccupied > 1)
-            {
-                percentageCorrect = 1-(percentageOfViewerOccupied-1);
+            if (percentageOfViewerOccupied > 1) {
+                percentageCorrect = 1 - (percentageOfViewerOccupied - 1);
             }
 
             percentageCorrect = Utils.instance.Clamp(percentageCorrect, 0, 1);
-            
-            this.material.color.r = 1-percentageCorrect;
+
+            this.material.color.r = 1 - percentageCorrect;
             this.material.color.g = percentageCorrect;
             this.material.color.b = 0;
             this.material.opacity = percentageCorrect;
-  
+
         } /*else {
             if (wasOverlappingPreviously) {
                 this.material.color.r = 0;
@@ -87,14 +89,12 @@ export class SonarTargetVisual extends GameObject {
         }*/
     }
 
-    OnRemoved = (event) =>
-    {
+    OnRemoved = (event) => {
         this.sonarTarget = null;
         this.Destroy();
     }
 
-    OnDestroy()
-    {
+    OnDestroy() {
         if (this.geometry) this.geometry.dispose();
 
         if (this.material) {
