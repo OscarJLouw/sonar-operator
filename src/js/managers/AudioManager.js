@@ -50,18 +50,41 @@ export class AudioManager {
     // Buses
     this.masterGain = this.audioContext.createGain();
     this.ambienceGain = this.audioContext.createGain();
-    this.sfxGain = this.audioContext.createGain();
     this.musicGain = this.audioContext.createGain();
+
+    this.sfxGain = this.audioContext.createGain();
+    this.roomSFXGain = this.audioContext.createGain();
+    this.sonarSFXGain = this.audioContext.createGain();
+    this.playerSFXGain = this.audioContext.createGain();
+    this.uiSFXGain = this.audioContext.createGain();
+    this.dialogueSFXGain = this.audioContext.createGain();
+
+
 
     this.masterGain.gain.value = 1.0;
     this.ambienceGain.gain.value = 0.0001; // start low like before
-    this.sfxGain.gain.value = 1.0;
     this.musicGain.gain.value = 1.0;
+
+    this.sfxGain.gain.value = 1.0;
+    this.roomSFXGain.gain.value = 1.0;
+    this.sonarSFXGain.gain.value = 0.0001;
+    this.playerSFXGain.gain.value = 1.0;
+    this.uiSFXGain.gain.value = 1.0;
+    this.dialogueSFXGain.gain.value = 1.0;
+
 
     // route: bus -> master -> listener
     this.ambienceGain.connect(this.masterGain);
-    this.sfxGain.connect(this.masterGain);
     this.musicGain.connect(this.masterGain);
+
+    this.sfxGain.connect(this.masterGain);
+
+    this.roomSFXGain.connect(this.sfxGain);
+    this.sonarSFXGain.connect(this.sfxGain);
+    this.playerSFXGain.connect(this.sfxGain);
+    this.uiSFXGain.connect(this.sfxGain);
+    this.dialogueSFXGain.connect(this.sfxGain);
+    
     this.masterGain.connect(this.listener.getInput());
 
     // Loader
@@ -279,23 +302,39 @@ export class AudioManager {
 
   // --- BUSES & FADES ---
   FadeInAmbience(targetVolume, fadeTime) {
-    const p = this.ambienceGain.gain;
-    const now = this.audioContext.currentTime;
-    const v0 = Math.max(0.0001, p.value);
-
-    p.cancelScheduledValues(now);
-    p.setValueAtTime(v0, now);
-    p.linearRampToValueAtTime(targetVolume, now + fadeTime);
+    this.FadeBus(this.ambienceGain, targetVolume, fadeTime);
   }
 
   FadeOutAmbience(fadeTime) {
-    const p = this.ambienceGain.gain;
-    const now = this.audioContext.currentTime;
-    const v0 = Math.max(0.0001, p.value);
+    this.FadeBus(this.ambienceGain, 0.0001, fadeTime);
+  }
 
-    p.cancelScheduledValues(now);
-    p.setValueAtTime(v0, now);
-    p.linearRampToValueAtTime(0.0001, now + fadeTime);
+  FadeInSonarBus(targetVolume, fadeTime) {
+    this.FadeBus(this.sonarSFXGain, targetVolume, fadeTime);
+  }
+
+  FadeOutSonarBus(fadeTime) {
+    this.FadeBus(this.sonarSFXGain, 0.0001, fadeTime);
+  }
+
+  FadeBusByID(busID, targetVolume, fadeTime)
+  {
+    const bus = this.#getBus(busID);
+    if(bus != null)
+    {
+      this.FadeBus(bus, targetVolume, fadeTime);
+    }
+  }
+
+  FadeBus(bus, targetVolume, fadeTime)
+  {
+    const gainNode = bus.gain;
+    const now = this.audioContext.currentTime;
+    const v0 = Math.max(0.0001, gainNode.value);
+
+    gainNode.cancelScheduledValues(now);
+    gainNode.setValueAtTime(v0, now);
+    gainNode.linearRampToValueAtTime(targetVolume, now + fadeTime);
   }
 
   // --- INTERNALS ---
@@ -333,10 +372,15 @@ export class AudioManager {
 
   #getBus(name) {
     switch ((name || 'sfx')) {
-      case 'ambience': return this.ambienceGain;
-      case 'music': return this.musicGain;
-      case 'sfx':
-      default: return this.sfxGain;
+      case 'ambience':  return this.ambienceGain;
+      case 'music':     return this.musicGain;
+      case 'sfx':       return this.sfxGain;
+      case 'room':      return this.roomSFXGain;
+      case 'sonar':     return this.sonarSFXGain;
+      case 'player':    return this.playerSFXGain;
+      case 'ui':        return this.uiSFXGain;
+      case 'dialogue':  return this.dialogueSFXGain;
+      default:          return this.masterGain;
     }
   }
 

@@ -447,36 +447,6 @@ export class DialogueManager {
     // ===== DOM / CSS =====
 
     #buildOverlay(parent) {
-        // styles
-        const css = `
-        .dm-root { position: fixed; inset: 0; display: none; place-items: end center; pointer-events: none; z-index: 2147483647; }
-        .dm-panel { position: relative; z-index: 1; pointer-events: auto; width: min(900px, 92vw); margin-bottom: 2vh; border-radius: 0; background: rgba(8,8,12,0.82); backdrop-filter: blur(6px); color: #e9ecf1; box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 16px 18px 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-        .dm-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-        .dm-portrait { width: 36px; height: 36px; border-radius: 0; background-size: cover; background-position: center; flex: 0 0 auto; display:none; }
-        .dm-name { font-weight: 700; letter-spacing: 0.3px; opacity: 0.95; }
-        .dm-text { min-height: 56px; line-height: 1.5; font-size: 16px; }
-        .dm-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 12px; }
-        .dm-choice { border: 0; padding: 10px 12px; border-radius: 0; background: #1d2331; color: #f1f4f9; cursor: pointer; transition: transform .04s ease, background .15s ease; text-align: center; }
-        .dm-choice:hover { transform: translateY(-1px); background: #232a3b; }
-        .dm-choice.primary { background: #2b6bf3; }
-        .dm-choice.primary:hover { background: #2f76ff; }
-        .dm-choice.danger { background: #b83333; }
-        .dm-choice.danger:hover { background: #c43a3a; }
-        .dm-continue { display:none; margin-top: 10px; font-size: 12px; opacity: 0.65; user-select: none; }
-        .dm-root.dm-typing .dm-continue { display:none !important; }
-        .dm-backdrop { position: fixed; inset: 0; background: transparent; pointer-events: auto; z-index: 0; }
-        .unselectable-element {
-            user-select: none;
-            /* Vendor prefixes for broader browser compatibility (though modern browsers often support without prefixes) */
-            -webkit-user-select: none; /* Safari, Chrome, Opera */
-            -moz-user-select: none;    /* Firefox */
-            -ms-user-select: none;     /* Internet Explorer, Edge */
-        }
-        `;
-        this.styleEl = document.createElement('style');
-        this.styleEl.textContent = css;
-        document.head.appendChild(this.styleEl);
-
         // root overlay
         this.root = document.createElement('div');
         this.root.className = 'dm-root';

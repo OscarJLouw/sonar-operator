@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../managers/AudioManager';
-import { Loop } from 'three/tsl';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
@@ -57,7 +56,7 @@ export class SonarTarget extends GameObject {
 
         var randomSound = soundList[Math.floor(Math.random() * soundList.length)];
 
-        this.audioHandle = AudioManager.instance.spawnRingPanned(randomSound, { bus: "sfx", loop: true, R: 1.3, autostart: false });
+        this.audioHandle = AudioManager.instance.spawnRingPanned(randomSound, { bus: "sonar", loop: true, R: 1.3, autostart: false });
     }
 
     OnEnable() {

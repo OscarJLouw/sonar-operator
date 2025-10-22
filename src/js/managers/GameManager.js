@@ -76,6 +76,10 @@ export class GameManager {
             const ctx = this.audioManager.listener.context;
             if (ctx.state === 'suspended') ctx.resume();
         }, { once: true });
+
+
+        this.handleMovementStateChange = event => this.OnMovementStateChanged(event.detail.previousState, event.detail.newState);
+        this.playerMovementController.addEventListener("onEnterState", this.handleMovementStateChange);
     }
 
     InitialiseGame() {
@@ -179,6 +183,29 @@ export class GameManager {
             }
 
             this.gameObjectsToDestroy.length = 0;
+        }
+    }
+
+    OnMovementStateChanged(previousState, newState) {
+        var states = this.playerMovementController.states;
+
+        switch (previousState) {
+            case states.UsingSonar:
+                // Fade out sonar sound sources
+                this.audioManager.FadeOutSonarBus(0.5);
+                break;
+            default:
+                break;
+        }
+
+        switch(newState)
+        {
+            case states.UsingSonar:
+                // Fade in sonar sound sources
+                this.audioManager.FadeInSonarBus(1, 0.5);
+                break;
+            default:
+                break;
         }
     }
 
