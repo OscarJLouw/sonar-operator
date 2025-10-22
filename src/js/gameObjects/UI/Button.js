@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GameObject } from '../GameObject';
 import { Draggable } from '../../utils/MouseHandler';
 import { MeshManager } from '../../managers/MeshManager';
+import { DialogueManager } from '../../managers/DialogueManager';
 
 export class Button extends GameObject {
     constructor(parent, name = "") {

@@ -130,10 +130,8 @@ export class GameManager {
     async StartDialogue()
     {
         await this.dialogueManager.start('intro1');
-        // here I want to save a variable if they answered Geophony specifically
         await this.#sleep(5);
         await this.dialogueManager.start('test1');
-        // here I want to branch if they chose Unknown, or reset the variable above if they answered Geophony again
 
 
         console.log("dialogue finished");

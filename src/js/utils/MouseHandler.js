@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RenderManager } from '../managers/RenderManager';
+import { DialogueManager } from '../managers/DialogueManager';
 
 export class MouseHandler {    
     constructor() {
@@ -54,9 +55,7 @@ export class MouseHandler {
         }
 
         // Filter out all instances of the object
-        this.draggables = this.draggables.filter(function(draggable) {
-            return draggable !== value;
-        })
+        this.draggables = this.draggables.filter(d => d !== draggable);
     }
 
     UpdateMousePosition(mouseEvent)
@@ -83,6 +82,8 @@ export class MouseHandler {
 
     OnMouseDown(mouseEvent)
     {
+        if (DialogueManager.instance.active) return; // block clicks during dialogue
+
         if(this.mousePressed)
         {
             return;
@@ -117,6 +118,8 @@ export class MouseHandler {
 
     OnMouseMove(mouseEvent)
     {
+        if (DialogueManager.instance.active) return; // block clicks during dialogue
+
         this.UpdateMousePosition(mouseEvent);
         if(this.dragging)
         {
@@ -128,6 +131,8 @@ export class MouseHandler {
 
     OnMouseUp(mouseEvent)
     {
+        if (DialogueManager.instance.active) return; // block clicks during dialogue
+
         if(!this.mousePressed)
         {
             return;

@@ -149,6 +149,8 @@ export class DialogueManager {
             const next = await this.#playNode(this.currentNodeId);
             this.currentNodeId = next;
         }
+
+        this.active = false;
         this.#unbindGlobalSkip();
         this.#hideOverlay();
         return; // finished or suspended
@@ -327,20 +329,25 @@ export class DialogueManager {
 
     /** Render the rest of the string immediately (apply colors, no waits). */
     #renderRemainderFast(span, raw, alreadyRevealed) {
-        let revealed = alreadyRevealed;
+        // Append only what hasn't been shown yet; no per-char callbacks to avoid SFX burst
+        let consumed = 0;
         for (const tok of this.#tokenize(raw)) {
             if (tok.kind === 'text') {
-                for (const ch of tok.text) {
-                    span.appendChild(document.createTextNode(ch));
-                    this.onChar?.(ch, revealed, { nodeId: this.currentNodeId });
-                    revealed++;
+                const len = tok.text.length;
+                if (consumed + len <= alreadyRevealed) {
+                    consumed += len; // skip portion already revealed
+                    continue;
                 }
+                const start = Math.max(0, alreadyRevealed - consumed);
+                const remainder = tok.text.slice(start);
+                span.appendChild(document.createTextNode(remainder));
+                consumed += len;
             } else if (tok.kind === 'color') {
+                // Apply color only after we reach the reveal boundary
+                if (consumed < alreadyRevealed) continue;
                 this.currentColor = tok.color;
                 span = this.#ensureColorSpan(this.currentColor);
-            } else {
-                // pause/speed tokens have no visual effect when fast-forwarding
-            }
+            } // ignore pause/speed when fast-forwarding
         }
     }
 
@@ -378,7 +385,10 @@ export class DialogueManager {
                 this._lastChoice = choice;
                 resolve(choice);
             };
-            this.choicesEl.addEventListener('click', onClick);
+
+            ['click', 'pointerup', 'mouseup'].forEach(t =>
+                this.choicesEl.addEventListener(t, onClick)
+            );
 
             shown.forEach((c, i) => {
                 const btn = document.createElement('button');
@@ -439,8 +449,8 @@ export class DialogueManager {
     #buildOverlay(parent) {
         // styles
         const css = `
-        .dm-root { position: fixed; inset: 0; display: none; place-items: end center; pointer-events: none; z-index: 9999; }
-        .dm-panel { pointer-events: auto; width: min(900px, 92vw); margin-bottom: 2vh; border-radius: 0; background: rgba(8,8,12,0.82); backdrop-filter: blur(6px); color: #e9ecf1; box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 16px 18px 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+        .dm-root { position: fixed; inset: 0; display: none; place-items: end center; pointer-events: none; z-index: 2147483647; }
+        .dm-panel { position: relative; z-index: 1; pointer-events: auto; width: min(900px, 92vw); margin-bottom: 2vh; border-radius: 0; background: rgba(8,8,12,0.82); backdrop-filter: blur(6px); color: #e9ecf1; box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 16px 18px 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
         .dm-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
         .dm-portrait { width: 36px; height: 36px; border-radius: 0; background-size: cover; background-position: center; flex: 0 0 auto; display:none; }
         .dm-name { font-weight: 700; letter-spacing: 0.3px; opacity: 0.95; }
@@ -454,6 +464,14 @@ export class DialogueManager {
         .dm-choice.danger:hover { background: #c43a3a; }
         .dm-continue { display:none; margin-top: 10px; font-size: 12px; opacity: 0.65; user-select: none; }
         .dm-root.dm-typing .dm-continue { display:none !important; }
+        .dm-backdrop { position: fixed; inset: 0; background: transparent; pointer-events: auto; z-index: 0; }
+        .unselectable-element {
+            user-select: none;
+            /* Vendor prefixes for broader browser compatibility (though modern browsers often support without prefixes) */
+            -webkit-user-select: none; /* Safari, Chrome, Opera */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* Internet Explorer, Edge */
+        }
         `;
         this.styleEl = document.createElement('style');
         this.styleEl.textContent = css;
@@ -464,11 +482,18 @@ export class DialogueManager {
         this.root.className = 'dm-root';
         this.root.setAttribute('role', 'dialog');
         this.root.setAttribute('aria-live', 'polite');
+        this.root.classList.add('unselectable-element');
+
+        // Backdrop to swallow clicks across the viewport
+        const backdrop = document.createElement('div');
+        backdrop.className = 'dm-backdrop';
+        this.root.appendChild(backdrop);
 
         // panel
         const panel = document.createElement('div');
         panel.className = 'dm-panel';
         this.root.appendChild(panel);
+        this.panelEl = panel;
 
         // header
         const header = document.createElement('div');
@@ -505,6 +530,37 @@ export class DialogueManager {
         this.continueHint = hint;
 
         parent.appendChild(this.root);
+        
+
+        // --- Input trapping strategy ---
+        // Backdrop: full-viewport blocker (prevents gameplay clicks)
+        // Panel: stop at panel (lets internal handlers run; nothing reaches window)
+        const stopList = [
+            'pointerdown', 'pointerup', 'click', 'dblclick', 'contextmenu', 'wheel',
+            'touchstart', 'touchmove', 'touchend',
+            'mousedown', 'mouseup', 'mousemove'
+        ];
+
+        const trapBackdrop = (e) => {
+            if (!this.active) return;
+            e.stopPropagation();
+            e.preventDefault(); // fully block outside the panel
+        };
+
+        stopList.forEach(t =>
+            this.root.querySelector('.dm-backdrop').addEventListener(t, trapBackdrop, true) // capture
+        );
+
+        const trapPanel = (e) => {
+            if (!this.active) return;
+            // Important: this runs in BUBBLE phase, AFTER your button/choices handlers
+            // Do NOT preventDefault; just stop it before reaching document/window
+            e.stopPropagation();
+        };
+        stopList.forEach(t =>
+            this.panelEl.addEventListener(t, trapPanel, false) // bubble (lets buttons handle first)
+        );
+
     }
 
     #hideOverlay() {
