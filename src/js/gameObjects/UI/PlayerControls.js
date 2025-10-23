@@ -40,6 +40,7 @@ export class PlayerControls extends GameObject {
 
     CreateButton(buttonName, moveDirection) {
         var newButton = GameObject.Instantiate(Button, this.transform, buttonName);
+        newButton.SetMeshIsForDrawing(false);
         var flipX = false;
         var flipY = false;
         var offsetY = 0;

@@ -42,7 +42,7 @@ export class SonarMachine extends GameObject {
 
         // Viewing area ring
         this.viewAreaGeometry = new THREE.CircleGeometry(this.sonarViewerScale);
-        this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0, 0, 0) });
+        this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x0a1a2f) });
 
         this.viewAreaMesh = new THREE.Mesh(this.viewAreaGeometry, this.viewAreaMaterial);
         this.viewAreaMesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, -1);
@@ -124,6 +124,7 @@ export class SonarMachine extends GameObject {
         this.pingButton.transform.position.set(-0.81, -0.83, 1);
         this.pingButton.SetClickAction(this.Ping.bind(this));    // bind the "this" context to the main menu
         this.pingButton.material.opacity = 0;
+        this.pingButton.SetMeshIsForDrawing(false);
 
         this.sonarButtonMesh = MeshManager.instance.models.sonarButton;
         //this.sonarButtonMesh.scale.set(this.controlPanelScale.x, this.controlPanelScale.y, this.controlPanelScale.z);
@@ -144,10 +145,61 @@ export class SonarMachine extends GameObject {
         this.sonarTargets = [];
         this.sonarTargetVisuals = [];
         this.sonarTargetAudios = [];
+
+        this.SetActiveSonarAuthorised(true);
+        this.SetActiveSonarCooldown(5);
+    }
+
+    SetActiveSonarAuthorised(authorised)
+    {
+        this.activeSonarAuthorised = authorised;
+
+        if(!authorised && this.activeSonarAvailable)
+        {
+            this.SetActiveSonarAvailable(false);
+        } else if(authorised && !this.activeSonarAvailable)
+        {
+            this.SetActiveSonarAvailable(true);
+        }
+    }
+
+    SetActiveSonarAvailable(available)
+    {
+        this.activeSonarAvailable = available;
+        
+        this.indicatorLight.material.emissive = available ? new THREE.Color(0xb2d942) : new THREE.Color(0x52c33f);
+        this.indicatorLight.material.emissiveIntensity = available ? 5 : 0.1;
+    }
+
+    SetActiveSonarCooldown(cooldown)
+    {
+        this.activeSonarCooldown = cooldown;
+    }
+
+    async PressSonarButton(deltaTime)
+    {
+        this.SetActiveSonarAvailable(false);
+        this.sonarButtonMesh.position.z = 0.95;
+
+        await this.#sleep(0.25);
+        this.sonarButtonMesh.position.z = 1;
+
+        if(this.activeSonarAuthorised)
+        {
+            await this.#sleep(this.activeSonarCooldown);
+            if(this.activeSonarAuthorised)
+            {
+                this.SetActiveSonarAvailable(true);
+            }
+        }
     }
 
     Ping() {
-        this.sonarViewController.Ping();
+        if(this.activeSonarAvailable)
+        {
+            this.PressSonarButton();
+            this.sonarViewController.Ping();
+        }
     }
 
     SetWorld(world) {
@@ -344,6 +396,7 @@ export class SonarMachine extends GameObject {
     }
 
 
+    #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
 
 }

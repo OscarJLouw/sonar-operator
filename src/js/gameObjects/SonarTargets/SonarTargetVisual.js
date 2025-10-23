@@ -9,6 +9,7 @@ export class SonarTargetVisual extends GameObject {
         this.geometry = MeshManager.instance.passiveSonarTargetGeometry;
         this.material = MeshManager.instance.passiveSonarTargetMaterial.clone();
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.mesh.visible = false;
 
         //this.mesh.layers.set(5);
         this.AddComponent(this.mesh);
@@ -40,10 +41,17 @@ export class SonarTargetVisual extends GameObject {
         this.sonarTarget.addEventListener("overlapPercentageUpdated", this.OnOverlapPercentageUpdated);
         this.sonarTarget.addEventListener("discoveredTarget", this.OnDiscovered);
         this.sonarTarget.addEventListener("onRemoved", this.OnRemoved);
+        this.mesh.visible = false;
+        this.material.opacity = 0;
     }
 
     Update(deltaTime) {
         if (this.sonarTarget != null) {
+            if(!this.discovered)
+            {
+                this.mesh.visible = false;
+            }
+            
             this.transform.position.set(
                 this.sonarTarget.transform.position.x * this.scaleFactor + this.positionOffset.x,
                 this.sonarTarget.transform.position.y * this.scaleFactor + this.positionOffset.y,
@@ -69,6 +77,7 @@ export class SonarTargetVisual extends GameObject {
         this.viewerArea = viewerArea;
         this.visibilityPercentage = percentageOfViewerOccupied;
 
+        this.mesh.visible = false;
 
         if (!overlapping || percentageOfViewerOccupied < 0.2 || percentageOfViewerOccupied > 1.6) {
             // Not close enough!
@@ -107,10 +116,12 @@ export class SonarTargetVisual extends GameObject {
 
     OnDiscovered = (event) => {
         this.discovered = true;
-        this.material.color.r = 0; //1 - percentageCorrect;
-        this.material.color.g = 1;
-        this.material.color.b = 0;
-        this.material.opacity = 1;
+        this.mesh.visible = true;
+        this.material.color = new THREE.Color(0x4f7754);
+        //this.material.color.r = 0; //1 - percentageCorrect;
+        //this.material.color.g = 1;
+        //this.material.color.b = 0;
+        this.material.opacity = 0.5;
     }
 
     OnRemoved = (event) => {
@@ -134,7 +145,7 @@ export class SonarTargetVisual extends GameObject {
     }
 
     SetVisible(visible) {
-        this.mesh.visible = visible;
+        this.mesh.visible = this.discovered && visible;
     }
 
     // Events

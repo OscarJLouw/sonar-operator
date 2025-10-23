@@ -25,6 +25,13 @@ export class Button extends GameObject {
         this.handleMouseUp = event => this.OnMouseUp(event.detail.mousePosition, event.detail.hovered);
     }
 
+    SetMeshIsForDrawing(meshIsForDrawing) {
+        this.meshIsForDrawing = meshIsForDrawing;
+        if (!meshIsForDrawing) {
+            this.mesh.visible = false;
+        }
+    }
+
     SetClickAction(callback) {
         this.clickCallback = callback;
     }
@@ -39,16 +46,23 @@ export class Button extends GameObject {
 
     Show() {
         this.visible = true;
-        this.mesh.visible = true;
+
+
+
         this.mesh.layers.set(0); // move to visible layer, accepting raycasts
 
-        this.components.forEach((component) =>
-        {
+        this.components.forEach((component) => {
             component.visible = true;
         });
 
         if (this.active) {
             this.ActivateEvents();
+        }
+
+        if (this.meshIsForDrawing) {
+            this.mesh.visible = true;
+        } else {
+            this.mesh.visible = false;
         }
     }
 
@@ -57,8 +71,7 @@ export class Button extends GameObject {
         this.mesh.visible = false;
         this.mesh.layers.set(1); // move to hidden layer, ignoring raycasts
 
-        this.components.forEach((component) =>
-        {
+        this.components.forEach((component) => {
             component.visible = false;
         });
 
@@ -76,8 +89,7 @@ export class Button extends GameObject {
 
 
     OnMouseUp(mousePosition, hovered) {
-        if(hovered)
-        {
+        if (hovered) {
             this.OnClick();
         }
     }

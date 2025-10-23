@@ -21,6 +21,7 @@ export class SonarScreenParticles extends GameObject {
 
         this.pointsMaterial = new THREE.PointsMaterial({
             size: 2,
+            color: 0x40985e
             //color: 0x51C079
             /*, sizeAttenuation:true*/
         });
