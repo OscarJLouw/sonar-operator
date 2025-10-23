@@ -53,7 +53,7 @@ export class SonarTarget extends GameObject {
             this.GetRandomPositionOnMap(this.transform.position);
         } else {
             if (this.targetConfig.spawnPosition != null) {
-                this.transform.position.copy(spawnPosition);
+                this.transform.position.copy(this.targetConfig.spawnPosition);
             }
         }
 

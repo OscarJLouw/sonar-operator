@@ -284,6 +284,7 @@ export class SonarMachine extends GameObject {
     }
 
     async DiscoverTarget(sonarTarget) {
+        /*
         const targetIndex = this.sonarTargets.indexOf(sonarTarget);
         const soundClass = sonarTarget.targetConfig.soundClass;
 
@@ -293,6 +294,7 @@ export class SonarMachine extends GameObject {
             responses: SoundClasses, // { Biophony: '...', Geophony: '...', ... }
             speaker: 'Operator'
         });
+        */
     }
 
 

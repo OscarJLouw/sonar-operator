@@ -11,6 +11,7 @@ import { PlayerMovementController } from './PlayerMovementController.js';
 import { PlayerControls } from '../gameObjects/UI/PlayerControls.js';
 import { DialogueManager } from './DialogueManager';
 import { StoryManager } from './StoryManager.js';
+import { GameEventManager } from '../gameData/GameEventManager.js';
 
 export class GameManager {
     constructor() {
@@ -81,6 +82,8 @@ export class GameManager {
         this.mainMenu.Setup(this);
 
 
+
+        // Event listeners
         window.addEventListener('pointerdown', () => {
             const ctx = this.audioManager.listener.context;
             if (ctx.state === 'suspended') ctx.resume();
@@ -95,6 +98,7 @@ export class GameManager {
         
         this.handleDialogueEnded = event => this.OnDialogueEnded(event.detail.reason);
         this.dialogueManager.addEventListener("dialogueEnded", this.handleDialogueEnded);
+
     }
 
     InitialiseGame() {
@@ -111,27 +115,32 @@ export class GameManager {
 
         this.gameState = "Starting";
 
+        // Start the game in Portals
         this.portalsController.StartGame();
 
+        // Fade in the audio
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
+        // Create the in-game elements (world, sonar view, etc)
         this.sceneManager.StartGame();
 
+        // Setup the story and game events
+        this.gameEvents = new GameEventManager();
+        this.gameEvents.Setup(this, this.audioManager, this.dialogueManager, this.sceneManager.world);
+        
+        this.storyManager.SetWorld(this.sceneManager.world);
+        this.storyManager.SetGameEventManager(this.gameEvents);
+
+        // Put the player in the entrance hallway
         this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
 
-
+        // Let's go!
         this.StartStory();
-
-        // this.sceneManager.ActivateSonarView(false); // TODO: Hide sonar machine
-
-        // 
-
     }
 
     async StartStory()
     {
-        this.storyManager.SetWorld(this.sceneManager.world);
         await this.storyManager.Start();
     }
 

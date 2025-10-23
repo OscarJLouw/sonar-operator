@@ -31,20 +31,13 @@ export class World extends GameObject {
         this.AddComponent(this.sonarTargetsGroup);
     }
 
-    SpawnTargets(numTargets)
+    SpawnTargets(numTargets, config)
     {
-        const testConfig = new SonarTargetConfig("Humpbacks", "humpbacks",
-            {
-                randomizeRadius: true,
-                minRadius:  0.05,
-                maxRadius: 0.1,
-                spawnAtRandomPosition: true
-            }
-        );
-
+        let targets = [];
         for (let i = 0; i < numTargets; i++) {
-            this.SpawnSonarTarget(testConfig);
+            targets.push(this.SpawnSonarTarget(config));
         }
+        return targets;
     }
 
     SetVelocity(x, y)
@@ -73,6 +66,8 @@ export class World extends GameObject {
         
         this.targetCount++;
         this.totalTargetsSpawnedSoFar++;
+
+        return sonarTarget;
     }
 
     OnTargetRemoved = (event) =>
@@ -101,7 +96,7 @@ export class World extends GameObject {
         this.randomRotate = false;
         this.SetVelocity(0, 0);
 
-        this.SpawnTargets(10);
+        //this.SpawnTargets(10);
     }
 
     Update(deltaTime) {

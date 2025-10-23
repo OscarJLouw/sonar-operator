@@ -42,7 +42,7 @@ export class SonarTargetConfig {
 
         this.visibleOnActiveSonar = visibleOnActiveSonar;
         this.activeSonarModelKey = activeSonarModelKey;
-        this.SoundClass = soundClass;
+        this.soundClass = soundClass;
     }
 
 }
