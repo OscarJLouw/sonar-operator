@@ -284,6 +284,10 @@ export class SonarMachine extends GameObject {
         this.sonarTargetVisuals.forEach(sonarTargetVisual => {
             sonarTargetVisual.SetVisible(visible);
         });
+
+
+        visible ? this.pingButton.Show() : this.pingButton.Hide();
+
     }
 
     OnEnable() {
@@ -292,14 +296,15 @@ export class SonarMachine extends GameObject {
         this.angleRangeKnob.addEventListener("knobAngleChanged", this.OnAngleRangeChanged);
         this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
         this.distanceRangeKnob.addEventListener("knobAngleChanged", this.OnDistanceRangeChanged);
+        this.pingButton.Show();
     }
 
     OnDisable() {
         this.SetVisible(false);
         this.angleKnob.removeEventListener("knobAngleChanged", this.OnAngleChanged);
         this.angleRangeKnob.removeEventListener("knobAngleChanged", this.OnAngleRangeChanged);
-        this.distanceKnob.addEventListener("knobAngleChanged", this.OnDistanceChanged);
-        this.distanceRangeKnob.addEventListener("knobAngleChanged", this.OnDistanceRangeChanged);
+        this.distanceKnob.removeEventListener("knobAngleChanged", this.OnDistanceChanged);
+        this.distanceRangeKnob.removeEventListener("knobAngleChanged", this.OnDistanceRangeChanged);
     }
 
     OnAngleChanged = (e) => {
