@@ -9,21 +9,36 @@ import { SonarTargetAudio } from './SonarTargets/SonarTargetAudio';
 import { DialogueManager } from '../managers/DialogueManager';
 import { SoundClasses } from './SonarTargets/SonarTargetConfig';
 import { Button } from './UI/Button';
+import { SceneManager } from '../managers/SceneManager';
+
 
 export class SonarMachine extends GameObject {
 
     Awake() {
+
         this.sonarViewerScale = 0.8;
         this.sonarViewerPositionOffset = new THREE.Vector3(0.45, 0.1);
 
-        // Outer ring
-        this.geometry = new THREE.RingGeometry(0.95 * this.sonarViewerScale, this.sonarViewerScale);
-        this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.1, 0.1) });
+        this.sonarScreenPanel = MeshManager.instance.models.sonarScreenPanel;
+        this.sonarScreenPanel.rotateY(Math.PI);
+        //this.sonarScreenPanel.scale.set(0.5, 0.5, 0.5);
+        this.sonarScreenPanel.scale.set(this.sonarViewerScale * 0.95, this.sonarViewerScale * 0.95, this.sonarViewerScale * 0.95);
+        this.sonarScreenPanel.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, this.sonarViewerPositionOffset.z, 0.5);
+        this.AddComponent(this.sonarScreenPanel);
 
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.mesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, this.sonarViewerPositionOffset.z);
+        this.controlPanelOffset = new THREE.Vector3(0.43, 0.08, 0.6);
+        this.controlPanelScale = new THREE.Vector3(0.71, 0.71, 0.71);
+        this.controlsPanel = MeshManager.instance.models.controlsPanel;
+        this.controlsPanel.rotateY(Math.PI);
+        this.controlsPanel.scale.set(this.controlPanelScale.x, this.controlPanelScale.y, this.controlPanelScale.z);
+        this.controlsPanel.position.set(this.controlPanelOffset.x, this.controlPanelOffset.y, this.controlPanelOffset.z);
+        this.AddComponent(this.controlsPanel);
 
-        this.AddComponent(this.mesh);
+        this.indicatorLight = MeshManager.instance.models.indicatorLight;
+        this.indicatorLight.rotateY(Math.PI);
+        this.indicatorLight.scale.set(0.71, 0.71, 0.71);
+        this.indicatorLight.position.set(this.controlPanelOffset.x, this.controlPanelOffset.y, this.controlPanelOffset.z);
+        this.AddComponent(this.indicatorLight);
 
         // Viewing area ring
         this.viewAreaGeometry = new THREE.CircleGeometry(this.sonarViewerScale);
@@ -63,11 +78,13 @@ export class SonarMachine extends GameObject {
         const distanceRangeKnobAngle = 0.71;
         const distanceRangeKnobOffset = 1.4;
 
+        const knobDepth = 1;
+
         // Angle knob
         this.angleKnob = GameObject.Instantiate(Knob, this.transform, "Angle Knob", false, true, false);
         var distance = angleKnobOffset;
         var offsetAngle = angleKnobAngle * fullCircle;
-        this.angleKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.angleKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, knobDepth);
         this.angleKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.CreateBasePlate(this.angleKnob, false, basePlatesScale);
 
@@ -75,7 +92,7 @@ export class SonarMachine extends GameObject {
         this.angleRangeKnob = GameObject.Instantiate(Knob, this.transform, "Angle Range Knob", true, true, true);
         var distance = angleRangeKnobOffset;
         offsetAngle = angleRangeKnobAngle * fullCircle;
-        this.angleRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.angleRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, knobDepth);
         this.angleRangeKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.angleRangeKnob.SetClampRotation(true, 0, Math.PI);
         //this.angleRangeKnob.SetRelativeRotationControl(false);
@@ -85,7 +102,7 @@ export class SonarMachine extends GameObject {
         this.distanceKnob = GameObject.Instantiate(Knob, this.transform, "Distance Knob", true, true, true);
         distance = distanceKnobOffset;
         offsetAngle = distanceKnobAngle * fullCircle;
-        this.distanceKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.distanceKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, knobDepth);
         this.distanceKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.distanceKnob.SetClampRotation(true, 0, Math.PI);
         //this.distanceKnob.SetRelativeRotationControl(false);
@@ -95,17 +112,33 @@ export class SonarMachine extends GameObject {
         this.distanceRangeKnob = GameObject.Instantiate(Knob, this.transform, "Distance Range Knob", true, true, true);
         var distance = distanceRangeKnobOffset;
         offsetAngle = distanceRangeKnobAngle * fullCircle;
-        this.distanceRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, 0);
+        this.distanceRangeKnob.transform.position.set(this.sonarViewerPositionOffset.x + Math.sin(offsetAngle) * distance + extraXOffset, this.sonarViewerPositionOffset.y + Math.cos(offsetAngle) * distance, knobDepth);
         this.distanceRangeKnob.transform.scale.set(knobScale, knobScale, knobScale);
         this.distanceRangeKnob.SetClampRotation(true, 0, Math.PI);
         //this.distanceRangeKnob.SetRelativeRotationControl(false);
         this.CreateBasePlate(this.distanceRangeKnob, true, basePlatesScale);
 
+        // 
         this.pingButton = GameObject.Instantiate(Button, this.transform, "Ping Button");
-        this.pingButton.transform.scale.set(0.3, 0.2, 1);
-        this.pingButton.transform.position.set(-1, -0.8 , 0);
+        this.pingButton.transform.scale.set(0.55, 0.21, 1);
+        this.pingButton.transform.position.set(-0.81, -0.83, 1);
         this.pingButton.SetClickAction(this.Ping.bind(this));    // bind the "this" context to the main menu
-        this.pingButton.material.map = MeshManager.instance.textures.startButtonTexture;
+        this.pingButton.material.opacity = 0;
+
+        this.sonarButtonMesh = MeshManager.instance.models.sonarButton;
+        //this.sonarButtonMesh.scale.set(this.controlPanelScale.x, this.controlPanelScale.y, this.controlPanelScale.z);
+        this.sonarButtonMesh.position.set(0.56, 0.17, 1);
+        this.sonarButtonMesh.rotateY(Math.PI);
+        this.AddComponent(this.sonarButtonMesh);
+
+
+        this.sonarHousingMesh = MeshManager.instance.models.sonarHousing;
+        this.sonarHousingMesh.position.set(0.56, 0.17, 1);
+        this.sonarHousingMesh.rotateY(Math.PI);
+        this.AddComponent(this.sonarHousingMesh);
+
+
+        //this.pingButton.material.map = MeshManager.instance.textures.startButtonTexture;
 
         // Sound sources
         this.sonarTargets = [];
@@ -113,8 +146,7 @@ export class SonarMachine extends GameObject {
         this.sonarTargetAudios = [];
     }
 
-    Ping()
-    {
+    Ping() {
         this.sonarViewController.Ping();
     }
 
@@ -202,11 +234,11 @@ export class SonarMachine extends GameObject {
     async DiscoverTarget(sonarTarget) {
         const targetIndex = this.sonarTargets.indexOf(sonarTarget);
         const soundClass = sonarTarget.targetConfig.soundClass;
-        
+
         var dialogueManager = DialogueManager.instance;
         const { selected, isCorrect } = await dialogueManager.sonarIdentify({
             correct: soundClass, // 'Biophony' | 'Geophony' | 'Anthropogenic' | 'Unknown'
-            responses:  SoundClasses, // { Biophony: '...', Geophony: '...', ... }
+            responses: SoundClasses, // { Biophony: '...', Geophony: '...', ... }
             speaker: 'Operator'
         });
     }
@@ -236,8 +268,8 @@ export class SonarMachine extends GameObject {
             component.layers.set(visible ? 0 : 1);
         });
 
-        this.mesh.visible = visible;
-        this.mesh.layers.set(visible ? 0 : 1);
+        // this.mesh.visible = visible;
+        // this.mesh.layers.set(visible ? 0 : 1);
 
         this.angleKnob.SetActive(visible);
         this.angleRangeKnob.SetActive(visible);

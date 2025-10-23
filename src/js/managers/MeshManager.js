@@ -76,7 +76,9 @@ export class MeshManager {
             './models/BasePlateHalf.glb',
             './models/Knob.glb',
             './models/KnobWithIndicator.glb',
-            './models/ArrowButtons.glb'
+            './models/ArrowButtons.glb',
+            './models/SonarViewerPanel.glb',
+            './models/ActiveSonarButton.glb'
         ];
 
         const modelPromises = modelPaths.map(path => {
@@ -97,6 +99,11 @@ export class MeshManager {
                 arrowStraight: this.ExtractModel(loadedModels[4], "Arrow_Straight"),
                 arrowCurve: this.ExtractModel(loadedModels[4], "Arrow_Curve"),
                 arrowRotate: this.ExtractModel(loadedModels[4], "Arrow_Rotate"),
+                sonarScreenPanel: this.ExtractModel(loadedModels[5], "SonarScreenPanel"),
+                controlsPanel: this.ExtractModel(loadedModels[5], "ControlsPanel"),
+                indicatorLight: this.ExtractModel(loadedModels[5], "IndicatorLight"),
+                sonarButton: this.ExtractModel(loadedModels[6], "Button"),
+                sonarHousing: this.ExtractModel(loadedModels[6], "ButtonHousing")
             };
         } catch (error) {
             console.error("Error loading models:", error);

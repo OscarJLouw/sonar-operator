@@ -56,8 +56,8 @@ export class GameManager {
         await this.audioManager.Setup(this.sceneManager.camera);
 
         this.renderManager = new RenderManager();
-        this.renderManager.Setup(this.sceneManager, true, {targetHeight: 512});
-        this.renderManager.SetPixellation(1);
+        this.renderManager.Setup(this.sceneManager, true, {targetHeight: 1024});
+        this.renderManager.SetPixellation(1.5);
 
         this.mouseHandler = new MouseHandler();
         this.mouseHandler.Setup(this.sceneManager.camera);

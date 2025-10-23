@@ -4,6 +4,8 @@ import { GameObject } from '../gameObjects/GameObject.js';
 import { SonarMachine } from '../gameObjects/SonarMachine.js';
 import { PlayerMovementController } from './PlayerMovementController.js';
 import { World } from '../gameObjects/World.js';
+import { RenderManager } from './RenderManager.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
 export class SceneManager extends Resizable {
     constructor() {
@@ -26,18 +28,78 @@ export class SceneManager extends Resizable {
         this.sonarScene = new THREE.Scene();
         //this.scene.background = new THREE.Color(0x151729);
 
-        this.camera = new THREE.OrthographicCamera(-this.targetAspectRatio, this.targetAspectRatio, 1, - 1, 0.1, 10);
-        this.camera.position.z = 2;
+        this.camera = new THREE.OrthographicCamera(-this.targetAspectRatio, this.targetAspectRatio, 1, - 1, 0.1, 50);
+        this.camera.position.z = 10;
+        //this.camera = new THREE.PerspectiveCamera(15, this.targetAspectRatio, 0.01, 500);
+        //this.camera.position.z = 20;
         //this.camera.position.y = -0.1;
         //this.camera.lookAt(new THREE.Vector3(0,0,0));
         this.Resize(this.width, this.height, this.aspectRatio);
 
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        this.ambientLight = new THREE.AmbientLight(0xf6e7d2, 1);
         this.scene.add(this.ambientLight);
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        this.pointLight = new THREE.PointLight(0xffd88d, 2);
+        this.scene.add(this.pointLight);
+        this.pointLight.position.set(0, 1, 1.5);
+        this.pointLight.castShadows = true;
+        //this.pointLight.distance = 5;
+
+        this.directionalLight = new THREE.DirectionalLight(0xffec8b, 1);
+        this.directionalLight.castShadows = true;
         this.scene.add(this.directionalLight);
-        this.directionalLight.position.set(3, 5, 10);
+        this.directionalLight.position.set(-0.85, -0.75, 1.5);
+        this.directionalLight.lookAt(0, 0, 0);
+    }
+
+    CreateControls(targetObject) {
+        this.transformControls = new TransformControls(this.camera, RenderManager.instance.renderer.domElement);
+        this.transformControls.attach(targetObject);
+
+        const gizmo = this.transformControls.getHelper();
+        SceneManager.instance.scene.add(gizmo);
+
+        this.transformControls.addEventListener('change', (e) => {
+            console.log(`Pos: x: ${targetObject.position.x} | y: ${targetObject.position.y} | z: ${targetObject.position.z}`);
+            console.log(`Scale: x: ${targetObject.scale.x} | y: ${targetObject.scale.y} | z: ${targetObject.scale.z}`);
+        });
+
+        window.addEventListener('keydown', (event) => {
+
+            switch (event.key) {
+                case 'Shift':
+                    this.transformControls.setS
+                    this.transformControls.setTranslationSnap(0.01);
+                    this.transformControls.setRotationSnap(THREE.MathUtils.degToRad(15));
+                    this.transformControls.setScaleSnap(0.01);
+                    break;
+                case 'w':
+                    this.transformControls.setMode('translate');
+                    break;
+
+                case 'e':
+                    this.transformControls.setMode('rotate');
+                    break;
+
+                case 'r':
+                    this.transformControls.setMode('scale');
+                    break;
+
+                case 'x':
+                    this.transformControls.showX = !this.transformControls.showX;
+                    break;
+
+                case 'y':
+                    this.transformControls.showY = !this.transformControls.showY;
+                    break;
+
+                case 'z':
+                    this.transformControls.showZ = !this.transformControls.showZ;
+                    break;
+                default:
+                    break;
+            }
+        });
     }
 
     CreateWorld() {

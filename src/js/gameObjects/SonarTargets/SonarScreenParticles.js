@@ -20,14 +20,14 @@ export class SonarScreenParticles extends GameObject {
         this.geometry.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
 
         this.pointsMaterial = new THREE.PointsMaterial({
-            size: 1,
+            size: 2,
             //color: 0x51C079
             /*, sizeAttenuation:true*/
         });
 
         // FIX: use the material you created
         this.points = new THREE.Points(this.geometry, this.pointsMaterial);
-
+        this.points.position.z = -0.5;
         this.AddComponent(this.points);
         this.updating = true;
         this.pinging = false;
