@@ -2,14 +2,18 @@ import * as THREE from 'three';
 import { SceneManager } from './SceneManager.js';
 
 /**
- * AudioManager
+ * AudioManager (modular manifests)
  *
- * Backward compatible with your current usage, but adds:
- * - Master/ambience/sfx/music buses
- * - Robust listener orientation (WebAudio listener)
- * - Panner factory + ring placement helper
- * - Lightweight pooling of THREE.Audio instances
- * - One-shot/spatial spawn helpers
+ * Drop-in replacement for your current AudioManager with these additions:
+ * - You can register sounds from "collections" (other files/classes) via:
+ *     - add(key, spec)
+ *     - addMany(object)
+ *     - addManifestSource(fn | async fn)  // returns { key: spec, ... }
+ *     - addNamespace(ns, object | fn)
+ *     - addSequence({ ns?, keyFmt?, range, pathFmt, common }) // easy batch
+ * - Everything still preloads before gameplay in Setup(camera).
+ * - Backward compatible: the in-class `manifest` still works if you prefer.
+ * - Once Setup() runs, the manifest freezes so late adds throw a clear error.
  */
 export class AudioManager {
   constructor() {
@@ -19,7 +23,7 @@ export class AudioManager {
     return AudioManager.instance;
   }
 
-  // --- PUBLIC CONFIG ---
+  // --- PUBLIC DEFAULTS (kept for backwards compat) ---
   manifest = {
     wind: { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
     ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
@@ -28,8 +32,68 @@ export class AudioManager {
     humpbacks: { path: './audio/humpbacks_COPYRIGHT_UNKNOWN.ogg', volume: 0.4, loop: false, bus: 'sfx', autostart: false },
   };
 
+  // --- NEW: modular manifest plumbing ---
+  _frozen = false;               // prevents mutations after Setup()
+  _sources = [];                 // array of resolver fns: () => (obj | Promise<obj>)
+
+  /** Quick add a single entry */
+  add(key, spec) { this.#ensureMutable(); this.manifest[key] = spec; return this; }
+
+  /** Quick add many entries from an object */
+  addMany(obj) { this.#ensureMutable(); Object.assign(this.manifest, obj || {}); return this; }
+
+  /** Register a manifest source resolver (object, fn, or async fn are fine). */
+  addManifestSource(src) {
+    this.#ensureMutable();
+    if (!src) return this;
+    if (typeof src === 'function') this._sources.push(src);
+    else if (typeof src === 'object') this._sources.push(() => src);
+    else throw new Error('addManifestSource: expected object or function');
+    return this;
+  }
+
+  /** Add with namespace prefix (e.g. ns/key). */
+  addNamespace(ns, src) {
+    this.#ensureMutable();
+    if (!ns) return this.addManifestSource(src);
+    return this.addManifestSource(async () => {
+      const obj = typeof src === 'function' ? await src() : (src || {});
+      const out = {};
+      for (const [k, v] of Object.entries(obj)) out[`${ns}/${k}`] = v;
+      return out;
+    });
+  }
+
+  /**
+   * Convenience: generate a sequence of sounds with consistent patterns.
+   * @param {Object} opts
+   * @param {string=} opts.ns A namespace prefix for keys (optional)
+   * @param {[number, number]|number[]} opts.range Either [start, end] (inclusive) or an array of indices
+   * @param {(i:number)=>string} opts.pathFmt Function that returns a path given the index i
+   * @param {(i:number)=>string=} opts.keyFmt Optional function to name keys (default `${i}`)
+   * @param {Object=} opts.common Common spec fields merged into every entry (e.g., volume, bus, loop, autostart)
+   */
+  addSequence({ ns, range, pathFmt, keyFmt, common = {} }) {
+    this.#ensureMutable();
+    if (!range || !pathFmt) throw new Error('addSequence requires `range` and `pathFmt`');
+    const indices = Array.isArray(range)
+      ? (range.length === 2 && typeof range[0] === 'number' && typeof range[1] === 'number')
+        ? [...Array(range[1] - range[0] + 1)].map((_, j) => range[0] + j)
+        : range
+      : [];
+    const mkKey = keyFmt || ((i) => `${i}`);
+
+    const obj = {};
+    for (const i of indices) {
+      const key = ns ? `${ns}/${mkKey(i)}` : mkKey(i);
+      obj[key] = { path: pathFmt(i), ...common };
+    }
+    return this.addManifestSource(obj);
+  }
+
   // --- LIFECYCLE ---
   async Setup(camera) {
+    this.#freeze();
     this.camera = camera;
 
     // Listener
@@ -60,8 +124,6 @@ export class AudioManager {
     this.uiSFXGain = this.audioContext.createGain();
     this.dialogueSFXGain = this.audioContext.createGain();
 
-
-
     this.masterGain.gain.value = 1.0;
     this.ambienceGain.gain.value = 0.0001; // start low like before
     this.musicGain.gain.value = 1.0;
@@ -71,8 +133,7 @@ export class AudioManager {
     this.sonarSFXGain.gain.value = 0.0001;
     this.playerSFXGain.gain.value = 1.0;
     this.uiSFXGain.gain.value = 1.0;
-    this.dialogueSFXGain.gain.value = 1.0;
-
+    this.dialogueSFXGain.gain.value = 0.1;
 
     // route: bus -> master -> listener
     this.ambienceGain.connect(this.masterGain);
@@ -85,11 +146,16 @@ export class AudioManager {
     this.playerSFXGain.connect(this.sfxGain);
     this.uiSFXGain.connect(this.sfxGain);
     this.dialogueSFXGain.connect(this.sfxGain);
-    
+
     this.masterGain.connect(this.listener.getInput());
 
     // Loader
     this.audioLoader = new THREE.AudioLoader();
+
+    // Resolve all modular sources now, before loading
+    const merged = await this.#resolveAllSources();
+    // `this.manifest` wins on key collisions (local overrides)
+    this.manifest = { ...merged, ...this.manifest };
 
     // 1) Preload + decode all buffers
     this.buffers = await this.#preloadAll(this.manifest);
@@ -184,7 +250,6 @@ export class AudioManager {
     this.placeAroundHeadFromWorld(panner, S.x, S.y, opts);
   }
 
-
   /** Convert pixels to meters and set 3D position (classic mapping). */
   placeWithDistance(panner, dx, dy, ppm = 100) {
     this.#setPannerPos(panner, dx / ppm, 0, dy / ppm);
@@ -211,7 +276,6 @@ export class AudioManager {
     const busNode = this.#getBus(bus);
     audio.setFilters([]);
     this.#routeSoundToBus(audio, busNode);
-
 
     entry.used.add(audio);
     return audio;
@@ -248,7 +312,6 @@ export class AudioManager {
     this.#routeSoundToBus(sound, busNode);
 
     sound.offset = randomizeStartTime ? Math.random() * sound.buffer.duration : 0;
-    
 
     if (autostart && !sound.isPlaying) sound.play();
 
@@ -305,6 +368,33 @@ export class AudioManager {
     return handle;
   }
 
+  /** Play a one-shot by manifest key and auto-release it back to the pool. */
+  playOneShot(key, {
+    bus = 'sfx',
+    volume = 1,
+    rate = 1,         // playbackRate
+    jitter = 0,       // random +/- added to rate (e.g. 0.05)
+    offset = 0        // seconds into the buffer
+  } = {}) {
+    const a = this.acquireAudio(key, { bus, loop: false, volume });
+    if (typeof a.setPlaybackRate === 'function') {
+      const r = rate + (Math.random() * 2 - 1) * jitter;
+      a.setPlaybackRate(Math.max(0.1, r));
+    }
+    // start
+    if (!a.isPlaying) a.play(offset);
+    // auto-release when the WebAudio source completes
+    const src = a.source; // created on play()
+    if (src && !a.getLoop()) {
+      src.onended = () => this.releaseAudio(key, a);
+    } else {
+      // fallback (shouldn't happen unless loop=true)
+      const durMs = (a.buffer?.duration ?? 0.25) * 1000;
+      setTimeout(() => this.releaseAudio(key, a), durMs + 10);
+    }
+    return a;
+  }
+
   // --- BUSES & FADES ---
   FadeInAmbience(targetVolume, fadeTime) {
     this.FadeBus(this.ambienceGain, targetVolume, fadeTime);
@@ -322,17 +412,14 @@ export class AudioManager {
     this.FadeBus(this.sonarSFXGain, 0.0001, fadeTime);
   }
 
-  FadeBusByID(busID, targetVolume, fadeTime)
-  {
+  FadeBusByID(busID, targetVolume, fadeTime) {
     const bus = this.#getBus(busID);
-    if(bus != null)
-    {
+    if (bus != null) {
       this.FadeBus(bus, targetVolume, fadeTime);
     }
   }
 
-  FadeBus(bus, targetVolume, fadeTime)
-  {
+  FadeBus(bus, targetVolume, fadeTime) {
     const gainNode = bus.gain;
     const now = this.audioContext.currentTime;
     const v0 = Math.max(0.0001, gainNode.value);
@@ -343,6 +430,12 @@ export class AudioManager {
   }
 
   // --- INTERNALS ---
+
+  async #resolveAllSources() {
+    const chunks = await Promise.all(this._sources.map(fn => fn()));
+    // last-in wins inside the chunk itself
+    return Object.assign({}, ...chunks);
+  }
 
   async #preloadAll(manifest) {
     const entries = Object.entries(manifest);
@@ -361,14 +454,15 @@ export class AudioManager {
       const sound = new THREE.Audio(this.listener);
       sound.setBuffer(buffers[key]);
       sound.setLoop(!!spec.loop);
-      sound.setVolume(spec.volume ?? 1.0);
+
+      const vol = (spec.volume ?? 1.0);
+      sound.setVolume(vol);
 
       // Route through declared bus (default ambience to preserve behavior for loops)
       const busName = spec.bus ?? 'ambience';
       const busNode = this.#getBus(busName);
       sound.setFilters([]); // no filters by default for manifest loops
       this.#routeSoundToBus(sound, busNode);
-
 
       out[key] = sound;
     }
@@ -377,15 +471,15 @@ export class AudioManager {
 
   #getBus(name) {
     switch ((name || 'sfx')) {
-      case 'ambience':  return this.ambienceGain;
-      case 'music':     return this.musicGain;
-      case 'sfx':       return this.sfxGain;
-      case 'room':      return this.roomSFXGain;
-      case 'sonar':     return this.sonarSFXGain;
-      case 'player':    return this.playerSFXGain;
-      case 'ui':        return this.uiSFXGain;
-      case 'dialogue':  return this.dialogueSFXGain;
-      default:          return this.masterGain;
+      case 'ambience': return this.ambienceGain;
+      case 'music': return this.musicGain;
+      case 'sfx': return this.sfxGain;
+      case 'room': return this.roomSFXGain;
+      case 'sonar': return this.sonarSFXGain;
+      case 'player': return this.playerSFXGain;
+      case 'ui': return this.uiSFXGain;
+      case 'dialogue': return this.dialogueSFXGain;
+      default: return this.masterGain;
     }
   }
 
@@ -421,4 +515,9 @@ export class AudioManager {
     out.connect(busNode);
   }
 
+  #ensureMutable() {
+    if (this._frozen) throw new Error('AudioManager: manifest is frozen after Setup(). Add your sounds before calling Setup().');
+  }
+
+  #freeze() { this._frozen = true; }
 }

@@ -387,7 +387,6 @@ export class StoryManager {
         ]);
     }
 
-    
     CreateActThreeDialogue() {
         this.dialogueManager.registerNodes([
 

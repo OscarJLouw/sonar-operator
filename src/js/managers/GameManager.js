@@ -12,6 +12,7 @@ import { PlayerControls } from '../gameObjects/UI/PlayerControls.js';
 import { DialogueManager } from './DialogueManager';
 import { StoryManager } from './StoryManager.js';
 import { GameEventManager } from '../gameData/GameEventManager.js';
+import { CharacterVoices } from '../gameData/CharacterVoices.js';
 
 export class GameManager {
     constructor() {
@@ -54,6 +55,8 @@ export class GameManager {
         await this.meshManager.Setup();
 
         this.audioManager = new AudioManager();
+        this.characterVoices = new CharacterVoices();
+        this.audioManager.addNamespace('voices', () => this.characterVoices.GetAllVoices());
         await this.audioManager.Setup(this.sceneManager.camera);
 
         this.renderManager = new RenderManager();
@@ -81,7 +84,7 @@ export class GameManager {
         this.mainMenu = GameObject.Instantiate(MainMenu, this.sceneManager.scene, "Main Menu");
         this.mainMenu.Setup(this);
 
-
+        this.characterVoices.LinkWithDialogue(this.dialogueManager);
 
         // Event listeners
         window.addEventListener('pointerdown', () => {
@@ -119,6 +122,8 @@ export class GameManager {
         this.portalsController.StartGame();
 
         // Fade in the audio
+
+        
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
@@ -128,7 +133,7 @@ export class GameManager {
         // Setup the story and game events
         this.gameEvents = new GameEventManager();
         this.gameEvents.Setup(this, this.audioManager, this.dialogueManager, this.sceneManager.world);
-        
+
         this.storyManager.SetWorld(this.sceneManager.world);
         this.storyManager.SetGameEventManager(this.gameEvents);
 

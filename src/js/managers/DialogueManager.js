@@ -147,7 +147,14 @@ export class DialogueManager {
         this.active = true;
         this.root.style.display = 'grid';
         this.currentNodeId = nodeId;
-        this.dispatchEvent(new CustomEvent("dialogueStarted", { detail: { nodeId: nodeId } }));
+        const firstNode = this.nodes.get(nodeId);
+        this.dispatchEvent(new CustomEvent("dialogueStarted", {
+            detail: {
+                nodeId: nodeId,
+                speaker: firstNode?.speaker ?? null,
+                node: firstNode ?? null,
+            }
+        }));
         this.#bindGlobalSkip();
         while (this.active && this.currentNodeId) {
             const next = await this.#playNode(this.currentNodeId);
@@ -226,6 +233,15 @@ export class DialogueManager {
         }
         // enter
         node.onEnter?.(this.vars, this.gm);
+        // notify audio/UI that the speaker for this node is active
+        this.dispatchEvent(new CustomEvent("speakerChanged", {
+            detail: {
+                nodeId: node.id,
+                speaker: node.speaker ?? null,
+                node,
+            }
+        }));
+
         this.#prepareForNewLine();
         if (node.speaker) this.nameEl.textContent = node.speaker; else this.nameEl.textContent = '';
 
