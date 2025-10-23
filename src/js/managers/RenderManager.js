@@ -5,7 +5,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SceneManager } from './SceneManager';
-import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 
 export class RenderManager extends Resizable {
     constructor() {
@@ -43,7 +42,7 @@ export class RenderManager extends Resizable {
         this.bloomPass = new UnrealBloomPass(1, 3, 2, 0.9);
         this.composer.addPass(this.bloomPass);
         */
-       
+
         if (addPixelatePass) {
             this.hasPixelatePass = true;
             const initialPixelSize = typeof opts.pixelSize === 'number' ? opts.pixelSize : 6;

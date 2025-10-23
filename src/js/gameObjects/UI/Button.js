@@ -23,6 +23,7 @@ export class Button extends GameObject {
 
         this.draggable = new Draggable(this, this.mesh);
         this.handleMouseUp = event => this.OnMouseUp(event.detail.mousePosition, event.detail.hovered);
+        this.meshIsForDrawing = true;
     }
 
     SetMeshIsForDrawing(meshIsForDrawing) {
