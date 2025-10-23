@@ -25,7 +25,7 @@ export class CharacterVoices {
 
         this._onDialogueStarted = e => {
             const speaker = e.detail.speaker;
-           this._applyVoiceForSpeaker(speaker);
+            this._applyVoiceForSpeaker(speaker);
         };
 
         this._onSpeakerChanged = (e) => {
@@ -40,10 +40,9 @@ export class CharacterVoices {
             this.usingVoice = false;
         });
 
+        /*
         // play a “blip” per revealed character
         this.dialogueManager.setCharacterCallback((ch, index, { nodeId }) => {
-            console.debug('TYPE:', ch, index);
-
             if (!this.usingVoice) return;
 
             // skip whitespace & punctuation
@@ -65,6 +64,27 @@ export class CharacterVoices {
                 // if a key is missing, don’t crash the typewriter
                 console.warn('Dialogue blip failed:', key, e);
             }
+        });
+        */
+
+        let _prevWasLetter = false;
+
+        this.dialogueManager.setCharacterCallback((ch, index, { nodeId }) => {
+            if (!this.usingVoice) return;
+
+            const isLetter = /[A-Za-z]/.test(ch);
+
+            if (!_prevWasLetter && isLetter) {
+                // we’ve entered a new word
+                const key = this.GetRandomBlipKey(this.currentVoice, 'voices', /* preferLong = */ true);
+                try {
+                    this.audioManager.playOneShot(key, { bus: 'dialogue', volume: 0.5, rate: 1, jitter: 0.06 });
+                } catch (e) {
+                    console.warn('Dialogue blip failed:', key, e);
+                }
+            }
+
+            _prevWasLetter = isLetter;
         });
     }
 
@@ -112,14 +132,14 @@ export class CharacterVoices {
         return String(val).charAt(0).toUpperCase() + String(val).slice(1);
     }
 
-    GetRandomBlipKey(voice, ns = 'voices') {
+    GetRandomBlipKey(voice, ns = 'voices', useLongSounds = false) {
         const typeCaps = `Voice${this.CapitalizeFirstLetter(voice.type)}`;
-        const useShort = Math.random() < 0.85; // bias to short clips
-        const group = useShort ? 'Short' : 'Long';
-        const max = useShort ? voice.shortCount : voice.longCount;
+        const useLong = useLongSounds; // maybe long more often
+        const group = useLong ? 'Long' : 'Short';
+        const max = useLong ? voice.longCount : voice.shortCount;
         const i = 1 + Math.floor(Math.random() * Math.max(1, max));
-        const base = `${typeCaps}_${group}${i}`;           // e.g. VoiceHigh_Short7
-        return ns ? `${ns}/${base}` : base;                // e.g. voices/VoiceHigh_Short7
+        const base = `${typeCaps}_${group}${i}`;
+        return ns ? `${ns}/${base}` : base;
     }
 
     _applyVoiceForSpeaker(speaker) {

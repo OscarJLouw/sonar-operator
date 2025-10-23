@@ -145,7 +145,16 @@ export class AudioManager {
     this.sonarSFXGain.connect(this.sfxGain);
     this.playerSFXGain.connect(this.sfxGain);
     this.uiSFXGain.connect(this.sfxGain);
-    this.dialogueSFXGain.connect(this.sfxGain);
+
+    const biquad = this.audioContext.createBiquadFilter();
+    biquad.type = 'lowpass';
+    biquad.frequency.value = 5000; // mild
+    this.dialogueSFXGain.connect(biquad);
+    biquad.connect(this.sfxGain);
+    
+    //const convolver = this.audioContext.createConvolver();
+
+    //this.dialogueSFXGain.connect(this.sfxGain);
 
     this.masterGain.connect(this.listener.getInput());
 
