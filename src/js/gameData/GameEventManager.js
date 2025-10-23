@@ -50,7 +50,7 @@ export class GameEventManager {
                 randomizeRadius: false,
                 radius: 0.05,
                 spawnAtRandomPosition: false,
-                spawnPosition: new THREE.Vector3(0.3, 0.4, 0)
+                spawnPosition: new THREE.Vector3(0.6, 0.2, 0)
             }
         );
 
@@ -61,7 +61,7 @@ export class GameEventManager {
                 randomizeRadius: false,
                 radius: 0.05,
                 spawnAtRandomPosition: false,
-                spawnPosition: new THREE.Vector3(0.6, -0.5, 0)
+                spawnPosition: new THREE.Vector3(0.25, -0.2, 0)
             }
         );
 

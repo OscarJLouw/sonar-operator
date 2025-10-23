@@ -9,7 +9,7 @@
     html,
     body {
       background: transparent;
-      width:100%;
+      width: 100%;
       height: 100%;
       margin: 0;
     }
@@ -61,36 +61,50 @@
       position: fixed;
       inset: 0;
       display: none;
-      place-items: end center;
+      /* keep it hovering near the bottom-center */
+      place-items: center center;
+      /* respect notches / home indicators */
+      padding-block-end: max(2vh, env(safe-area-inset-bottom, 0px));
       pointer-events: none;
       z-index: 2147483647;
+      justify-items: center;
+      align-items: start;
     }
 
     .dm-panel {
       position: relative;
       z-index: 1;
       pointer-events: auto;
-      width: min(900px, 92vw);
-      margin-bottom: 2vh;
+
+      /* fluid width with sensible bounds */
+      width: clamp(18rem, 92vw, 56rem);
+      margin-top: 60vh;
+
       border-radius: 0;
-      background: rgba(8, 8, 12, 0.82);
-      backdrop-filter: blur(6px);
+      background: rgba(8, 8, 12, 0.9);
+      /*backdrop-filter: blur(6px);*/
       color: #e9ecf1;
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-      padding: 16px 18px 12px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+      /* shadow scales with font size rather than fixed px */
+      box-shadow: 0.25rem 0.25rem 0 rgba(0, 0, 0, 0.35);
+
+      /* fluid padding */
+      padding: clamp(0.75rem, 1.2vw, 1.25rem) clamp(0.9rem, 1.5vw, 1.375rem) clamp(0.6rem, 1vw, 0.9rem);
+
+      border: 1px solid #D5CAB4;
+      font-family: "IBM Plex Mono", monospace;
     }
 
     .dm-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
+      gap: clamp(0.4rem, 1vw, 0.75rem);
+      margin-bottom: clamp(0.25rem, 0.6vw, 0.5rem);
     }
 
     .dm-portrait {
-      width: 36px;
-      height: 36px;
+      width: clamp(2rem, 4vw, 2.5rem);
+      height: clamp(2rem, 4vw, 2.5rem);
       border-radius: 0;
       background-size: cover;
       background-position: center;
@@ -99,38 +113,45 @@
     }
 
     .dm-name {
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-weight: 600;
+      font-style: normal;
+      letter-spacing: 0.02em;
+      /* replaces 0.3px so it scales */
       opacity: 0.95;
+      font-size: 1.4rem;
     }
 
     .dm-text {
-      min-height: 56px;
+      /* fluid min-height so short/long lines look balanced */
+      font-weight: 400;
+      font-style: normal;
+      min-height: clamp(2.75rem, 6vh, 3.75rem);
       line-height: 1.5;
-      font-size: 16px;
+      font-size: clamp(0.95rem, 0.6vw + 0.8rem, 1.1rem);
     }
 
     .dm-choices {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 8px;
-      margin-top: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      gap: clamp(0.4rem, 1vw, 0.75rem);
+      margin-top: clamp(0.6rem, 1vw, 0.9rem);
     }
 
     .dm-choice {
       border: 0;
-      padding: 10px 12px;
+      padding: clamp(0.6rem, 1vw, 0.8rem) clamp(0.75rem, 1.2vw, 0.9rem);
       border-radius: 0;
-      background: #1d2331;
-      color: #f1f4f9;
+      background: #0A192E;
+      color: #D5CAB4;
       cursor: pointer;
       transition: transform .04s ease, background .15s ease;
       text-align: center;
+      font-size: 1.25rem;
     }
 
     .dm-choice:hover {
       transform: translateY(-1px);
-      background: #232a3b;
+      background: rgb(45, 55, 81);
     }
 
     .dm-choice.primary {
@@ -151,8 +172,8 @@
 
     .dm-continue {
       display: none;
-      margin-top: 10px;
-      font-size: 12px;
+      margin-top: clamp(0.5rem, 0.9vw, 0.75rem);
+      font-size: clamp(0.7rem, 0.5vw + 0.55rem, 0.85rem);
       opacity: 0.65;
       user-select: none;
     }
@@ -168,6 +189,25 @@
       pointer-events: auto;
       z-index: 0;
     }
+
+    /* Nice-to-have: respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .dm-choice {
+        transition: background .15s ease;
+      }
+
+      .dm-choice:hover {
+        transform: none;
+      }
+    }
+
+    /* Extra-small screens: let choices stack comfortably */
+    @media (max-width: 360px) {
+      .dm-choices {
+        grid-template-columns: 1fr;
+      }
+    }
+
 
     .unselectable-element {
       -webkit-touch-callout: none;
@@ -233,6 +273,9 @@
       PortalsSdk.closeIframe();
     }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Saira+Stencil+One&display=swap" rel="stylesheet">
 </head>
 
 <body>
