@@ -247,7 +247,7 @@ export class GameEventManager {
     }
 
     async MoveToSubmarine() {
-
+        
     }
 
     async AshtonDisappears() {
