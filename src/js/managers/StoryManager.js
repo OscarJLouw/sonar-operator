@@ -113,10 +113,18 @@ export class StoryManager {
         await this.dialogueManager.start("act3_clark2");
 
         // Ship starts moving
-        await this.gameEvents.MoveToSubmarine();
+        await this.gameEvents.TransmissionBegins();
 
         // once you get in range, strange transmission begins
         await this.dialogueManager.start("act3_harper1");
+
+        await this.gameEvents.IncreaseFear();
+        // this guy has the bends
+        await this.dialogueManager.start("act3_ashton3");
+
+
+        await this.gameEvents.IncreaseFearAgain();
+        await this.dialogueManager.start("act3_ashton4");
 
         // Ashton sends another ping, then his boat suddenly disappears
         await this.gameEvents.AshtonDisappears();
@@ -508,7 +516,7 @@ export class StoryManager {
             {
                 id: "act3_clark1",
                 speaker: "CLARK",
-                text: "It snuck up right behind us. Even with full passive triangulation...",
+                text: "It snuck right up on us. Even with full passive triangulation...",
                 next: "act3_markTheSub"
             },
             {
@@ -524,7 +532,7 @@ export class StoryManager {
                 speaker: "COMMANDER MORGAN",
                 text: "Report.",
                 choices: [
-                    { text: "Sir! That's our submarine. Bearing 246 range 3 clicks.", next: "act3_morgan4" }
+                    { text: "Sir! That's our sub! Bearing 246 range 3 clicks.", next: "act3_morgan4" }
                 ]
             },
             {
@@ -559,8 +567,8 @@ export class StoryManager {
             {
                 id: "act3_harper3",
                 speaker: "HARPER",
-                text: "Oh but I am home.",
-                next: "act3_ashton3"
+                text: "{>}Oh {p:0.5}but I am home.",
+                next: null
             },
             {
                 id: "act3_ashton3",
@@ -584,8 +592,9 @@ export class StoryManager {
                 id: "act3_harper4",
                 speaker: "HARPER",
                 text: "I must respect my vow of silence.",
-                next: "act3_ashton4"
+                next: null
             },
+            // another beat
             {
                 id: "act3_ashton4",
                 speaker: "ASHTON",

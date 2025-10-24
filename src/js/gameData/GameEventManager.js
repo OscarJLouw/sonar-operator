@@ -246,8 +246,24 @@ export class GameEventManager {
         await this.#sleep(1);
     }
 
-    async MoveToSubmarine() {
-        
+    async TransmissionBegins() {
+        this.audioManager.PlayFadeIn("interference3", { seconds: 3});
+        await this.#sleep(2);
+        this.audioManager.PlayFadeIn("subInterior", { seconds: 2});
+        await this.#sleep(2);
+        this.audioManager.PlayFadeOut("interference3", { seconds: 3 });
+        this.audioManager.PlayFadeIn("glitchyNoise", { seconds: 8});
+    }
+
+    async IncreaseFear()
+    {
+        this.audioManager.PlayFadeIn("underworldVoices", { seconds: 15});
+        await this.#sleep(1);
+    }
+
+    async IncreaseFearAgain()
+    {
+
     }
 
     async AshtonDisappears() {
