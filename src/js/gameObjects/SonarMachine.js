@@ -10,6 +10,7 @@ import { DialogueManager } from '../managers/DialogueManager';
 import { SoundClasses } from './SonarTargets/SonarTargetConfig';
 import { Button } from './UI/Button';
 import { SceneManager } from '../managers/SceneManager';
+import { AudioManager } from '../managers/AudioManager';
 
 
 export class SonarMachine extends GameObject {
@@ -202,6 +203,7 @@ export class SonarMachine extends GameObject {
             this.dispatchEvent(new Event("onPing"));
             this.PressSonarButton();
             this.sonarViewController.Ping();
+            AudioManager.instance.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         }
     }
 

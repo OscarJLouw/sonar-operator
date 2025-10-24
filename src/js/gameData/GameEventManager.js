@@ -272,13 +272,19 @@ export class GameEventManager {
 
     async AshtonDisappears() {
 
-        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+        this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
+        this.audioManager.PlayFadeOut("underworldVoices", { seconds: 0.5});
+        this.audioManager.PlayFadeOut("glitchyNoise", { seconds: 1.2});
+        this.audioManager.PlayFadeOut("subInterior", { seconds: 0.8});
 
         this.portalsController.SendMessage("Vessel1_Disappear", this.portalsController.TaskStates.AnyToComplete);
+
+        await this.#sleep(3);
     }
 
     async WaitForPlayerToLookOutWindow() {
         
+        this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }
 
     async TheChaseBegins() {
