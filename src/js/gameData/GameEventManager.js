@@ -47,9 +47,9 @@ export class GameEventManager {
 
     async ShipsSearch() {
 
-        const endeavourConfig = new SonarTargetConfig(
-            "Endeavor",
-            "ship_endeavour",
+        const melbourneConfig = new SonarTargetConfig(
+            "Melbourne",
+            "ship_melbourne",
             {
                 randomizeRadius: false,
                 radius: 0.05,
@@ -58,9 +58,9 @@ export class GameEventManager {
             }
         );
 
-        const melbourneConfig = new SonarTargetConfig(
-            "Melbourne",
-            "ship_melbourne",
+        const endeavourConfig = new SonarTargetConfig(
+            "Endeavor",
+            "ship_endeavour",
             {
                 randomizeRadius: false,
                 radius: 0.05,
@@ -69,25 +69,25 @@ export class GameEventManager {
             }
         );
 
-        this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
         this.melbourne = this.world.SpawnSonarTarget(melbourneConfig);
+        this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
 
-        const ships = [this.endeavour, this.melbourne];
+        const ships = [this.melbourne, this.endeavour];
 
-        let endeavourDone, melbourneDone;
-
-        this.endeavour.addEventListener("discoveredTarget", (e) => {
-            // build a serialized sequence with say()
-            endeavourDone = (async () => {
-                await this.ThinkToSelf("The USS Endeavour, Ashton is aboard.");
-                await this.ThinkToSelf("He's a smart cookie, and he does make me laugh.");
-            })();
-        }, { once: true });
+        let melbourneDone, endeavourDone;
 
         this.melbourne.addEventListener("discoveredTarget", (e) => {
+            // build a serialized sequence with say()
             melbourneDone = (async () => {
                 await this.ThinkToSelf("The USS Melbourne, Clark is aboard.");
                 await this.ThinkToSelf("I once watched him boil kranskies without removing them from the plastic packaging...");
+            })();
+        }, { once: true });
+
+        this.endeavour.addEventListener("discoveredTarget", (e) => {
+            endeavourDone = (async () => {
+                await this.ThinkToSelf("The USS Endeavour, Ashton is aboard.");
+                await this.ThinkToSelf("He's a smart cookie, and he does make me laugh.");
             })();
         }, { once: true });
 
@@ -96,7 +96,7 @@ export class GameEventManager {
         await Promise.all(ships.map(s => this.WaitForEvent(s, "discoveredTarget")));
 
         // ...then wait for their queued dialogue sequences to finish before continuing story
-        await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
+        await Promise.all([melbourneDone, endeavourDone].filter(Boolean));
     }
 
     // Act 2: Sector Sweep events
@@ -154,14 +154,26 @@ export class GameEventManager {
         this.portalsController.SendMessage("Vessel2_Idle", this.portalsController.TaskStates.AnyToNotActive);
         this.portalsController.SendMessage("Vessel2_Moving", this.portalsController.TaskStates.AnyToActive);
         this.portalsController.SendMessage("Sea_Choppy", this.portalsController.TaskStates.AnyToActive);
-        this.world.SetVelocity(0, 0.5, 5);
-        await this.#sleep(30);
+        this.world.SetVelocity(0, 0.1, 10);
+
+        this.melbourne.SetVelocity(-0.005, 0.09, 9);
+        this.endeavour.SetVelocity(0.01, 0.14, 11);
+        await this.#sleep(10);
+        this.melbourne.SetVelocity(0.003, 0.11, 11);
+        this.endeavour.SetVelocity(-0.01, 0.09, 9);
+        await this.#sleep(10);
+        this.melbourne.SetVelocity(0, 0.1, 5);
+        this.endeavour.SetVelocity(0, 0.1, 5);
+
 
         this.audioManager.PlayFadeIn("generalAmbience", { seconds: 10 });
     }
 
     async ArrivedAtNextSector() {
-        this.world.SetVelocity(0, 0);
+        this.world.SetVelocity(0, 0, 7.5);
+        this.melbourne.SetVelocity(0, 0, 8);
+        this.endeavour.SetVelocity(0, 0, 7);
+
         this.portalsController.SendMessage("Sea_Calm", this.portalsController.TaskStates.AnyToActive);
         this.portalsController.SendMessage("ShipState_Moving", this.portalsController.TaskStates.AnyToNotActive);
         this.portalsController.SendMessage("ShipState_Idle", this.portalsController.TaskStates.AnyToActive);
@@ -246,28 +258,30 @@ export class GameEventManager {
         await this.#sleep(2);
         this.audioManager.PlayFadeIn("subInterior", { seconds: 2 });
         await this.#sleep(2);
-        this.audioManager.StopFadeOut("interference3", 3 );
-        this.audioManager.PlayFadeIn("glitchyNoise", { seconds: 8 });
+        this.audioManager.StopFadeOut("interference3", 3);
+        this.audioManager.PlayFadeIn("glitchyNoise", { to: 0.6, seconds: 8 });
     }
 
     async IncreaseFear() {
-        this.audioManager.PlayFadeIn("underworldVoices", { seconds: 15 });
+        this.audioManager.PlayFadeIn("underworldVoices", { to: 0.6, seconds: 15 });
         await this.#sleep(1);
     }
 
     async IncreaseFearAgain() {
-        this.audioManager.StopFadeOut("generalAmbience", 5 );
+        this.audioManager.StopFadeOut("generalAmbience", 5);
         await this.#sleep(3);
     }
 
     async AshtonDisappears() {
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
-        this.audioManager.StopFadeOut("underworldVoices", 0.05);
-        this.audioManager.StopFadeOut("glitchyNoise", 3);
-        this.audioManager.StopFadeOut("subInterior", 2);
-
+        //this.audioManager.StopFadeOut("underworldVoices", 0.05);
+        this.audioManager.StopFadeOut("glitchyNoise", 10);
+        this.audioManager.StopFadeOut("subInterior", 5);
         this.portalsController.SendMessage("Vessel1_Disappear", this.portalsController.TaskStates.AnyToComplete);
+
+        await this.#sleep(1);
+        this.endeavour.Destroy();
 
         await this.#sleep(3);
     }
@@ -286,6 +300,8 @@ export class GameEventManager {
 
             movementController.addEventListener("onEnterState", handler);
         });
+
+        this.audioManager.StopFadeOut("underworldVoices", 1);
 
         this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }

@@ -29,6 +29,15 @@ export class SonarTarget extends GameObject {
 
         this.discovered = false;
 
+        this.startVelocity = new THREE.Vector3();
+        this.currentVelocity = new THREE.Vector3();
+        this.targetVelocty = new THREE.Vector3();
+        this.accelerationTime = 3;
+        this.clock = new THREE.Clock();
+        this.SetVelocity(0, 0);
+
+        this.temporaryVector = new THREE.Vector3();
+
         // Debug
         this.debug = false;
         if (this.debug) {
@@ -134,8 +143,41 @@ export class SonarTarget extends GameObject {
         return false;
     }
 
+    SetVelocity(x, y, accelerationTime = 0) {
+        this.accelerationTime = accelerationTime;
+        if (accelerationTime == 0) {
+            this.currentVelocity.set(x, y);
+            this.targetVelocty.set(x, y);
+            return;
+        }
+
+        this.startVelocity.set(this.currentVelocity.x, this.currentVelocity.y, 0);
+        this.targetVelocty.set(x, y);
+        this.clock.start();
+    }
 
     Update(deltaTime) {
+        // Accelerate
+        const elapsedTime = this.clock.getElapsedTime();
+        if (this.clock.running) {
+            if (elapsedTime < this.accelerationTime) {
+                const accelerationPercentage = elapsedTime / this.accelerationTime;
+                this.currentVelocity.set(
+                    Utils.instance.Lerp(this.startVelocity.x, this.targetVelocty.x, accelerationPercentage),
+                    Utils.instance.Lerp(this.startVelocity.y, this.targetVelocty.y, accelerationPercentage),
+                    0
+                );
+            } else {
+                this.clock.stop();
+                this.currentVelocity.set(this.targetVelocty.x, this.targetVelocty.y, 0);
+            }
+        }
+
+        this.temporaryVector.copy(this.currentVelocity);
+        this.temporaryVector.multiplyScalar(deltaTime);
+        this.worldTransform.position.add(this.temporaryVector);
+
+        // Check for overlaps
         this.updateCountdown -= deltaTime;
         if (this.updateCountdown <= 0) {
             this.updateCountdown = this.updateTime;

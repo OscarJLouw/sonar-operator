@@ -21,8 +21,8 @@ export class World extends GameObject {
 
         this.shipRoot = new THREE.Group();
         this.worldRoot.add(this.shipRoot);
-        
-        this.startVelocity = new THREE.Vector3(); // vector for doing temporary math operations
+
+        this.startVelocity = new THREE.Vector3();
         this.currentVelocity = new THREE.Vector3();
         this.targetVelocty = new THREE.Vector3();
         this.accelerationTime = 3;
@@ -36,8 +36,7 @@ export class World extends GameObject {
         this.AddComponent(this.sonarTargetsGroup);
     }
 
-    SpawnTargets(numTargets, config)
-    {
+    SpawnTargets(numTargets, config) {
         let targets = [];
         for (let i = 0; i < numTargets; i++) {
             targets.push(this.SpawnSonarTarget(config));
@@ -45,11 +44,10 @@ export class World extends GameObject {
         return targets;
     }
 
-    SetVelocity(x, y, accelerationTime = 3)
-    {
+    SetVelocity(x, y, accelerationTime = 3) {
         this.accelerationTime = accelerationTime;
         this.clock.start();
-        this.targetVelocty.set(x * 0.1, y * 0.1);
+        this.targetVelocty.set(x, y);
         this.startVelocity.set(this.currentVelocity.x, this.currentVelocity.y, 0);
     }
 
@@ -70,32 +68,28 @@ export class World extends GameObject {
             }
         ));
 
-        
+
         this.targetCount++;
         this.totalTargetsSpawnedSoFar++;
 
         return sonarTarget;
     }
 
-    OnTargetRemoved = (event) =>
-    {
+    OnTargetRemoved = (event) => {
         this.RemoveSonarTarget(event.detail.target);
     }
 
-    RemoveSonarTarget(sonarTarget)
-    {
-        const targetIndex = this.sonarTargets.indexOf(sonarTarget); 
-        if(targetIndex > -1)
-        {
-            this.sonarTargets.splice(targetIndex, 1); 
+    RemoveSonarTarget(sonarTarget) {
+        const targetIndex = this.sonarTargets.indexOf(sonarTarget);
+        if (targetIndex > -1) {
+            this.sonarTargets.splice(targetIndex, 1);
             sonarTarget.removeEventListener("onRemoved", this.OnTargetRemoved);
             this.targetCount--;
             sonarTarget.Destroy();
         }
     }
 
-    StartGame()
-    {
+    StartGame() {
         this.spawning = false;
         this.spawnTime = 1;
         this.spawnCountdown = this.spawnTime;
@@ -119,32 +113,29 @@ export class World extends GameObject {
         }
         */
 
-        if(this.targetCount > this.maxTargets)
-        {
+        if (this.targetCount > this.maxTargets) {
             this.RemoveSonarTarget(this.sonarTargets[0]);
         }
 
-        this.maxRotationSpeed = Math.PI*0.1;    // 10 seconds to do a full 180
+        this.maxRotationSpeed = Math.PI * 0.1;    // 10 seconds to do a full 180
 
-        if(this.randomRotate)
-        {
+        if (this.randomRotate) {
             this.rotationSpeed += (Math.random() - 0.5) * deltaTime;
             this.rotationSpeed = Utils.instance.Clamp(this.rotationSpeed, -this.maxRotationSpeed, this.maxRotationSpeed);
         } else {
             this.rotationSpeed = 0;
         }
 
+        const elapsedTime = this.clock.getElapsedTime();
         // Accelerate
-        if(this.clock.running)
-        {
-            if(this.clock.elapsedTime < this.accelerationTime)
-            {
-            const accelerationPercentage = this.clock.elapsedTime / this.accelerationTime;
-            this.currentVelocity.set(
-                Utils.instance.Lerp(this.startVelocity.x, this.targetVelocty.x, accelerationPercentage),
-                Utils.instance.Lerp(this.startVelocity.y, this.targetVelocty.y, accelerationPercentage),
-                0
-            );
+        if (this.clock.running) {
+            if (elapsedTime < this.accelerationTime) {
+                const accelerationPercentage = elapsedTime / this.accelerationTime;
+                this.currentVelocity.set(
+                    Utils.instance.Lerp(this.startVelocity.x, this.targetVelocty.x, accelerationPercentage),
+                    Utils.instance.Lerp(this.startVelocity.y, this.targetVelocty.y, accelerationPercentage),
+                    0
+                );
             } else {
                 this.clock.stop();
                 this.currentVelocity.set(this.targetVelocty.x, this.targetVelocty.y, 0);
@@ -156,17 +147,16 @@ export class World extends GameObject {
 
         this.tempVector.copy(Utils.up);
         this.tempVector.applyMatrix4(this.shipRoot.matrixWorld).normalize();
-        this.tempVector.multiplyScalar(this.targetVelocty.y);
+        this.tempVector.multiplyScalar(this.currentVelocity.y);
 
         this.shipRoot.position.set(
-                this.shipRoot.position.x + this.tempVector.x * deltaTime,
-                this.shipRoot.position.y + this.tempVector.y * deltaTime,
-                0
+            this.shipRoot.position.x + this.tempVector.x * deltaTime,
+            this.shipRoot.position.y + this.tempVector.y * deltaTime,
+            0
         );
 
         // Move targets
-        this.sonarTargets.forEach((sonarTarget) =>
-        {
+        this.sonarTargets.forEach((sonarTarget) => {
             this.tempVector.copy(sonarTarget.worldTransform.position);
 
             this.shipRoot.worldToLocal(this.tempVector);

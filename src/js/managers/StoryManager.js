@@ -34,7 +34,7 @@ export class StoryManager {
     }
 
     async Start() {
-        await this.Intro();
+        //await this.Intro();
         await this.Act1();
         await this.Act2();
         await this.Act3();
@@ -525,7 +525,7 @@ export class StoryManager {
                 text: "Mark it, sonarsman. Feel free to use active, it's already spotted us. Let's see if this is our quarry.",
                 next: null
             },
-            
+
 
             {
                 id: "act3_clark2",
@@ -636,20 +636,24 @@ export class StoryManager {
                 text: "{>>}Now he takes what is offered up to him. {p: 0.9}He takes those calves that bare their necks to the master's blade. {>}He takes what is owed him!",
                 next: "act3_clark6"
             },
+            // make multiple contacts appear here
             {
                 id: "act3_clark6",
                 speaker: "CLARK",
-                text: "Multiple contacts, Smith. {p: 1.0}Time to leave, I think.",
+                text: "Multiple contacts, Smith. Or one contact? {p: 1.0}What IS that?",
                 choices: [
-                    { text: "We split up. Hope it only takes one of us.", next: "act3_clark7" }
+                    { text: "I have no idea, let me confirm.", next: "act3_clark7" },
+                    { text: "I think it's time we leave.", next: "act3_clark7" },
+                    { text: "Could this be a deception?", next: "act3_clark7" }
                 ]
             },
             {
                 id: "act3_clark7",
                 speaker: "CLARK",
-                text: "Sensible. {p: 0.8}I've already suggested we veer North. {>}Good luck, Smith.",
+                text: "We're getting out of here.{p: 0.8} I've already suggested we veer North. {>}Good luck, Smith.",
                 choices: [
-                    { text: "Good luck.", next: null }
+                    { text: "Good luck.", next: null },
+                    { text: "WAIT! I need to convince my commander!", next: null }
                 ]
             },
 
@@ -663,7 +667,7 @@ export class StoryManager {
             {
                 id: "act3_clark8",
                 speaker: "CLARK",
-                text: "I don't see your movement!",
+                text: "I don't see you moving!",
                 choices: [
                     { text: "The commander appears to want to stay.", next: "act3_clark9" }
                 ]
@@ -673,11 +677,20 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "... what now?",
                 choices: [
-                    { text: "I'll use my active sonar. Try to invite him in my direction.", next: "act3_clark9" }
+                    { text: "You have a chance of escaping. I'll use my active sonar to draw it away.", next: "act3_clarkResists" },
+                    { text: "If you use your active, it might give us enough time to knock some sense into the Captain.", next: "act3_clarkAgrees" }
                 ]
             },
+            // branching decision
             {
-                id: "act3_clark9",
+                id: "act3_clarkResists",
+                speaker: "CLARK",
+                text: "Good god... {p: 0.8}Best of luck.",
+                next: null
+            },
+
+            {
+                id: "act3_clarkResists",
                 speaker: "CLARK",
                 text: "Good god... {p: 0.8}Best of luck.",
                 next: null

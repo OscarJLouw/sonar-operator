@@ -143,6 +143,11 @@ export class CharacterVoices {
     }
 
     _applyVoiceForSpeaker(speaker) {
+        if(speaker == null || speaker == "")
+        {
+            this.usingVoice = false;
+            return;
+        }
         const idx = this.voices.findIndex(v => speaker.includes(v.characterName));
         if (idx < 0) {
             this.usingVoice = false;
