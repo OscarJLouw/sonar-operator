@@ -278,7 +278,7 @@ export class GameEventManager {
     }
 
     async WaitForPlayerToLookOutWindow() {
-
+        
     }
 
     async TheChaseBegins() {

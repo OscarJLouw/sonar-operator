@@ -59,9 +59,10 @@ export class AudioManager {
     submarine: { path: './audio/sonarTargets/anthropogenic/Submarine.ogg', volume: 0.4, loop: true, bus: 'sonar', autostart: false },
 
     // SFX
-    analogBeep: { path: './audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    targetAppear: { path: './audio/sfx/consoleSFX/sfxD06.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    analogBeep: { path: './audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
+    targetAppear: { path: './audio/sfx/consoleSFX/sfxD06.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
+    staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
+    sonarBlip: { path: './audio/sfx/sonarBlip.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
   };
 
