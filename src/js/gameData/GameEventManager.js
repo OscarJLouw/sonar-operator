@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { DialogueManager } from "../managers/DialogueManager";
 import { SonarTargetConfig } from "../gameObjects/SonarTargets/SonarTargetConfig";
+import { PortalsController } from "../managers/PortalsController";
 
 export class GameEventManager {
     constructor() {
@@ -21,7 +22,7 @@ export class GameEventManager {
         this._dlgGate ??= Promise.resolve();
     }
 
-    // Act 0: Tutorial events
+    // Act 1: Tutorial events
     async HumpbackSearch() {
         const humpbacksConfig = new SonarTargetConfig(
             "Humpbacks",
@@ -96,32 +97,32 @@ export class GameEventManager {
         await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
     }
 
-    // Act 1: Sector Sweep events
+    // Act 2: Sector Sweep events
     async SectorSweep() {
 
-        const configs = 
-        [
-            new SonarTargetConfig("Humpbacks2", "humpbacks2",
-            {
-                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.1,
-                spawnAtRandomPosition: true
-            }),
-            new SonarTargetConfig("FishChorus", "fishChorus",
-            {
-                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
-                spawnAtRandomPosition: true
-            }),
-            new SonarTargetConfig("Damselfish", "damselfish",
-            {
-                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
-                spawnAtRandomPosition: true
-            }),
-            new SonarTargetConfig("RedGrouper", "redGrouper",
-            {
-                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
-                spawnAtRandomPosition: true
-            }),
-        ]
+        const configs =
+            [
+                new SonarTargetConfig("Humpbacks2", "humpbacks2",
+                    {
+                        randomizeRadius: true, minRadius: 0.05, maxRadius: 0.1,
+                        spawnAtRandomPosition: true
+                    }),
+                new SonarTargetConfig("FishChorus", "fishChorus",
+                    {
+                        randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                        spawnAtRandomPosition: true
+                    }),
+                new SonarTargetConfig("Damselfish", "damselfish",
+                    {
+                        randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                        spawnAtRandomPosition: true
+                    }),
+                new SonarTargetConfig("RedGrouper", "redGrouper",
+                    {
+                        randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                        spawnAtRandomPosition: true
+                    }),
+            ]
 
         const targets = [];
         configs.forEach(config => {
@@ -130,6 +131,85 @@ export class GameEventManager {
 
         await this.WaitForFirstNEvents(targets, "discoveredTarget", 3);
     }
+
+    async MoveToNextSector() {
+        const portalsController = this.gameManager.portalsController;
+
+        // play moving sound
+        portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToNotActive);
+        portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToActive);
+        this.world.SetVelocity(0, 1);
+        await this.#sleep(30);
+        this.world.SetVelocity(0, 0);
+        portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToNotActive);
+        portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToActive);
+    }
+
+    async WhaleDisappearance() {
+        const blueWhaleConfig = new SonarTargetConfig("BlueWhale", "blueWhale",
+            {
+                randomizeRadius: true, minRadius: 0.1, maxRadius: 0.15,
+                spawnAtRandomPosition: true
+            });
+
+        const killerWhalesConfig = new SonarTargetConfig("KillerWhales1", "killerWhales",
+            {
+                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                spawnAtRandomPosition: true
+            })
+
+        const blueWhale = this.world.SpawnSonarTarget(blueWhaleConfig);
+        const killerWhales = this.world.SpawnSonarTarget(killerWhalesConfig);
+
+        const e = await this.WaitForEvent(blueWhale, "discoveredTarget");
+
+        await this.#sleep(0.5);
+        // play a creepy sound and remove the whale
+        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+        blueWhale.Destroy();
+        await this.#sleep(0.2);
+        this.audioManager.playOneShot("analogBeep", { bus: 'sfx' });
+        await this.#sleep(1);
+    }
+
+    // ACT 3: THE CONTACT
+    async RequestActiveSonar() {
+        await this.#sleep(5);
+        // OR wait for player to look to the radio with
+        //
+        /*
+        this.gameManager.playerMovementController.addEventListener("onEnterState", (e) => {
+            if(e.state)
+        })
+        */ 
+    }
+
+    async AshtonPing() {
+
+    }
+
+    async PlayerPing() {
+
+    }
+
+    async MoveToSubmarine() {
+
+    }
+
+    async AshtonDisappears() {
+
+    }
+
+    async WaitForPlayerToLookOutWindow() {
+
+    }
+
+    async TheChaseBegins() {
+
+    }
+
+    // ACT 4: THE CHOICE
+
 
 
     // HELPERS

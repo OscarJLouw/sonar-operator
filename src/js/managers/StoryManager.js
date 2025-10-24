@@ -50,7 +50,7 @@ export class StoryManager {
     }
 
     async Act1() {
-        // Tutorial
+        // Act 1: Tutorial
         // search for two ships (anthropogenic example)
         await this.gameEvents.ShipsSearch();
         await this.dialogueManager.start("tutorial_foundShips");
@@ -62,7 +62,7 @@ export class StoryManager {
     }
 
     async Act2() {
-        // Act 2
+        // ACT 2: SECTOR SWEEP
         // Spawn some targets, give player free reign to find them
         // after they find 4 targets...
         await this.gameEvents.SectorSweep();
@@ -71,46 +71,64 @@ export class StoryManager {
         await this.#sleep(5);
         await this.dialogueManager.start("act2_ashton1");
 
+        await this.#sleep(5);
+        await this.dialogueManager.start("act2_commander1");
+        
+        await this.gameEvents.MoveToNextSector();
+
         //ship begins turning? somehow
-        // slowly spawn more animal life
-        await this.#sleep(30);
+        // player gets some time to look around
         await this.dialogueManager.start("act2_ashton4");
 
+        // Spawn more whales
         // Wait for player to mark whales on screen
+        await this.gameEvents.WhaleDisappearance();
 
         // -- player marks whales on screen --
-        await this.dialogueManager.start("act2_clark5");
-
-        await this.#sleep(30); // or wait till player interacts with the radio
+        await this.dialogueManager.start("act2_whalesGone1");
     }
 
     async Act3() {
-
         // ACT 3: THE CONTACT
+        await this.gameEvents.RequestActiveSonar();// wait till player interacts with the radio
+        
         await this.dialogueManager.start("act3_morgan1");
 
         // Ashton sends off a ping here
+        await this.gameEvents.AshtonPing();
         await this.dialogueManager.start("act3_clark1");
 
         // You have to ping
+        await this.gameEvents.PlayerPing();
         await this.dialogueManager.start("act3_ashton2");
 
         // Ship starts moving
+        await this.gameEvents.MoveToSubmarine();
+
         // once you get in range, strange transmission begins
         await this.dialogueManager.start("act3_harper1");
 
         // Ashton sends another ping, then his boat suddenly disappears
-        // act3_ashton_ping
+        await this.gameEvents.AshtonDisappears();
         await this.dialogueManager.start("act3_ashton_ping");
 
         // check the window
+        await this.gameEvents.WaitForPlayerToLookOutWindow();
         await this.dialogueManager.start("act3_player");
 
-        // Chase scene beginss
+        // Chase scene begins
+        await this.gameEvents.Chase();
         // The ship starts to move, then slowly comes to a halt
         await this.dialogueManager.start("act3_commander5");
 
         // Final scene, jumpscare ahead
+    }
+
+    async Act4()
+    {
+        // ACT 4: THE CHOICE
+        // Clark tries to convince you to help save his crew by sacrificing yourself
+        // You can choose to press the sonar button or not
     }
 
 
@@ -355,16 +373,25 @@ export class StoryManager {
                 id: "act2_clark3",
                 speaker: "CLARK",
                 text: "{p: 0.8}…Right on top of that 12 tonnes warhead that our brass wants back.",
-                next: "act2_commander1"
-            },
-            {
-                id: "act2_commander1",
-                speaker: "COMMANDER MORGAN",
-                text: "Mark end of 4th sector. We are engaging the starboard sweep.",
                 next: null
             },
 
-            // -- the ships begin turning --
+            // Small beat before commander talks
+            {
+                id: "act2_commander1",
+                speaker: "COMMANDER MORGAN",
+                text: "All crew, mark end of 4th sector. We are engaging the starboard sweep.",
+                next: "act2_commander2"
+            },
+            {
+                id: "act2_commander2",
+                speaker: "COMMANDER MORGAN",
+                text: "Take a breather sonar. You won't find anything with the engine noise.",
+                next: null
+            },
+
+            // -- the ships begin moving --
+            // Player maybe explores for a bit
             {
                 id: "act2_ashton4",
                 speaker: "ASHTON",
@@ -382,14 +409,14 @@ export class StoryManager {
             {
                 id: "act2_clark4",
                 speaker: "CLARK",
-                text: "You're right. {>>}All the animal signals have been coming in {p: 0.5}{>}different{>>} for a while. {p: 0.9}Increasing their DB's...",
+                text: "You're right. {>>}All the animal signals have been coming in {p: 0.5}{>}different{>>} for a while. {p: 0.9}I've never heard them {p:0.3}scream{p:0.1} this much.",
                 next: null
             },
 
             // Wait for player to mark whales on screen
             // -- player marks whales on screen --
             {
-                id: "act2_clark5",
+                id: "act2_whalesGone1",
                 speaker: "CLARK",
                 text: "Smith.{p: 1.0} That pod of whales to your nor'east. They're…",
                 next: "act2_ashton6"
@@ -411,7 +438,7 @@ export class StoryManager {
             {
                 id: "act2_clark7",
                 speaker: "CLARK",
-                text: "Let's request {>}active sonar.",
+                text: "It's time we request {>}active sonar.",
                 next: null
             }
         ]);
