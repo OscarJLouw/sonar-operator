@@ -56,8 +56,8 @@ export class AudioManager {
     ship_melbourne: { path: './audio/sonarTargets/anthropogenic/LargeVessel2.ogg', volume: 0.4, loop: true, bus: 'sonar', autostart: false },
 
     // SFX
-    analogBeep: { path: './public/audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    staticGlitch: { path: './public/audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    analogBeep: { path: './audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
   };
 

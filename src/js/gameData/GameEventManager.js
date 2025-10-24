@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { DialogueManager } from "../managers/DialogueManager";
 import { SonarTargetConfig } from "../gameObjects/SonarTargets/SonarTargetConfig";
 import { PortalsController } from "../managers/PortalsController";
+import { SceneManager } from "../managers/SceneManager";
 
 export class GameEventManager {
     constructor() {
@@ -146,10 +147,9 @@ export class GameEventManager {
 
     }
 
-    async ArrivedAtNextSector()
-    {
+    async ArrivedAtNextSector() {
         const portalsController = this.gameManager.portalsController;
-        
+
         this.world.SetVelocity(0, 0);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToNotActive);
         portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToActive);
@@ -203,6 +203,32 @@ export class GameEventManager {
     }
 
     async PlayerPing() {
+
+
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        sonarMachine.SetActiveSonarAuthorised(true);
+        const e = await this.WaitForEvent(sonarMachine, "onPing");
+
+
+        const worldPos = this.world.shipRoot.position.copy();
+        worldPos.x += 0.1;
+        worldPos.y += 0.35;
+        
+        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+        
+        // Create the as soon as the ping fires submarine!
+        const submarineContext = new SonarTargetConfig(
+            "Submarine",
+            "ship_endeavour",
+            {
+                randomizeRadius: false,
+                radius: 0.05,
+                spawnAtRandomPosition: false,
+                spawnPosition: worldPos
+            }
+        );
+
+        this.submarine = this.world.SpawnSonarTarget(submarineContext);
 
     }
 

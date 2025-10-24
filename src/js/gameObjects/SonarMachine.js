@@ -198,6 +198,7 @@ export class SonarMachine extends GameObject {
     Ping() {
         if(this.activeSonarAvailable)
         {
+            this.dispatchEvent(new Event("onPing"));
             this.PressSonarButton();
             this.sonarViewController.Ping();
         }
@@ -401,5 +402,8 @@ export class SonarMachine extends GameObject {
 
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
-
+    // Events
+    addEventListener(...args) { this.events.addEventListener(...args); }
+    removeEventListener(...args) { this.events.removeEventListener(...args); }
+    dispatchEvent(event) { return this.events.dispatchEvent(event); }
 }
