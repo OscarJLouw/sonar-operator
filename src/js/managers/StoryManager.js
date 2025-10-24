@@ -34,7 +34,7 @@ export class StoryManager {
     }
 
     async Start() {
-        //await this.Intro();
+        await this.Intro();
         await this.Act1();
         await this.Act2();
         await this.Act3();
@@ -133,6 +133,10 @@ export class StoryManager {
         // check the window
         await this.gameEvents.WaitForPlayerToLookOutWindow();
         await this.dialogueManager.start("act3_player");
+
+        // Multiple contacts appear all of a sudden, then they change
+        await this.gameEvents.CreateMultipleContacts();
+        await this.dialogueManager.start("act3_clark6");       
 
         // Chase scene begins
         await this.gameEvents.TheChaseBegins();

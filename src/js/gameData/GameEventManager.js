@@ -306,8 +306,15 @@ export class GameEventManager {
         this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }
 
+
+    async CreateMultipleContacts() {
+
+    }
+
+    
     async TheChaseBegins() {
 
+        this.melbourne.SetVelocity(0.04, 0.08, 10);
         this.portalsController.SendMessage("Vessel2_Flee", this.portalsController.TaskStates.AnyToComplete);
     }
 
