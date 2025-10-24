@@ -34,8 +34,8 @@ export class StoryManager {
     }
 
     async Start() {
-        //await this.Intro();
-        //await this.Act1();
+        await this.Intro();
+        await this.Act1();
         await this.Act2();
         await this.Act3();
     }
@@ -68,11 +68,11 @@ export class StoryManager {
 
         // UNCOMMENT
 
-        //await this.gameEvents.SectorSweep();
-        //await this.dialogueManager.start("act2_morgan1");
+        await this.gameEvents.SectorSweep();
+        await this.dialogueManager.start("act2_morgan1");
 
-        //await this.#sleep(5);
-        //await this.dialogueManager.start("act2_ashton1");
+        await this.#sleep(5);
+        await this.dialogueManager.start("act2_ashton1");
 
         await this.#sleep(5);
         await this.dialogueManager.start("act2_commander1");
@@ -110,6 +110,7 @@ export class StoryManager {
 
         // Mark it on the map
         await this.gameEvents.MarkTheSub();
+        await this.dialogueManager.start("act3_clark2");
 
         // Ship starts moving
         await this.gameEvents.MoveToSubmarine();
@@ -502,7 +503,7 @@ export class StoryManager {
                 id: "act3_ashton2",
                 speaker: "ASHTON",
                 text: "Hot damn, there's something there alright!",
-                next: "act3_clark2"
+                next: "act3_clark1"
             },
             {
                 id: "act3_clark1",

@@ -244,7 +244,7 @@ export class GameEventManager {
 
     async MarkTheSub()
     {
-
+        
     }
 
     async MoveToSubmarine() {
