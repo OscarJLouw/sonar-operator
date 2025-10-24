@@ -248,7 +248,7 @@ export class GameEventManager {
         await this.#sleep(2);
         this.audioManager.PlayFadeIn("subInterior", { seconds: 2 });
         await this.#sleep(2);
-        this.audioManager.PlayFadeOut("interference3", { seconds: 3 });
+        this.audioManager.StopFadeOut("interference3", { seconds: 3 });
         this.audioManager.PlayFadeIn("glitchyNoise", { seconds: 8 });
     }
 
@@ -265,9 +265,9 @@ export class GameEventManager {
     async AshtonDisappears() {
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
-        this.audioManager.PlayFadeOut("underworldVoices", { seconds: 0.05 });
-        this.audioManager.PlayFadeOut("glitchyNoise", { seconds: 3 });
-        this.audioManager.PlayFadeOut("subInterior", { seconds: 2 });
+        this.audioManager.StopFadeOut("underworldVoices", { seconds: 0.05 });
+        this.audioManager.StopFadeOut("glitchyNoise", { seconds: 3 });
+        this.audioManager.StopFadeOut("subInterior", { seconds: 2 });
 
         this.portalsController.SendMessage("Vessel1_Disappear", this.portalsController.TaskStates.AnyToComplete);
 
