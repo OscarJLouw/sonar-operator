@@ -91,8 +91,8 @@ export class CharacterVoices {
     CreateVoices() {
         this.ashton = { characterName: "ASHTON", type: "deep", shortCount: 10, longCount: 10 };
         this.clark = { characterName: "CLARK", type: "high", shortCount: 13, longCount: 14 }; // (typo fixed)
-        this.morgan = { characterName: "COMMANDER MORGAN", type: "mellow", shortCount: 15, longCount: 14 };
-        this.harper = { characterName: "COMMANDER HARPER", type: "wacko", shortCount: 13, longCount: 13 };
+        this.morgan = { characterName: "MORGAN", type: "mellow", shortCount: 15, longCount: 14 };
+        this.harper = { characterName: "HARPER", type: "wacko", shortCount: 13, longCount: 13 };
         this.voices = [
             this.ashton,
             this.clark,
@@ -143,7 +143,7 @@ export class CharacterVoices {
     }
 
     _applyVoiceForSpeaker(speaker) {
-        const idx = this.voices.findIndex(v => v.characterName === speaker);
+        const idx = this.voices.findIndex(v => speaker.includes(v.characterName));
         if (idx < 0) {
             this.usingVoice = false;
             return;

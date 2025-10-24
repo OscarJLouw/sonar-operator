@@ -258,7 +258,7 @@ export class GameEventManager {
     }
 
     async IncreaseFearAgain() {
-        this.audioManager.PlayFadeOut("generalAmbience", { seconds: 5 });
+        this.audioManager.StopFadeOut("generalAmbience", 5 );
         await this.#sleep(3);
     }
 

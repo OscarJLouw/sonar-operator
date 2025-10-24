@@ -35,7 +35,7 @@ export class AudioManager {
     windMedium: { path: './audio/ambience/Ambience_Wind_Intensity_Medium_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: false },
     windHigh: { path: './audio/ambience/Ambience_Wind_Intensity_High_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: false },
     underground: { path: './audio/ambience/Ambience_Underground_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
-    glitchyNoise: { path: './audio/ambience/Ambience_GltichySignal_Loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
+    glitchyNoise: { path: './audio/ambience/Ambience_GltichySignal_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     interference1: { path: './audio/ambience/Ambience_Interference_01_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
     interference2: { path: './audio/ambience/Ambience_Interference_02_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
     interference3: { path: './audio/ambience/Ambience_Interference_03_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
