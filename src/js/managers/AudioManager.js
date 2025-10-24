@@ -27,18 +27,18 @@ export class AudioManager {
   manifest = {
     // Ambience
     // looping from start
-    wind: { path: './audio/ambience/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
-    ocean: { path: './audio/ambience/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
-    shipSailing: { path: './audio/ambience/Ambience_Place_Ship_Sailing_Loop.ogg', volume: 0.3, loop: true, bus: 'ambience', autostart: true },
-    generalAmbience: { path: './audio/ambience/GeneralAmbience.ogg', volume: 0.1, loop: true, bus: 'ambience', autostart: false },
+    wind: { path: './audio/ambience/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: true },
+    ocean: { path: './audio/ambience/Ambience_Waves_Ocean_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: true },
+    shipSailing: { path: './audio/ambience/Ambience_Place_Ship_Sailing_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: true },
+    generalAmbience: { path: './audio/ambience/GeneralAmbience.ogg', volume: 0.3, loop: true, bus: 'ambience', autostart: false },
 
     windMedium: { path: './audio/ambience/Ambience_Wind_Intensity_Medium_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: false },
     windHigh: { path: './audio/ambience/Ambience_Wind_Intensity_High_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: false },
     underground: { path: './audio/ambience/Ambience_Underground_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     glitchyNoise: { path: './audio/ambience/Ambience_GltichySignal_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
-    interference1: { path: './audio/ambience/Ambience_Interference_01_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
-    interference2: { path: './audio/ambience/Ambience_Interference_02_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
-    interference3: { path: './audio/ambience/Ambience_Interference_03_Loop.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
+    interference1: { path: './audio/ambience/Ambience_Interference_01_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: false },
+    interference2: { path: './audio/ambience/Ambience_Interference_02_Loop.ogg', volume: 0.8, loop: true, bus: 'ambience', autostart: false },
+    interference3: { path: './audio/ambience/Ambience_Interference_03_Loop.ogg', volume: 0.8, loop: true, bus: 'ambience', autostart: false },
     underwater1: { path: './audio/ambience/Ambience_Underwater_01_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     underwater2: { path: './audio/ambience/Ambience_Underwater_02_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     underworldVoices: { path: './audio/ambience/Ambience_Underworld_Voices_Loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
@@ -63,6 +63,7 @@ export class AudioManager {
     targetAppear: { path: './audio/sfx/consoleSFX/sfxD06.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     sonarBlip: { path: './audio/sfx/sonarBlip.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    monster1: { path: './audio/sonarTargets/unknown/Monster1.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
   };
 

@@ -308,10 +308,11 @@ export class GameEventManager {
 
 
     async CreateMultipleContacts() {
+        this.audioManager.playOneShot("monster1", { bus: 'sfx', volume: 0.9, rate: 1 });
 
     }
 
-    
+
     async TheChaseBegins() {
 
         this.melbourne.SetVelocity(0.04, 0.08, 10);

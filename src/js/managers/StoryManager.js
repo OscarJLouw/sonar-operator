@@ -23,6 +23,9 @@ export class StoryManager {
         this.CreateTutorialDialogue();
         this.CreateActTwoDialogue();
         this.CreateActThreeDialogue();
+
+        this.clock = new THREE.Clock();
+        this.clock.getElapsedTime();
     }
 
     SetWorld(world) {
@@ -52,7 +55,16 @@ export class StoryManager {
     async Act1() {
         // Act 1: Tutorial
         // search for two ships (anthropogenic example)
-        await this.gameEvents.ShipsSearch();
+        await this.waitForWithHint(
+            this.gameEvents.ShipsSearch(),
+            120000, // 4 minutes
+            async () => {
+
+                // Show hints dialogue if player has been stuck for 4 mins
+                await this.dialogueManager.start("stuck_player_hint");
+            }
+        );
+
         await this.dialogueManager.start("tutorial_foundShips");
 
         // search for humpback whales (biophony example)
@@ -136,7 +148,7 @@ export class StoryManager {
 
         // Multiple contacts appear all of a sudden, then they change
         await this.gameEvents.CreateMultipleContacts();
-        await this.dialogueManager.start("act3_clark6");       
+        await this.dialogueManager.start("act3_clark6");
 
         // Chase scene begins
         await this.gameEvents.TheChaseBegins();
@@ -163,7 +175,7 @@ export class StoryManager {
                 text: "{>>>}SMITH!{p: 0.5} Are you there? {>}COME IN SMITH! {>>}AAHH!!",
                 choices:
                     [
-                        { text: "I'm here Clark - Had a smoke on deck before my watch. What is it?! What do you see?", next: null }
+                        { text: "I'm here Clark - Had a smoke on deck before my watch. What is it?! What do you see?", next: null } // exit
                     ]
             },
             // Direction: pause here for 3 seconds before starting "intro2"
@@ -237,19 +249,124 @@ export class StoryManager {
                 id: "tutorial_exposition4",
                 speaker: "CLARK",
                 text: "{>>>}Just mark both our ships and we can get started. {p:0.35}{>>}We're loud as hell, but it can still be hard to get a bead with this old array.",
-                next: null
+                next: "tutorial_bonusTip1"
             },
+
+            {
+                id: "tutorial_bonusTip1",
+                speaker: "ASHTON",
+                text: "Oh, and in case you're new to the Nimrod SQS-23, you should know that it automatically marks targets on your behalf, as long as the confidence is high.",
+                next: "tutorial_bonusTip2"
+            },
+            {
+                id: "tutorial_bonusTip2",
+                speaker: "ASHTON",
+                text: "Just try to fit the listening zone as tightly and snuggly around the target as possible. If it's too small, too big, or not overlapping enough, it won't go through.",
+                next: "tutorial_bonusTip3"  // exit
+            },
+            {
+                id: "tutorial_bonusTip3",
+                speaker: "ASHTON",
+                text: "No need to press any buttons to submit your guess. If the target isn't marked, you're just not accurate enough yet.",
+                next: null  // exit
+            },
+
 
             // BREAK FOR GAMEPLAY
             // Player searches for both ships.
-            // Once player finds both targets...
+
+            // If they make no progress for 2 mins
+            {
+                id: "stuck_player_hint",
+                speaker: "CLARK",
+                text: "You struggling over there? {p:0.2}Wouldn't blame you with that old console.",
+                choices:
+                    [
+                        { text: "I could use a hand. Is this machine broken?", next: "tutorial_hint1" },
+                        { text: "This is all going exactly intended, Clark. Back off.", next: "tutorial_hint_exit" },
+                    ]
+            },
+            {
+                id: "tutorial_hint_exit",
+                speaker: "CLARK",
+                text: "Hm, if you say so. ",
+                next: null  // exit
+            },
+            {
+                id: "tutorial_hint1",
+                speaker: "CLARK",
+                text: "It's you that is broken. The Nimrod SQS-23 is a modern marvel.",
+                next: "tutorial_hint2"
+            },
+            {
+                id: "tutorial_hint2",
+                speaker: "CLARK",
+                text: "{p:0.2}Well, {p:0.2}not that modern{>}...{>>} but in skilled hands and ears it never fails. It might be my favourite Sonar array.",
+                next: "tutorial_hint3"
+            },
+            {
+                id: "tutorial_hint3",
+                speaker: "CLARK",
+                text: "Just takes some finess. You must manually tune the listening area as snugly around the target as possible.",
+                next: "tutorial_hint4"
+            },
+            {
+                id: "tutorial_hint4",
+                speaker: "CLARK",
+                text: "Questions?",
+                choices:
+                    [
+                        { text: "Where do I even start looking?", next: "tutorial_hint_findingTargets" },
+                        { text: "I think I have this ship framed, how do I submit it?", next: "tutorial_hint_framing" },
+                        { text: "Why can I not use the active ping?", next: "tutorial_hint_activePing" },
+                        { text: "I will try to play with it again.", next: null },
+                    ]
+            },
+
+            // opt1 responses
+            {
+                id: "tutorial_hint_findingTargets",
+                speaker: "CLARK",
+                text: "Start big, and slowly narrow it down. I sometimes make a half circle and sweep it around, just to see where it's busiest.",
+                next: "tutorial_hint_findingTargets2"
+            },
+            {
+                id: "tutorial_hint_findingTargets2",
+                speaker: "CLARK",
+                text: "And of course, most of the info is using your ears. You can hear where the edges of the start shape by carefully crossing over it.",
+                next: "tutorial_hint4"
+            },
+
+            // opt 2 responses
+            {
+                id: "tutorial_hint_framing",
+                speaker: "CLARK",
+                text: "You can't. {p:0.25}The Nimrod will automatically submit targets which meet the minimum certainty threshold. You are not as close to the exact target shape as you think.",
+                next: "tutorial_hint_framing2"
+            },
+            {
+                id: "tutorial_hint_framing2",
+                speaker: "CLARK",
+                text: "Try making the framing area smaller than you think the target is, and moving through the area a few times. Failing that, try the opposite, go larger than you expect.",
+                next: "tutorial_hint4"
+            },
+
+            // opt 3 responses
+            {
+                id: "tutorial_hint_activePing",
+                speaker: "CLARK",
+                text: "OK now you're just being infantile. You well know the dangers of active sonar. Just wait for the captain's authorisation.",
+                next: "tutorial_hint4"
+            },
+
+
+            // Player has found both ships, end of tutorial
             {
                 id: "tutorial_foundShips",
                 text: "",
                 choices:
                     [
-                        { text: "I see you both. The unmistakable sound of two Iowa class battleships. At 3,1 nauticals equidistant. Sounds like your hull is rusty.", next: "tutorial_searchForWhale1" },
-                        { text: "I hear you and see you. On my screen and out of my porthole. Right where I left you 8 hours ago.", next: "tutorial_searchForWhale1" }
+                        { text: "I hear you both, right where I left you 8 hours ago. The unmistakable sound of two Iowa class battleships. Sounds like your hull is rusty.", next: "tutorial_searchForWhale1" },
                     ]
             },
             {
@@ -262,7 +379,7 @@ export class StoryManager {
                 id: "tutorial_searchForWhale2",
                 speaker: "CLARK",
                 text: "We heard a pod of whales earlier, before you rotated in. {p: 0.5}Can you locate them on your end?",
-                next: null
+                next: null  // exit
             },
 
             // BREAK FOR GAMEPLAY
@@ -315,7 +432,7 @@ export class StoryManager {
                 text: "Let's get this sector mapped fast, we'll be moving again soon.",
                 choices:
                     [
-                        { text: "Copy. Smith out.", next: null },
+                        { text: "Copy. Smith out.", next: null },   // exit
                     ]
             },
             // BREAK FOR GAMEPLAY
@@ -351,7 +468,7 @@ export class StoryManager {
                 speaker: "COMMANDER MORGAN",
                 text: "Carry on.",
                 choices: [
-                    { text: "Yes sir.", next: null }
+                    { text: "Yes sir.", next: null } // exit
                 ]
             },
 
@@ -394,7 +511,7 @@ export class StoryManager {
                 id: "act2_clark3",
                 speaker: "CLARK",
                 text: "{p: 0.8}…Right on top of that 12 tonne warhead that the brass wants back.",
-                next: null
+                next: null  // exit
             },
 
             // Small beat before commander talks
@@ -408,7 +525,7 @@ export class StoryManager {
                 id: "act2_commander2",
                 speaker: "COMMANDER MORGAN",
                 text: "Take a quick breather sonar. You won't find anything with all the engine noise.",
-                next: null
+                next: null  // exit
             },
 
             // -- the ships begin moving --
@@ -431,7 +548,7 @@ export class StoryManager {
                 id: "act2_clark4",
                 speaker: "CLARK",
                 text: "You're right. {>>}All the animal signals have been coming in {p: 0.5}{>}different{>>} for a while. {p: 0.9}I've never heard them {p:0.3}scream{p:0.1} this much.",
-                next: null
+                next: null  // exit
             },
 
             // Ship stops moving
@@ -439,7 +556,7 @@ export class StoryManager {
                 id: "act2_resumeSearch",
                 speaker: "COMMANDER MORGAN",
                 text: "We've arrived. Resume your search.",
-                next: null
+                next: null  //exit
             },
 
             // Wait for player to mark whales on screen
@@ -468,7 +585,7 @@ export class StoryManager {
                 id: "act2_clark7",
                 speaker: "CLARK",
                 text: "It's time we request {>}active sonar.",
-                next: null
+                next: null  //exit
             }
         ]);
     }
@@ -505,7 +622,7 @@ export class StoryManager {
                 speaker: "ASHTON",
                 text: "Perhaps the Russians aren't the worst thing that could hear us.",
                 choices: [
-                    { text: "Ready to ping.", next: null }
+                    { text: "Ready to ping.", next: null }  //exit
                 ]
             },
 
@@ -527,7 +644,7 @@ export class StoryManager {
                 id: "act3_markTheSub",
                 speaker: "COMMANDER MORGAN",
                 text: "Mark it, sonarsman. Feel free to use active, it's already spotted us. Let's see if this is our quarry.",
-                next: null
+                next: null  //exit
             },
 
 
@@ -543,7 +660,7 @@ export class StoryManager {
                 id: "act3_morgan4",
                 speaker: "COMMANDER MORGAN",
                 text: "Miracle worker! {>}Let's get our boys!",
-                next: null
+                next: null  //exit
             },
 
             // Ship starts moving
@@ -596,14 +713,14 @@ export class StoryManager {
                 id: "act3_harper4",
                 speaker: "HARPER",
                 text: "I must respect my vow of silence.",
-                next: null
+                next: null  //exit
             },
             // another beat
             {
                 id: "act3_ashton4",
                 speaker: "ASHTON",
                 text: "All right then. I'll ping this weirdo.",
-                next: null
+                next: null  //exit
             },
 
             // Ashton pings. Suddenly the entire Endeavour disappears from the radar.
@@ -620,7 +737,7 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "No. It was just there. Do you have a visual, Smith?",
                 choices: [
-                    { text: "Surely a malfunction. Let me check.", next: null }
+                    { text: "Surely a malfunction. Let me check.", next: null } //exit
                 ]
             },
             // when the player goes to the window
@@ -656,8 +773,8 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "We're getting out of here.{p: 0.8} I've already suggested we veer North. {>}Good luck, Smith.",
                 choices: [
-                    { text: "Good luck.", next: null },
-                    { text: "WAIT! I need to convince my commander!", next: null }
+                    { text: "Good luck.", next: null }, //exit
+                    { text: "WAIT! I need to convince my commander!", next: null } //exit
                 ]
             },
 
@@ -681,28 +798,51 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "... what now?",
                 choices: [
-                    { text: "You have a chance of escaping. I'll use my active sonar to draw it away.", next: "act3_clarkResists" },
-                    { text: "If you use your active, it might give us enough time to knock some sense into the Captain.", next: "act3_clarkAgrees" }
+                    { text: "You have a chance of escaping. I'll use my active sonar to draw it away.", next: "act3_nobleSacrifice" },
+                    { text: "If you use your active, it might give us enough time to knock some sense into the Captain.", next: "act3_selfish" }
                 ]
             },
             // branching decision
             {
-                id: "act3_clarkResists",
+                id: "act3_nobleSacrifice",
                 speaker: "CLARK",
                 text: "Good god... {p: 0.8}Best of luck.",
-                next: null
+                next: null  // exit
             },
 
             {
-                id: "act3_clarkResists",
+                id: "act3_selfish",
                 speaker: "CLARK",
                 text: "Good god... {p: 0.8}Best of luck.",
-                next: null
+                next: null // exit
             },
 
             // Final act, the god approaches. You can use the active sonar to draw him towards you.
             // Then the screen jumpscare.
         ]);
+    }
+
+    /**
+     * Helper: Runs a main async action with a timed fallback hint.
+     * If the main action finishes before the timeout, the hint is canceled.
+     * Otherwise, the hint fires, then waits for the main action to finish.
+     */
+    async waitForWithHint(mainAction, timeoutMs, hintCallback) {
+        let timeoutTriggered = false;
+
+        // Create a timeout promise
+        const timeoutPromise = new Promise(async (resolve) => {
+            await new Promise(r => setTimeout(r, timeoutMs));
+            timeoutTriggered = true;
+            await hintCallback();
+            resolve(); // allow continuation after hint
+        });
+
+        // Race the main action vs. the timeout
+        await Promise.race([mainAction, timeoutPromise]);
+
+        // Always wait for the main action to fully complete before continuing
+        await mainAction;
     }
 
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
