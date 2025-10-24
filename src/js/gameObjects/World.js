@@ -14,7 +14,6 @@ export class World extends GameObject {
         this.sonarTargetVisuals = [];
         this.targetCount = 0;
         this.totalTargetsSpawnedSoFar = 0;
-        this.velocty = new THREE.Vector3();
         this.rotationSpeed = 0;
 
         this.worldRoot = new THREE.Group();
@@ -23,7 +22,13 @@ export class World extends GameObject {
         this.shipRoot = new THREE.Group();
         this.worldRoot.add(this.shipRoot);
         
-        this.workingVector = new THREE.Vector3(); // vector for doing temporary math operations
+        this.startVelocity = new THREE.Vector3(); // vector for doing temporary math operations
+        this.currentVelocity = new THREE.Vector3();
+        this.targetVelocty = new THREE.Vector3();
+        this.accelerationTime = 3;
+        this.clock = new THREE.Clock();
+
+        this.tempVector = new THREE.Vector3(); // vector for doing temporary math operations
     }
 
     Start() {
@@ -40,10 +45,12 @@ export class World extends GameObject {
         return targets;
     }
 
-    SetVelocity(x, y)
+    SetVelocity(x, y, accelerationTime = 3)
     {
-        this.velocty.x = x;
-        this.velocty.y = y;
+        this.accelerationTime = accelerationTime;
+        this.clock.start();
+        this.targetVelocty.set(x * 0.1, y * 0.1);
+        this.startVelocity.set(this.currentVelocity.x, this.currentVelocity.y, 0);
     }
 
     SpawnSonarTarget(targetConfig) {
@@ -127,29 +134,46 @@ export class World extends GameObject {
             this.rotationSpeed = 0;
         }
 
+        // Accelerate
+        if(this.clock.running)
+        {
+            if(this.clock.elapsedTime < this.accelerationTime)
+            {
+            const accelerationPercentage = this.clock.elapsedTime / this.accelerationTime;
+            this.currentVelocity.set(
+                Utils.instance.Lerp(this.startVelocity.x, this.targetVelocty.x, accelerationPercentage),
+                Utils.instance.Lerp(this.startVelocity.y, this.targetVelocty.y, accelerationPercentage),
+                0
+            );
+            } else {
+                this.clock.stop();
+                this.currentVelocity.set(this.targetVelocty.x, this.targetVelocty.y, 0);
+            }
+        }
+
         // Move the ship
         this.shipRoot.rotateZ(this.rotationSpeed * deltaTime);
 
-        this.workingVector.copy(Utils.up);
-        this.workingVector.applyMatrix4(this.shipRoot.matrixWorld).normalize();
-        this.workingVector.multiplyScalar(this.velocty.y);
+        this.tempVector.copy(Utils.up);
+        this.tempVector.applyMatrix4(this.shipRoot.matrixWorld).normalize();
+        this.tempVector.multiplyScalar(this.targetVelocty.y);
 
         this.shipRoot.position.set(
-                this.shipRoot.position.x + this.workingVector.x * deltaTime,
-                this.shipRoot.position.y + this.workingVector.y * deltaTime,
+                this.shipRoot.position.x + this.tempVector.x * deltaTime,
+                this.shipRoot.position.y + this.tempVector.y * deltaTime,
                 0
         );
 
         // Move targets
         this.sonarTargets.forEach((sonarTarget) =>
         {
-            this.workingVector.copy(sonarTarget.worldTransform.position);
+            this.tempVector.copy(sonarTarget.worldTransform.position);
 
-            this.shipRoot.worldToLocal(this.workingVector);
+            this.shipRoot.worldToLocal(this.tempVector);
 
             sonarTarget.transform.position.set(
-                this.workingVector.x,
-                this.workingVector.y,
+                this.tempVector.x,
+                this.tempVector.y,
                 0
             );
 

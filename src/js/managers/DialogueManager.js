@@ -410,7 +410,7 @@ export class DialogueManager {
                 resolve(choice);
             };
 
-            ['click', 'pointerup', 'mouseup'].forEach(t =>
+            ['click', 'pointerdown', 'mousedown'].forEach(t =>
                 this.choicesEl.addEventListener(t, onClick)
             );
 

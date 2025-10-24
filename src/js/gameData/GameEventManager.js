@@ -136,13 +136,27 @@ export class GameEventManager {
         const portalsController = this.gameManager.portalsController;
 
         // play moving sound
+        this.audioManager.PlayFadeIn("underground", { seconds: 3 });
+        this.audioManager.PlayFadeIn("windMedium", { seconds: 5 });
+
         portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToNotActive);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToActive);
-        this.world.SetVelocity(0, 1);
+        this.world.SetVelocity(0, 0.2, 5);
         await this.#sleep(30);
+
+    }
+
+    async ArrivedAtNextSector()
+    {
+        const portalsController = this.gameManager.portalsController;
+        
         this.world.SetVelocity(0, 0);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToNotActive);
         portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToActive);
+
+        // play moving sound
+        this.audioManager.StopFadeOut("underground", 5);
+        this.audioManager.StopFadeOut("windMedium", 3);
     }
 
     async WhaleDisappearance() {
@@ -181,7 +195,7 @@ export class GameEventManager {
         this.gameManager.playerMovementController.addEventListener("onEnterState", (e) => {
             if(e.state)
         })
-        */ 
+        */
     }
 
     async AshtonPing() {

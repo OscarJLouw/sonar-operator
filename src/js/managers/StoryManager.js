@@ -76,9 +76,12 @@ export class StoryManager {
         
         await this.gameEvents.MoveToNextSector();
 
-        //ship begins turning? somehow
+        //ship begins moving
         // player gets some time to look around
         await this.dialogueManager.start("act2_ashton4");
+
+        await this.gameEvents.ArrivedAtNextSector();
+        await this.dialogueManager.start("act2_resumeSearch");
 
         // Spawn more whales
         // Wait for player to mark whales on screen
@@ -372,7 +375,7 @@ export class StoryManager {
             {
                 id: "act2_clark3",
                 speaker: "CLARK",
-                text: "{p: 0.8}…Right on top of that 12 tonnes warhead that our brass wants back.",
+                text: "{p: 0.8}…Right on top of that 12 tonne warhead that the brass wants back.",
                 next: null
             },
 
@@ -386,7 +389,7 @@ export class StoryManager {
             {
                 id: "act2_commander2",
                 speaker: "COMMANDER MORGAN",
-                text: "Take a breather sonar. You won't find anything with the engine noise.",
+                text: "Take a quick breather sonar. You won't find anything with all the engine noise.",
                 next: null
             },
 
@@ -410,6 +413,14 @@ export class StoryManager {
                 id: "act2_clark4",
                 speaker: "CLARK",
                 text: "You're right. {>>}All the animal signals have been coming in {p: 0.5}{>}different{>>} for a while. {p: 0.9}I've never heard them {p:0.3}scream{p:0.1} this much.",
+                next: null
+            },
+
+            // Ship stops moving
+            {
+                id: "act2_resumeSearch",
+                speaker: "COMMANDER MORGAN",
+                text: "We've arrived. Resume your search.",
                 next: null
             },
 

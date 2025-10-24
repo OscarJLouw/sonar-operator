@@ -25,10 +25,23 @@ export class AudioManager {
 
   // --- PUBLIC DEFAULTS (kept for backwards compat) ---
   manifest = {
-    wind: { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
-    ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
-    ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
-    // example sfx (does NOT autostart)
+    // Ambience
+    // looping from start
+    wind: { path: './audio/ambience/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
+    ocean: { path: './audio/ambience/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
+    shipSailing: { path: './audio/ambience/Ambience_Place_Ship_Sailing_Loop.ogg', volume: 0.3, loop: true, bus: 'ambience', autostart: true },
+
+    windMedium: { path: './audio/ambience/Ambience_Wind_Intensity_Medium_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: false },
+    windHigh: { path: './audio/ambience/Ambience_Wind_Intensity_High_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: false },
+    underground: { path: './audio/ambience/Ambience_Underground_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    glitchyNoise: { path: './audio/ambience/Ambience_GltichySignal_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    interference1: { path: './audio/ambience/Ambience_Interference_01_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    interference2: { path: './audio/ambience/Ambience_Interference_02_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    interference3: { path: './audio/ambience/Ambience_Interference_03_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    underwater1: { path: './audio/ambience/Ambience_Underwater_01_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    underwater2: { path: './audio/ambience/Ambience_Underwater_02_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+    underworldVoices: { path: './audio/ambience/Ambience_Underworld_Voices_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
+
     // Biophony samples
     humpbacks: { path: './audio/sonarTargets/biophony/HumpbackWhales2.ogg', volume: 0.5, loop: true, bus: 'sonar', autostart: false },
     humpbacks2: { path: './audio/sonarTargets/biophony/HumpbackWhales1.ogg', volume: 0.5, loop: true, bus: 'sonar', autostart: false },
@@ -43,8 +56,8 @@ export class AudioManager {
     ship_melbourne: { path: './audio/sonarTargets/anthropogenic/LargeVessel2.ogg', volume: 0.4, loop: true, bus: 'sonar', autostart: false },
 
     // SFX
-    analogBeep: {path:'./public/audio/sfx/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    staticGlitch: {path:'./public/audio/sfx/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    analogBeep: { path: './public/audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    staticGlitch: { path: './public/audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
   };
 
@@ -167,7 +180,7 @@ export class AudioManager {
     biquad.frequency.value = 5000; // mild
     this.dialogueSFXGain.connect(biquad);
     biquad.connect(this.sfxGain);
-    
+
     //const convolver = this.audioContext.createConvolver();
 
     //this.dialogueSFXGain.connect(this.sfxGain);
@@ -183,7 +196,13 @@ export class AudioManager {
     this.manifest = { ...merged, ...this.manifest };
 
     // 1) Preload + decode all buffers
-    this.buffers = await this.#preloadAll(this.manifest);
+    try {
+      this.buffers = await this.#preloadAll(this.manifest);
+    } catch (e) {
+      // Ensure you see a clear, readable error in your DevTools console
+      console.error(e);
+      throw e; // rethrow so your higher-level Setup flow can halt visibly
+    }
 
     // 2) Build THREE.Audio objects for manifest entries (not playing yet)
     this.sounds = this.#buildSounds(this.buffers, this.manifest);
@@ -454,6 +473,65 @@ export class AudioManager {
     gainNode.linearRampToValueAtTime(targetVolume, now + fadeTime);
   }
 
+  /** Smoothly fade in a manifest sound by key (keeps everything else untouched). */
+  PlayFadeIn(key, {
+    to = this.manifest[key]?.volume ?? 1.0,   // target per-sound volume
+    seconds = 3.0,
+    randomizeStart = true,                    // handy for loops to avoid phase
+    ensureLoopFromManifest = true,            // respects manifest.loop by default
+  } = {}) {
+    const s = this.sounds?.[key];
+    if (!s) throw new Error(`PlayFadeIn: no sound called "${key}"`);
+    const ctx = this.audioContext;
+    const g = s.getOutput().gain;
+    const now = ctx.currentTime;
+
+    // Optional: force loop to match manifest (does nothing if same)
+    if (ensureLoopFromManifest && this.manifest[key] && 'loop' in this.manifest[key]) {
+      s.setLoop(!!this.manifest[key].loop);
+    }
+
+    // Optional: de-phase loop starts
+    if (randomizeStart && s.buffer) {
+      s.offset = Math.random() * s.buffer.duration;
+    }
+
+    // Start from silence and ramp up
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(0.0001, now);
+
+    if (!s.isPlaying) s.play(); // begin playback
+    g.linearRampToValueAtTime(to, now + Math.max(0.001, seconds));
+    return s;
+  }
+
+  /** Smoothly fade out a manifest sound by key, then stop it. */
+  StopFadeOut(key, seconds = 1.5) {
+    const s = this.sounds?.[key];
+    if (!s) return;
+    const ctx = this.audioContext;
+    const g = s.getOutput().gain;
+    const now = ctx.currentTime;
+
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(0.0001, now + Math.max(0.001, seconds));
+    // Stop just after the fade completes
+    setTimeout(() => { try { s.stop(); } catch { } }, (seconds * 1000) + 4);
+  }
+
+  /** Optional: set a single sound’s volume with a short ramp (keeps others untouched). */
+  SetSoundVolumeSmooth(key, volume, seconds = 0.03) {
+    const s = this.sounds?.[key];
+    if (!s) throw new Error(`SetSoundVolumeSmooth: no sound called "${key}"`);
+    const ctx = this.audioContext;
+    const g = s.getOutput().gain;
+    const now = ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(volume, now + Math.max(0.001, seconds));
+  }
+
   // --- INTERNALS ---
 
   async #resolveAllSources() {
@@ -462,15 +540,77 @@ export class AudioManager {
     return Object.assign({}, ...chunks);
   }
 
+  /**
+   * Preload + decode all buffers, reporting exactly which keys/paths failed.
+   * Throws a single aggregated Error if any entries fail.
+   */
   async #preloadAll(manifest) {
     const entries = Object.entries(manifest);
-    const buffers = await Promise.all(
-      entries.map(async ([key, spec]) => {
-        const buffer = await this.audioLoader.loadAsync(spec.path);
-        return [key, buffer];
-      })
-    );
-    return Object.fromEntries(buffers);
+
+    // Wrap each load so we can attach key/path on error
+    const tasks = entries.map(([key, spec]) => (async () => {
+      const path = spec?.path;
+      if (!path) {
+        const err = new Error(`Missing "path" in manifest for key "${key}"`);
+        err.__audioKey = key;
+        err.__audioPath = path;
+        throw err;
+      }
+
+      try {
+        const buffer = await this.audioLoader.loadAsync(path);
+        return { key, buffer };
+      } catch (e) {
+        // annotate and rethrow
+        e.__audioKey = key;
+        e.__audioPath = path;
+        e.__spec = spec;
+        throw e;
+      }
+    })());
+
+    const results = await Promise.allSettled(tasks);
+
+    const buffers = {};
+    const failures = [];
+
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        const { key, buffer } = r.value;
+        buffers[key] = buffer;
+      } else {
+        const e = r.reason || {};
+        failures.push({
+          key: e.__audioKey ?? '(unknown key)',
+          path: e.__audioPath ?? '(unknown path)',
+          message: (e && e.message) ? String(e.message) : 'Unknown decode/load error',
+          cause: e, // keeps original for console error
+        });
+      }
+    }
+
+    if (failures.length) {
+      const lines = failures.map(f =>
+        `  • ${f.key}  ←  ${f.path}\n    ${f.message}`
+      ).join('\n');
+
+      const agg = new Error(
+        `[AudioManager] Failed to load/decode ${failures.length} audio entr${failures.length === 1 ? 'y' : 'ies'}:\n${lines}\n\n` +
+        `Common causes:\n` +
+        `- Typo in 'path' (404 fetch)\n` +
+        `- Wrong/missing file extension (decoder can’t detect type)\n` +
+        `- Server not serving correct MIME type for audio (e.g. .ogg, .mp3, .wav)\n`
+      );
+
+      // Also dump the raw errors with stack traces to the console for deep debugging
+      for (const f of failures) {
+        console.error(`[AudioManager] Load failure for key="${f.key}" path="${f.path}"`, f.cause);
+      }
+
+      throw agg;
+    }
+
+    return buffers;
   }
 
   #buildSounds(buffers, manifest) {
