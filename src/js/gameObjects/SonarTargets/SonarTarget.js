@@ -4,6 +4,7 @@ import { Utils } from '../../utils/Utils';
 import { AudioManager } from '../../managers/AudioManager';
 import { SonarTargetConfig } from './SonarTargetConfig';
 import { gameManager, GameManager } from '../../managers/GameManager';
+import { SceneManager } from '../../managers/SceneManager';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
@@ -41,7 +42,7 @@ export class SonarTarget extends GameObject {
         }
     }
 
-    CreateFromConfig(targetConfig) {
+    CreateFromConfig(targetConfig, overridePosition = false, customPosition = {}) {
         this.targetConfig = targetConfig;
 
         if (targetConfig.randomizeRadius) {
@@ -50,11 +51,19 @@ export class SonarTarget extends GameObject {
             this.radius = targetConfig.radius;
         }
 
-        if (targetConfig.spawnAtRandomPosition) {
-            this.GetRandomPositionAroundPlayer(this.transform.position);
+        if (overridePosition) {
+            this.worldTransform.position.x = customPosition.x;
+            this.worldTransform.position.y = customPosition.y;
+            this.transform.position.x = customPosition.x;
+            this.transform.position.y = customPosition.y;
         } else {
-            if (this.targetConfig.spawnPosition != null) {
-                this.transform.position.copy(this.targetConfig.spawnPosition);
+
+            if (targetConfig.spawnAtRandomPosition) {
+                this.GetRandomPositionAroundPlayer(this.transform.position);
+            } else {
+                if (this.targetConfig.spawnPosition != null) {
+                    this.transform.position.copy(this.targetConfig.spawnPosition);
+                }
             }
         }
 
@@ -68,10 +77,9 @@ export class SonarTarget extends GameObject {
 
     GetRandomPositionAroundPlayer(position) {
 
-        const center = new THREE.Vector3(0,0,0);
-        if(GameManager.instance != null && GameManager.instance.world != null && GameManager.instance.world.shipRoot != null)
-        {
-            const center = GameManager.instance.world.shipRoot.position.clone();
+        var center = new THREE.Vector3(0, 0, 0);
+        if (SceneManager.instance != null && SceneManager.instance.world != null && SceneManager.instance.world.shipRoot != null) {
+            center = SceneManager.instance.world.shipRoot.position.clone();
         }
 
         const minSpawnRange = 0.05 + this.radius;

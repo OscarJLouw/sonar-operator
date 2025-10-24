@@ -157,6 +157,9 @@ export class GameEventManager {
         // play moving sound
         this.audioManager.StopFadeOut("underground", 5);
         this.audioManager.StopFadeOut("windMedium", 3);
+
+        await this.#sleep(4);
+
     }
 
     async WhaleDisappearance() {
@@ -215,7 +218,7 @@ export class GameEventManager {
         worldPos.y += 0.35;
         
         this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
-        
+
         // Create the as soon as the ping fires submarine!
         const submarineContext = new SonarTargetConfig(
             "Submarine",

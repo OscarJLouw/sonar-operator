@@ -15,7 +15,8 @@ import { SceneManager } from '../managers/SceneManager';
 export class SonarMachine extends GameObject {
 
     Awake() {
-
+        this.events = new EventTarget();
+        
         this.sonarViewerScale = 0.8;
         this.sonarViewerPositionOffset = new THREE.Vector3(0.45, 0.1);
 
