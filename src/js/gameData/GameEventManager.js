@@ -217,7 +217,7 @@ export class GameEventManager {
         const sonarMachine = SceneManager.instance.sonarMachine;
         sonarMachine.SetActiveSonarAuthorised(true);
         const e = await this.WaitForEvent(sonarMachine, "onPing");
-
+        
 
         const worldPos = this.world.shipRoot.position.clone();
         worldPos.x += 0.1;
@@ -238,8 +238,13 @@ export class GameEventManager {
         this.submarine = this.world.SpawnSonarTarget(submarineContext);
 
         await this.#sleep(0.25);
-        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+        this.audioManager.playOneShot("targetAppear", { bus: 'sfx', volume: 0.5, rate: 1 });
         await this.#sleep(1);
+    }
+
+    async MarkTheSub()
+    {
+
     }
 
     async MoveToSubmarine() {
