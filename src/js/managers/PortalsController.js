@@ -30,8 +30,16 @@ export class PortalsController {
         }
     }
 
-    StartGame() {
+    async StartGame() {
+        this.SendMessage("FadeToBlack", this.TaskStates.AnyToActive);
+        await this.#sleep(1);
+        this.SendMessage("FadeToBlack", this.TaskStates.AnyToComplete);
         this.SendMessage("StartGame", this.TaskStates.NotActiveToActive);
+        await this.#sleep(1);
+        this.SendMessage("FadeFromBlack", this.TaskStates.AnyToActive);
+        await this.#sleep(1);
+        this.SendMessage("FadeFromBlack", this.TaskStates.AnyToComplete);
+
     }
 
     SendMessage(taskName, targetState) {
@@ -46,4 +54,7 @@ export class PortalsController {
 
         console.log("Set task: " + taskName + " to " + targetState);
     }
+
+    #sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 }

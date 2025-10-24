@@ -142,6 +142,11 @@ export class GameEventManager {
 
         portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToNotActive);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToActive);
+        portalsController.SendMessage("Vessel1_Idle", portalsController.TaskStates.AnyToNotActive);
+        portalsController.SendMessage("Vessel1_Moving", portalsController.TaskStates.AnyToActive);
+        portalsController.SendMessage("Vessel2_Idle", portalsController.TaskStates.AnyToNotActive);
+        portalsController.SendMessage("Vessel2_Moving", portalsController.TaskStates.AnyToActive);
+        portalsController.SendMessage("Sea_Choppy", portalsController.TaskStates.AnyToActive);
         this.world.SetVelocity(0, 0.2, 5);
         await this.#sleep(30);
 
@@ -151,6 +156,7 @@ export class GameEventManager {
         const portalsController = this.gameManager.portalsController;
 
         this.world.SetVelocity(0, 0);
+        portalsController.SendMessage("Sea_Calm", portalsController.TaskStates.AnyToActive);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToNotActive);
         portalsController.SendMessage("ShipState_Idle", portalsController.TaskStates.AnyToActive);
 
