@@ -101,8 +101,8 @@ export class StoryManager {
         await this.dialogueManager.start("act3_morgan1");
 
         // Ashton sends off a ping here
-        await this.gameEvents.AshtonPing();
-        await this.dialogueManager.start("act3_clark1");
+        //await this.gameEvents.AshtonPing();
+        //await this.dialogueManager.start("act3_clark1");
 
         // You have to ping
         await this.gameEvents.PlayerPing();
@@ -487,27 +487,27 @@ export class StoryManager {
             {
                 id: "act3_ashton1",
                 speaker: "ASHTON",
-                text: "{p: 1.0}So do I. {>}Allow me, ladies.",
-                next: null
-            },
-
-            // Ashton sends off a ping here
-            {
-                id: "act3_clark1",
-                speaker: "CLARK",
-                text: "Something there! {>}Smith, fire off.",
+                text: "Perhaps the Russians aren't the worst thing that could hear us.",
                 choices: [
-                    { text: "Pinging.", next: null }
+                    { text: "Ready to ping.", next: null }
                 ]
             },
+
 
             // You fire off an active sonar
             {
                 id: "act3_ashton2",
                 speaker: "ASHTON",
-                text: "Hot damn, there's our prize!",
+                text: "Hot damn, there's something there alright!",
                 next: "act3_clark2"
             },
+            {
+                id: "act3_clark1",
+                speaker: "CLARK",
+                text: "Mark it, Smith.",
+                next: null
+            },
+
             {
                 id: "act3_clark2",
                 speaker: "CLARK",

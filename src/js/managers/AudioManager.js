@@ -57,6 +57,7 @@ export class AudioManager {
 
     // SFX
     analogBeep: { path: './audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    targetAppear: { path: './audio/sfx/consoleSFX/sfxD06.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
   };

@@ -213,11 +213,10 @@ export class GameEventManager {
         const e = await this.WaitForEvent(sonarMachine, "onPing");
 
 
-        const worldPos = this.world.shipRoot.position.copy();
+        const worldPos = this.world.shipRoot.position.clone();
         worldPos.x += 0.1;
         worldPos.y += 0.35;
         
-        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
 
         // Create the as soon as the ping fires submarine!
         const submarineContext = new SonarTargetConfig(
@@ -233,6 +232,9 @@ export class GameEventManager {
 
         this.submarine = this.world.SpawnSonarTarget(submarineContext);
 
+        await this.#sleep(0.25);
+        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+        await this.#sleep(1);
     }
 
     async MoveToSubmarine() {
