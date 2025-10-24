@@ -3,6 +3,7 @@ import { GameObject } from '../GameObject';
 import { Utils } from '../../utils/Utils';
 import { AudioManager } from '../../managers/AudioManager';
 import { SonarTargetConfig } from './SonarTargetConfig';
+import { GameManager } from '../../managers/GameManager';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
@@ -50,7 +51,7 @@ export class SonarTarget extends GameObject {
         }
 
         if (targetConfig.spawnAtRandomPosition) {
-            this.GetRandomPositionOnMap(this.transform.position);
+            this.GetRandomPositionAroundPlayer(this.transform.position);
         } else {
             if (this.targetConfig.spawnPosition != null) {
                 this.transform.position.copy(this.targetConfig.spawnPosition);
@@ -65,15 +66,20 @@ export class SonarTarget extends GameObject {
         return Math.random() * (maxRadius - minRadius) + minRadius;
     }
 
-    GetRandomPositionOnMap(position) {
+    GetRandomPositionAroundPlayer(position) {
+
+        const center = GameManager.instance.world.shipRoot.position.clone();
+
         const minSpawnRange = 0.05 + this.radius;
         const maxSpawnRange = 0.9 - this.radius;
 
         const randomAngle = Math.random() * Math.PI * 2;
         const randomDistance = Math.random() * (maxSpawnRange - minSpawnRange) + minSpawnRange;
 
-        position.x = Math.cos(randomAngle) * randomDistance;
-        position.y = Math.sin(randomAngle) * randomDistance;
+        center.x += Math.cos(randomAngle) * randomDistance;
+        center.y += Math.sin(randomAngle) * randomDistance;
+        position.x = center.x;
+        position.y = center.y;
         position.z = 0;
     }
 
