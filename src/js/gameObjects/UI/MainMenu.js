@@ -37,6 +37,7 @@ export class MainMenu extends GameObject {
     }
 
     Hide() {
+        this.graphicsSettingsMesh.visible = false;
         this.startButton.Hide();
         this.startButton.SetActive(false);
     }
