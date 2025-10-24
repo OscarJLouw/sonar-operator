@@ -103,6 +103,11 @@ export class GameEventManager {
 
         const configs =
             [
+                new SonarTargetConfig("KillerWhales1", "killerWhales",
+                    {
+                        randomizeRadius: true, minRadius: 0.09, maxRadius: 0.12,
+                        spawnAtRandomPosition: true
+                    }),
                 new SonarTargetConfig("Humpbacks2", "humpbacks2",
                     {
                         randomizeRadius: true, minRadius: 0.05, maxRadius: 0.1,
@@ -129,6 +134,8 @@ export class GameEventManager {
         configs.forEach(config => {
             targets.push(this.world.SpawnSonarTarget(config));
         });
+
+
 
         await this.WaitForFirstNEvents(targets, "discoveredTarget", 3);
     }
@@ -175,14 +182,8 @@ export class GameEventManager {
                 spawnAtRandomPosition: true
             });
 
-        const killerWhalesConfig = new SonarTargetConfig("KillerWhales1", "killerWhales",
-            {
-                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
-                spawnAtRandomPosition: true
-            })
 
         const blueWhale = this.world.SpawnSonarTarget(blueWhaleConfig);
-        const killerWhales = this.world.SpawnSonarTarget(killerWhalesConfig);
 
         const e = await this.WaitForEvent(blueWhale, "discoveredTarget");
 
@@ -212,24 +213,22 @@ export class GameEventManager {
     }
 
     async PlayerPing() {
-
-
         const sonarMachine = SceneManager.instance.sonarMachine;
         sonarMachine.SetActiveSonarAuthorised(true);
         const e = await this.WaitForEvent(sonarMachine, "onPing");
-        
+
 
         const worldPos = this.world.shipRoot.position.clone();
         worldPos.x += 0.1;
-        worldPos.y += 0.35;
+        worldPos.y -= 0.35;
 
         // Create the as soon as the ping fires submarine!
         const submarineContext = new SonarTargetConfig(
             "Submarine",
-            "ship_endeavour",
+            "submarine",
             {
                 randomizeRadius: false,
-                radius: 0.025,
+                radius: 0.04,
                 spawnAtRandomPosition: false,
                 spawnPosition: worldPos
             }
@@ -242,9 +241,9 @@ export class GameEventManager {
         await this.#sleep(1);
     }
 
-    async MarkTheSub()
-    {
-        
+    async MarkTheSub() {
+        await this.WaitForEvent(this.submarine, "discoveredTarget");
+        await this.#sleep(1);
     }
 
     async MoveToSubmarine() {
