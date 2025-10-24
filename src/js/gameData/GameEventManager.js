@@ -45,7 +45,7 @@ export class GameEventManager {
 
         const endeavourConfig = new SonarTargetConfig(
             "Endeavor",
-            "humpbacks", //"battleship", TEMP: for testing
+            "ship_endeavour",
             {
                 randomizeRadius: false,
                 radius: 0.05,
@@ -56,7 +56,7 @@ export class GameEventManager {
 
         const melbourneConfig = new SonarTargetConfig(
             "Melbourne",
-            "humpbacks", //"battleship", TEMP: for testing
+            "ship_melbourne",
             {
                 randomizeRadius: false,
                 radius: 0.05,
@@ -95,7 +95,7 @@ export class GameEventManager {
         await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
     }
 
-    async ReefsSearch() {
+    async SectorSweep() {
 
     }
 

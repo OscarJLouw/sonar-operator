@@ -28,8 +28,9 @@ export class AudioManager {
     wind: { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
     ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
     // example sfx (does NOT autostart)
-    question_004: { path: './audio/question_004.ogg', volume: 0.4, loop: false, bus: 'sfx', autostart: false },
-    humpbacks: { path: './audio/humpbacks_COPYRIGHT_UNKNOWN.ogg', volume: 0.4, loop: false, bus: 'sfx', autostart: false },
+    humpbacks: { path: './audio/sonarTargets/biophony/HumpbackWhales2.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    ship_endeavour: { path: './audio/sonarTargets/anthropogenic/LargeVessel1.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    ship_melbourne: { path: './audio/sonarTargets/anthropogenic/LargeVessel2.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
   };
 
   // --- NEW: modular manifest plumbing ---

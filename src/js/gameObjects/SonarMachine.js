@@ -146,7 +146,7 @@ export class SonarMachine extends GameObject {
         this.sonarTargetVisuals = [];
         this.sonarTargetAudios = [];
 
-        this.SetActiveSonarAuthorised(true);
+        this.SetActiveSonarAuthorised(false);
         this.SetActiveSonarCooldown(5);
     }
 

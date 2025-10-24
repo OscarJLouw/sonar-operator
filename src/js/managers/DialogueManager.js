@@ -250,6 +250,7 @@ export class DialogueManager {
 
         // if choices present, show menu and await selection
         if (Array.isArray(node.choices) && node.choices.length) {
+
             const choice = await this.#presentChoices(node);
             this._lastChoice = choice || null;
             node.onExit?.(this.vars, this.gm);
@@ -388,6 +389,7 @@ export class DialogueManager {
     // ===== Choices & continue =====
 
     async #presentChoices(node) {
+        await this.#sleep(0.5);
         this.choicesEl.innerHTML = '';
         const shown = (node.choices || []).filter(c => (c.condition ? c.condition(this.vars, this.gm) : true));
         if (!shown.length) return null;

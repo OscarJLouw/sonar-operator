@@ -39,21 +39,18 @@ export class StoryManager {
         await this.dialogueManager.start("intro2");
 
         // Tutorial
-        // search for humpback whales (biophony example)
-        await this.gameEvents.HumpbackSearch();
-        await this.dialogueManager.start("tutorial_foundFirstTarget");
-
         // search for two ships (anthropogenic example)
         await this.gameEvents.ShipsSearch();
-        await this.dialogueManager.start("tutorial_foundSecondTarget");
+        await this.dialogueManager.start("tutorial_foundShips");
 
-        // seach for reefs (geophony example)
-        await this.gameEvents.ReefsSearch();
-        await this.dialogueManager.start("tutorial_foundThirdTarget");
+        // search for humpback whales (biophony example)
+        await this.gameEvents.HumpbackSearch();
+        await this.dialogueManager.start("tutorial_foundWhales");
 
         // Act 2
         // Spawn some targets, give player free reign to find them
         // after they find 4 targets...
+        await this.gameEvents.SectorSweep();
         await this.dialogueManager.start("act2_morgan1");
 
         await this.#sleep(5);
@@ -103,11 +100,10 @@ export class StoryManager {
         this.dialogueManager.registerNodes([
 
             // ACT 0: INTRO
-
             {
                 id: "intro1",
                 speaker: "CLARK",
-                text: "{>>>}SMITH! Are you there? {>}COME IN SMITH! {>>}AAHH!!",
+                text: "{>>>}SMITH!{p: 0.5} Are you there? {>}COME IN SMITH! {>>}AAHH!!",
                 choices:
                     [
                         { text: "I'm here Clark - Had a smoke on deck before my watch. What is it?! What do you see?", next: null }
@@ -125,7 +121,7 @@ export class StoryManager {
             {
                 id: "intro3",
                 speaker: "ASHTON",
-                text: "...{p: 2.0} Haha. I told you he would fall for it! ",
+                text: "...{p: 1.0} Haha. I told you he would fall for it! ",
                 next: "intro4"
             },
             {
@@ -141,8 +137,8 @@ export class StoryManager {
             {
                 id: "intro5",
                 speaker: "CLARK",
-                text: "{>>>}Right, right. Sorry. {p: 0.25}{>>}Just passing the time. Well, let’s get on with it shall we?",
-                next: "tutorial1",
+                text: "{>>>}Right, right. Sorry. {p: 0.25}{>>}Just passing the time. {p:0.7}Well,{p:0.2} let's get on with it shall we?",
+                next: "tutorial_exposition1",
             }
         ]);
     }
@@ -154,9 +150,60 @@ export class StoryManager {
             //  ACT 1: TUTORIAL
             // ---------------- //
             {
-                id: "tutorial1",
+                id: "tutorial_exposition1",
                 speaker: "CLARK",
-                text: "We heard whales earlier, before you rotated in. {p: 0.7}Can you locate them on your end?",
+                text: "This is your first time in a 3-way sonar array, right?",
+                choices:
+                    [
+                        { text: "I resent your line of questioning. But yes.", next: "tutorial_exposition2" },
+                        { text: "Roger that.", next: "tutorial_exposition2" }
+                    ]
+            },
+            {
+                id: "tutorial_exposition2",
+                speaker: "CLARK",
+                text: "Well, we're already calibrated from the last shift here. But procedure says you locate us first, verbally confirm location, and then we hone on a third party source to get aligned.",
+                next: "tutorial_exposition3"
+            },
+            {
+                id: "tutorial_exposition3",
+                speaker: "CLARK",
+                text: "Sorry Smith, it's tedious, but we have to start here. {p:0.5}{>>>} I don't think you're an idiot.",
+                choices:
+                    [
+                        { text: "Ready to proceed.", next: "tutorial_exposition4" },
+                        { text: "What was that last part?", next: "tutorial_exposition4" }
+                    ]
+            },
+            {
+                id: "tutorial_exposition4",
+                speaker: "CLARK",
+                text: "{>>>}Just mark both our ships and we can get started. {>>} Loud as hell, but can still be hard to get a bead on with this old array.",
+                next: null
+            },
+
+            // BREAK FOR GAMEPLAY
+            // Player searches for both ships.
+            // Once player finds both targets...
+            {
+                id: "tutorial_foundShips",
+                text: "",
+                choices:
+                    [
+                        { text: "I see you both. The unmistakable sound of two Iowa class battleships. At 3,1 nauticals equidistant. Sounds like your hull is rusty.", next: "tutorial_searchForWhale1" },
+                        { text: "I hear you and see you. On my screen and out of my porthole. Right where I left you 8 hours ago.", next: "tutorial_searchForWhale1" }
+                    ]
+            },
+            {
+                id: "tutorial_searchForWhale1",
+                speaker: "CLARK",
+                text: "Great. Now for the third party.",
+                next: "tutorial_searchForWhale2"
+            },
+            {
+                id: "tutorial_searchForWhale2",
+                speaker: "CLARK",
+                text: "We heard a pod of whales earlier, before you rotated in. {p: 0.7}Can you locate them on your end?",
                 next: null
             },
 
@@ -164,100 +211,65 @@ export class StoryManager {
             // Player searches for humpback whales.
             // After finding the target...
             {
-                id: "tutorial_foundFirstTarget",
+                id: "tutorial_foundWhales",
                 text: "",
                 choices:
                     [
-                        { text: "Yeah I hear 'em.", next: "tutorial2" },
-                        { text: "Humpbacks, by the sound of it.", next: "tutorial2" }
+                        { text: "Yeah I hear 'em. Can't say for sure what kind.", next: "tutorial_whaleChoice1" },
+                        { text: "That almost sounded like an orca to me.", next: "tutorial_whaleChoice1" },
+                        { text: "Humpbacks, by the sound of it.", next: "tutorial_whaleChoice1" }
                     ]
             },
 
             {
-                id: "tutorial2",
-                speaker: "CLARK",
-                text: "And you see our ships? Sorry Smith, this is procedure today. 3-way sonar array means we do verbal confirmation.{p:0.5}{>>>} I don't think you're an idiot.",
-                choices:
-                    [
-                        { text: "Copy that, will check back in shortly.", next: null },
-                    ]
-            },
-
-            // BREAK FOR GAMEPLAY
-            // Player searches for both ships.
-            // Once player finds both targets...
-            {
-                id: "tutorial_foundSecondTarget",
-                text: "",
-                choices:
-                    [
-                        { text: "I see you both. The unmistakable sound of two Iowa class battleships. At 3,1 nauticals equidistant. Sounds like your hull is rusty", next: "tutorial3" },
-                        { text: "I hear you and see you. On my screen and out of my porthole. Right where I left you 8 hours ago", next: "tutorial3" }
-                    ]
-            },
-            {
-                id: "tutorial3",
-                speaker: "CLARK",
-                text: "Good. We have our triangulation then. {p: 1.0}By the wonders of {p: 1.3}trigonometry.",
-                next: "tutorial4"
-            },
-            {
-                id: "tutorial4",
+                id: "tutorial_whaleChoice1",
                 speaker: "ASHTON",
-                text: "...{p: 1.2}Bet ‘ya none of us had girlfriends in high school…",
-                next: "tutorial5"
+                text: "We don't need that sort of detail today. Just mark it as biophony on the map. We're on the hunt for the sounds of machinery.",
+                next: "tutorial_whaleChoice2"
             },
             {
-                id: "tutorial5",
+                id: "tutorial_whaleChoice2",
+                speaker: "ASHTON",
+                text: "But it was, in fact, a {p:0.2}{>}humpback!",
+                next: "tutorial_banter1"
+            },
+            {
+                id: "tutorial_banter1",
+                speaker: "CLARK",
+                text: "Alright then. We have our triangulation then. {p: 0.5}By the wonders of {p: 0.8}trigonometry!",
+                next: "tutorial_banter2"
+            },
+            {
+                id: "tutorial_banter2",
+                speaker: "ASHTON",
+                text: "...{p: 1}Bet ‘ya none of us had girlfriends in high school…",
+                next: "tutorial_banter3"
+            },
+            {
+                id: "tutorial_banter3",
                 speaker: "CLARK",
                 text: "{>>>}That's a harmful stereotype, Ashton. Maths can be an aphrodisiac! {p: 1.7}{>>}Anyway..",
-                next: "tutorial6"
+                next: "tutorial_complete"
             },
-            {
-                id: "tutorial6",
-                speaker: "CLARK",
-                text: "We are coming up on the reefs.",
-                next: "tutorial7"
-            },
-            {
-                id: "tutorial7",
-                speaker: "ASHTON",
-                text: "I have them marked",
-                next: "tutorial8"
-            },
-            {
-                id: "tutorial8",
-                speaker: "CLARK",
-                text: "So do I. Geophony. You mark that Smith?",
-                choices:
-                    [
-                        { text: "Confirming...", next: null },
-                    ]
-            },
-
-            // BREAK FOR GAMEPLAY
-            // Player searches for sounds of the reef, underwater vents.
-            {
-                id: "tutorial_foundThirdTarget",
-                text: "Confirming geophony. Did you hear the hydrothermal vents?",
-                next: "tutorial_complete",
-            },
-
             {
                 id: "tutorial_complete",
                 speaker: "CLARK",
-                text: "Yes indeed.",
-                next: null
+                text: "Let's get this sector mapped fast, we'll be moving again soon.",
+                choices:
+                    [
+                        { text: "Copy. Smith out.", next: null},
+                    ]
             },
+            // BREAK FOR GAMEPLAY
+            // On to act two, "sector sweep"
         ]);
     }
 
     CreateActTwoDialogue() {
         this.dialogueManager.registerNodes([
 
-            // Spawn more targets,
-            // Get the player to mark them
-            // once they have like 50% of the targets on the map, continue dialogue
+            // Spawn several targets, player marks them at their own pace
+            // Once they have 4+ targets found, commander interrupts
 
             // ACT 2: SECTOR SWEEP
             {
@@ -271,7 +283,7 @@ export class StoryManager {
             {
                 id: "act2_morgan2",
                 speaker: "COMMANDER MORGAN",
-                text: "Nothing to report?",
+                text: "Anything to report?",
                 choices: [
                     { text: "Nothing to report.", next: "act2_morgan3" }
                     // maybe the change to report something like a mine here if you've found it
