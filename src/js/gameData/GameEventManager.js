@@ -154,12 +154,10 @@ export class GameEventManager {
         this.portalsController.SendMessage("Vessel2_Idle", this.portalsController.TaskStates.AnyToNotActive);
         this.portalsController.SendMessage("Vessel2_Moving", this.portalsController.TaskStates.AnyToActive);
         this.portalsController.SendMessage("Sea_Choppy", this.portalsController.TaskStates.AnyToActive);
-        this.world.SetVelocity(0, 0.2, 5);
+        this.world.SetVelocity(0, 0.5, 5);
         await this.#sleep(30);
 
         this.audioManager.PlayFadeIn("generalAmbience", { seconds: 10 });
-
-
     }
 
     async ArrivedAtNextSector() {
@@ -216,7 +214,7 @@ export class GameEventManager {
 
 
         const worldPos = this.world.shipRoot.position.clone();
-        worldPos.x += 0.1;
+        worldPos.x -= 0.2;
         worldPos.y -= 0.35;
 
         // Create the as soon as the ping fires submarine!

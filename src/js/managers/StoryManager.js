@@ -34,9 +34,9 @@ export class StoryManager {
     }
 
     async Start() {
-        await this.Intro();
-        await this.Act1();
-        await this.Act2();
+        //await this.Intro();
+        //await this.Act1();
+        //await this.Act2();
         await this.Act3();
     }
 
@@ -284,7 +284,7 @@ export class StoryManager {
             {
                 id: "tutorial_whaleChoice2",
                 speaker: "ASHTON",
-                text: "But it was, in fact, a {p:0.2}{>}humpback!",
+                text: "But it is, in fact, a {p:0.2}{>}humpback.",
                 next: "tutorial_banter1"
             },
             {
