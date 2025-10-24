@@ -21,6 +21,7 @@ export class GameEventManager {
         this.world = world;
 
         this._dlgGate ??= Promise.resolve();
+        this.portalsController = this.gameManager.portalsController;
     }
 
     // Act 1: Tutorial events
@@ -141,7 +142,6 @@ export class GameEventManager {
     }
 
     async MoveToNextSector() {
-        this.portalsController = this.gameManager.portalsController;
 
         // play moving sound
         this.audioManager.PlayFadeIn("underground", { seconds: 3 });
@@ -163,8 +163,6 @@ export class GameEventManager {
     }
 
     async ArrivedAtNextSector() {
-        this.portalsController = this.gameManager.portalsController;
-
         this.world.SetVelocity(0, 0);
         portalsController.SendMessage("Sea_Calm", portalsController.TaskStates.AnyToActive);
         portalsController.SendMessage("ShipState_Moving", portalsController.TaskStates.AnyToNotActive);
@@ -290,7 +288,7 @@ export class GameEventManager {
 
             movementController.addEventListener("onEnterState", handler);
         });
-        
+
         this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }
 
