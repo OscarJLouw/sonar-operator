@@ -204,11 +204,7 @@ export class GameEventManager {
         await this.#sleep(5);
         // OR wait for player to look to the radio with
         //
-        /*
-        this.gameManager.playerMovementController.addEventListener("onEnterState", (e) => {
-            if(e.state)
-        })
-        */
+
     }
 
     async AshtonPing() {
@@ -250,32 +246,30 @@ export class GameEventManager {
     }
 
     async TransmissionBegins() {
-        this.audioManager.PlayFadeIn("interference3", { seconds: 3});
+        this.audioManager.PlayFadeIn("interference3", { seconds: 3 });
         await this.#sleep(2);
-        this.audioManager.PlayFadeIn("subInterior", { seconds: 2});
+        this.audioManager.PlayFadeIn("subInterior", { seconds: 2 });
         await this.#sleep(2);
         this.audioManager.PlayFadeOut("interference3", { seconds: 3 });
-        this.audioManager.PlayFadeIn("glitchyNoise", { seconds: 8});
+        this.audioManager.PlayFadeIn("glitchyNoise", { seconds: 8 });
     }
 
-    async IncreaseFear()
-    {
-        this.audioManager.PlayFadeIn("underworldVoices", { seconds: 15});
+    async IncreaseFear() {
+        this.audioManager.PlayFadeIn("underworldVoices", { seconds: 15 });
         await this.#sleep(1);
     }
 
-    async IncreaseFearAgain()
-    {
-        this.audioManager.PlayFadeOut("generalAmbience", {seconds: 5 });
+    async IncreaseFearAgain() {
+        this.audioManager.PlayFadeOut("generalAmbience", { seconds: 5 });
         await this.#sleep(3);
     }
 
     async AshtonDisappears() {
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
-        this.audioManager.PlayFadeOut("underworldVoices", { seconds: 0.5});
-        this.audioManager.PlayFadeOut("glitchyNoise", { seconds: 1.2});
-        this.audioManager.PlayFadeOut("subInterior", { seconds: 0.8});
+        this.audioManager.PlayFadeOut("underworldVoices", { seconds: 0.05 });
+        this.audioManager.PlayFadeOut("glitchyNoise", { seconds: 3 });
+        this.audioManager.PlayFadeOut("subInterior", { seconds: 2 });
 
         this.portalsController.SendMessage("Vessel1_Disappear", this.portalsController.TaskStates.AnyToComplete);
 
@@ -283,6 +277,19 @@ export class GameEventManager {
     }
 
     async WaitForPlayerToLookOutWindow() {
+        const movementController = this.gameManager.playerMovementController;
+
+        // Wait until the player enters the Porthole state
+        await new Promise((resolve) => {
+            const handler = (e) => {
+                if (e.detail.newState === movementController.states.Porthole) {
+                    movementController.removeEventListener("onEnterState", handler);
+                    resolve(); // continue execution
+                }
+            };
+
+            movementController.addEventListener("onEnterState", handler);
+        });
         
         this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }

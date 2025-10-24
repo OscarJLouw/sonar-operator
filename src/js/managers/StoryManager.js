@@ -606,7 +606,7 @@ export class StoryManager {
             {
                 id: "act3_ashton_ping",
                 speaker: "CLARK",
-                text: "{>}...{p: 2.0}something there... {p: 0.8}Wait- {>}Ashton's gone.",
+                text: "{>}...{p: 2.0}where are you...? {p: 0.8}Wait- {>}Ashton's gone.",
                 choices: [
                     { text: "Clark?! Do you see the Endeavor on sonar?", next: "act3_clark5" }
                 ]
