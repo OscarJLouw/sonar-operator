@@ -216,7 +216,6 @@ export class GameEventManager {
         const worldPos = this.world.shipRoot.position.clone();
         worldPos.x += 0.1;
         worldPos.y += 0.35;
-        
 
         // Create the as soon as the ping fires submarine!
         const submarineContext = new SonarTargetConfig(
@@ -224,7 +223,7 @@ export class GameEventManager {
             "ship_endeavour",
             {
                 randomizeRadius: false,
-                radius: 0.05,
+                radius: 0.025,
                 spawnAtRandomPosition: false,
                 spawnPosition: worldPos
             }

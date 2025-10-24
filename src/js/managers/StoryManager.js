@@ -108,6 +108,9 @@ export class StoryManager {
         await this.gameEvents.PlayerPing();
         await this.dialogueManager.start("act3_ashton2");
 
+        // Mark it on the map
+        await this.gameEvents.MarkTheSub();
+
         // Ship starts moving
         await this.gameEvents.MoveToSubmarine();
 
@@ -504,16 +507,23 @@ export class StoryManager {
             {
                 id: "act3_clark1",
                 speaker: "CLARK",
-                text: "Mark it, Smith.",
+                text: "It snuck up right behind us. Even with full passive triangulation...",
+                next: "act3_markTheSub"
+            },
+            {
+                id: "act3_markTheSub",
+                speaker: "COMMANDER MORGAN",
+                text: "Mark it, sonarsman. Feel free to use active, it's already spotted us. Let's see if this is our quarry.",
                 next: null
             },
+            
 
             {
                 id: "act3_clark2",
-                speaker: "CLARK",
-                text: "Call it in, Smith!",
+                speaker: "COMMANDER MORGAN",
+                text: "Report.",
                 choices: [
-                    { text: "Sir! Objective spotted. Bearing 108 range 3 clicks.", next: "act3_morgan4" }
+                    { text: "Sir! That's our submarine. Bearing 246 range 3 clicks.", next: "act3_morgan4" }
                 ]
             },
             {
