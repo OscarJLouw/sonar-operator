@@ -34,9 +34,9 @@ export class StoryManager {
     }
 
     async Start() {
-        //await this.Intro();
-        //await this.Act1();
-        //await this.Act2();
+        await this.Intro();
+        await this.Act1();
+        await this.Act2();
         await this.Act3();
     }
 
