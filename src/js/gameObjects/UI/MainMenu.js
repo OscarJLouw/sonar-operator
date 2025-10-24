@@ -17,10 +17,10 @@ export class MainMenu extends GameObject {
         this.startButton.material.map = gameManager.meshManager.textures.startButtonTexture;
         this.Hide();
 
-        
-        this.graphicsSettingsGeo = new THREE.PlaneGeometry(1.5, 1.5); 
+
+        this.graphicsSettingsGeo = new THREE.PlaneGeometry(1.5, 1.5);
         this.graphicsSettingsTexture = MeshManager.instance.textures.graphicsSettingsPrompt; //new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
-        this.graphicsSettingsMat = new THREE.MeshBasicMaterial({map: this.graphicsSettingsTexture, transparent: true });
+        this.graphicsSettingsMat = new THREE.MeshBasicMaterial({ map: this.graphicsSettingsTexture, transparent: true });
         this.graphicsSettingsMesh = new THREE.Mesh(this.graphicsSettingsGeo, this.graphicsSettingsMat);
         this.graphicsSettingsMesh.position.set(0, 0.2, 0);
         this.AddComponent(this.graphicsSettingsMesh);
@@ -37,7 +37,20 @@ export class MainMenu extends GameObject {
     }
 
     Hide() {
-        this.graphicsSettingsMesh.visible = false;
+        if (this.graphicsSettingsMesh) {
+            this.graphicsSettingsMesh.visible = false;
+            this.RemoveComponent(this.graphicsSettingsMesh);
+            this.graphicsSettingsMesh = undefined;
+        }
+
+        if (this.graphicsSettingsGeo) {
+            this.graphicsSettingsGeo.dispose();
+        }
+
+        if (this.graphicsSettingsMat) {
+            this.graphicsSettingsMat.dispose();
+        }
+
         this.startButton.Hide();
         this.startButton.SetActive(false);
     }
