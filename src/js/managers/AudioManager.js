@@ -30,6 +30,7 @@ export class AudioManager {
     wind: { path: './audio/ambience/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
     ocean: { path: './audio/ambience/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
     shipSailing: { path: './audio/ambience/Ambience_Place_Ship_Sailing_Loop.ogg', volume: 0.3, loop: true, bus: 'ambience', autostart: true },
+    generalAmbience: { path: './audio/ambience/GeneralAmbience.ogg', volume: 0.1, loop: true, bus: 'ambience', autostart: false },
 
     windMedium: { path: './audio/ambience/Ambience_Wind_Intensity_Medium_Loop.ogg', volume: 0.7, loop: true, bus: 'ambience', autostart: false },
     windHigh: { path: './audio/ambience/Ambience_Wind_Intensity_High_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: false },

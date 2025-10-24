@@ -141,7 +141,7 @@ export class GameEventManager {
     }
 
     async MoveToNextSector() {
-        const portalsController = this.gameManager.portalsController;
+        this.portalsController = this.gameManager.portalsController;
 
         // play moving sound
         this.audioManager.PlayFadeIn("underground", { seconds: 3 });
@@ -157,10 +157,13 @@ export class GameEventManager {
         this.world.SetVelocity(0, 0.2, 5);
         await this.#sleep(30);
 
+        this.audioManager.PlayFadeIn("generalAmbience", { seconds: 10 });
+
+
     }
 
     async ArrivedAtNextSector() {
-        const portalsController = this.gameManager.portalsController;
+        this.portalsController = this.gameManager.portalsController;
 
         this.world.SetVelocity(0, 0);
         portalsController.SendMessage("Sea_Calm", portalsController.TaskStates.AnyToActive);
@@ -263,11 +266,15 @@ export class GameEventManager {
 
     async IncreaseFearAgain()
     {
-
+        this.audioManager.PlayFadeOut("generalAmbience", {seconds: 5 });
+        await this.#sleep(3);
     }
 
     async AshtonDisappears() {
 
+        this.audioManager.playOneShot("staticGlitch", { bus: 'sfx', volume: 0.5, rate: 1 });
+
+        this.portalsController.SendMessage("Vessel1_Disappear", this.portalsController.TaskStates.AnyToComplete);
     }
 
     async WaitForPlayerToLookOutWindow() {
@@ -276,6 +283,7 @@ export class GameEventManager {
 
     async TheChaseBegins() {
 
+        this.portalsController.SendMessage("Vessel2_Flee", this.portalsController.TaskStates.AnyToComplete);
     }
 
     // ACT 4: THE CHOICE
