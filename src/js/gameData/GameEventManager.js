@@ -99,48 +99,36 @@ export class GameEventManager {
     // Act 1: Sector Sweep events
     async SectorSweep() {
 
-        const configs = new SonarTargetConfig(
-            "Humpbacks",
-            "humpbacks",
+        const configs = 
+        [
+            new SonarTargetConfig("Humpbacks2", "humpbacks2",
             {
-                randomizeRadius: true,
-                minRadius: 0.05,
-                maxRadius: 0.1,
+                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.1,
                 spawnAtRandomPosition: true
-            }
-        );
+            }),
+            new SonarTargetConfig("FishChorus", "fishChorus",
+            {
+                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                spawnAtRandomPosition: true
+            }),
+            new SonarTargetConfig("Damselfish", "damselfish",
+            {
+                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                spawnAtRandomPosition: true
+            }),
+            new SonarTargetConfig("RedGrouper", "redGrouper",
+            {
+                randomizeRadius: true, minRadius: 0.05, maxRadius: 0.06,
+                spawnAtRandomPosition: true
+            }),
+        ]
 
+        const targets = [];
+        configs.forEach(config => {
+            targets.push(this.world.SpawnSonarTarget(config));
+        });
 
-        const humpbacks = this.world.SpawnSonarTarget(humpbacksConfig);
-
-        this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
-        this.melbourne = this.world.SpawnSonarTarget(melbourneConfig);
-
-        const ships = [this.endeavour, this.melbourne];
-
-        let endeavourDone, melbourneDone;
-
-        this.endeavour.addEventListener("discoveredTarget", (e) => {
-            // build a serialized sequence with say()
-            endeavourDone = (async () => {
-                await this.ThinkToSelf("The USS Endeavour, Ashton is aboard.");
-                await this.ThinkToSelf("He's a smart cookie, and he does make me laugh.");
-            })();
-        }, { once: true });
-
-        this.melbourne.addEventListener("discoveredTarget", (e) => {
-            melbourneDone = (async () => {
-                await this.ThinkToSelf("The USS Melbourne, Clark is aboard.");
-                await this.ThinkToSelf("I once watched him boil kranskies without removing them from the plastic packaging...");
-            })();
-        }, { once: true });
-
-
-        // Resolve when both are discovered...
-        await Promise.all(ships.map(s => this.WaitForEvent(s, "discoveredTarget")));
-
-        // ...then wait for their queued dialogue sequences to finish before continuing story
-        await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
+        await this.WaitForFirstNEvents(targets, "discoveredTarget", 3);
     }
 
 

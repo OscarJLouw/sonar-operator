@@ -21,6 +21,8 @@ export class StoryManager {
 
         this.CreateIntroDialogue();
         this.CreateTutorialDialogue();
+        this.CreateActTwoDialogue();
+        this.CreateActThreeDialogue();
     }
 
     SetWorld(world) {
@@ -32,12 +34,22 @@ export class StoryManager {
     }
 
     async Start() {
+        //await this.Intro();
+        //await this.Act1();
+        await this.Act2();
+        await this.Act3();
+    }
+
+    async Intro() {
         // Intro
         await this.#sleep(10);
         await this.dialogueManager.start("intro1");
         await this.#sleep(4);
         await this.dialogueManager.start("intro2");
 
+    }
+
+    async Act1() {
         // Tutorial
         // search for two ships (anthropogenic example)
         await this.gameEvents.ShipsSearch();
@@ -47,6 +59,9 @@ export class StoryManager {
         await this.gameEvents.HumpbackSearch();
         await this.dialogueManager.start("tutorial_foundWhales");
 
+    }
+
+    async Act2() {
         // Act 2
         // Spawn some targets, give player free reign to find them
         // after they find 4 targets...
@@ -67,6 +82,9 @@ export class StoryManager {
         await this.dialogueManager.start("act2_clark5");
 
         await this.#sleep(30); // or wait till player interacts with the radio
+    }
+
+    async Act3() {
 
         // ACT 3: THE CONTACT
         await this.dialogueManager.start("act3_morgan1");
@@ -258,7 +276,7 @@ export class StoryManager {
                 text: "Let's get this sector mapped fast, we'll be moving again soon.",
                 choices:
                     [
-                        { text: "Copy. Smith out.", next: null},
+                        { text: "Copy. Smith out.", next: null },
                     ]
             },
             // BREAK FOR GAMEPLAY
@@ -286,8 +304,7 @@ export class StoryManager {
                 speaker: "COMMANDER MORGAN",
                 text: "Anything to report?",
                 choices: [
-                    { text: "Nothing to report.", next: "act2_morgan3" }
-                    // maybe the change to report something like a mine here if you've found it
+                    { text: "Nothing of note, sir.", next: "act2_morgan3" }
                 ]
             },
             {

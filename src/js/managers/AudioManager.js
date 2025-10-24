@@ -28,9 +28,17 @@ export class AudioManager {
     wind: { path: './audio/Ambience_Wind_Intensity_Soft_Loop.ogg', volume: 0.5, loop: true, bus: 'ambience', autostart: true },
     ocean: { path: './audio/Ambience_Waves_Ocean_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: true },
     // example sfx (does NOT autostart)
+    // Biophony samples
     humpbacks: { path: './audio/sonarTargets/biophony/HumpbackWhales2.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
-    ship_endeavour: { path: './audio/sonarTargets/anthropogenic/LargeVessel1.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
-    ship_melbourne: { path: './audio/sonarTargets/anthropogenic/LargeVessel2.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    humpbacks2: { path: './audio/sonarTargets/biophony/HumpbackWhales1.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    damselfish: { path: './audio/sonarTargets/biophony/Damselfish.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    fishChorus: { path: './audio/sonarTargets/biophony/FishChorus.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    killerWhales: { path: './audio/sonarTargets/biophony/KillerWhales1.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+    redGrouper: { path: './audio/sonarTargets/biophony/RedGrouper.ogg', volume: 0.5, loop: true, bus: 'sfx', autostart: false },
+
+    // Anthropogenic samples
+    ship_endeavour: { path: './audio/sonarTargets/anthropogenic/LargeVessel1.ogg', volume: 0.4, loop: true, bus: 'sfx', autostart: false },
+    ship_melbourne: { path: './audio/sonarTargets/anthropogenic/LargeVessel2.ogg', volume: 0.4, loop: true, bus: 'sfx', autostart: false },
   };
 
   // --- NEW: modular manifest plumbing ---
