@@ -44,7 +44,7 @@ export class SonarMachine extends GameObject {
 
         // Viewing area ring
         this.viewAreaGeometry = new THREE.CircleGeometry(this.sonarViewerScale);
-        this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x0a1a2f) });
+        this.viewAreaMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x010306) });
 
         this.viewAreaMesh = new THREE.Mesh(this.viewAreaGeometry, this.viewAreaMaterial);
         this.viewAreaMesh.position.set(this.sonarViewerPositionOffset.x, this.sonarViewerPositionOffset.y, -1);
