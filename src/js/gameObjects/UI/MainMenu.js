@@ -1,5 +1,8 @@
+import * as THREE from 'three';
+import { MeshManager } from "../../managers/MeshManager";
 import { GameObject } from "../GameObject";
 import { Button } from "./Button";
+import { SceneManager } from '../../managers/SceneManager';
 
 
 export class MainMenu extends GameObject {
@@ -8,11 +11,19 @@ export class MainMenu extends GameObject {
         this.startButton = GameObject.Instantiate(Button, this.transform, "Start Button");
         this.startButton.SetClickAction(this.StartGame.bind(this));    // bind the "this" context to the main menu
 
-        const size = 0.4;
+        const size = 0.3;
         this.startButton.transform.scale.set(size * 3.38659793814, size, 0.1);
-        this.startButton.transform.position.set(0, -0.25, 0);
+        this.startButton.transform.position.set(0, -0.75, 0);
         this.startButton.material.map = gameManager.meshManager.textures.startButtonTexture;
         this.Hide();
+
+        
+        this.graphicsSettingsGeo = new THREE.PlaneGeometry(1.5, 1.5); 
+        this.graphicsSettingsTexture = MeshManager.instance.textures.graphicsSettingsPrompt; //new THREE.RingGeometry(0.6, 0.85, 32, 1, 0, Math.PI * 0.2);
+        this.graphicsSettingsMat = new THREE.MeshBasicMaterial({map: this.graphicsSettingsTexture, transparent: true });
+        this.graphicsSettingsMesh = new THREE.Mesh(this.graphicsSettingsGeo, this.graphicsSettingsMat);
+        this.graphicsSettingsMesh.position.set(0, 0.2, 0);
+        this.AddComponent(this.graphicsSettingsMesh);
     }
 
     Show() {

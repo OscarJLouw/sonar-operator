@@ -46,7 +46,8 @@ export class MeshManager {
     async LoadTextures() {
         const textureLoader = this.textureLoader;
         const texturePaths = [
-            './textures/StartGameButton.png'
+            './textures/StartGameButton.png',
+            './textures/GraphicsSettingsPromptDownscaled.png'
         ];
 
         const texturePromises = texturePaths.map(path => {
@@ -61,6 +62,7 @@ export class MeshManager {
             this.textures =
             {
                 startButtonTexture: this.SetupColorTexture(loadedTextures[0]),
+                graphicsSettingsPrompt: this.SetupColorTexture(loadedTextures[1])
             };
         } catch (error) {
             console.error("Error loading textures:", error);
