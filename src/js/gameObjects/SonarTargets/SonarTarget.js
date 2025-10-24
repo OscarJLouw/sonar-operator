@@ -3,7 +3,7 @@ import { GameObject } from '../GameObject';
 import { Utils } from '../../utils/Utils';
 import { AudioManager } from '../../managers/AudioManager';
 import { SonarTargetConfig } from './SonarTargetConfig';
-import { GameManager } from '../../managers/GameManager';
+import { gameManager, GameManager } from '../../managers/GameManager';
 
 export class SonarTarget extends GameObject {
     // Life Cycle
@@ -68,7 +68,11 @@ export class SonarTarget extends GameObject {
 
     GetRandomPositionAroundPlayer(position) {
 
-        const center = GameManager.instance.world.shipRoot.position.clone();
+        const center = new THREE.Vector3(0,0,0);
+        if(GameManager.instance != null && GameManager.instance.world != null && GameManager.instance.world.shipRoot != null)
+        {
+            const center = GameManager.instance.world.shipRoot.position.clone();
+        }
 
         const minSpawnRange = 0.05 + this.radius;
         const maxSpawnRange = 0.9 - this.radius;

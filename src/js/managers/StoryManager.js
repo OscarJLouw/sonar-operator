@@ -65,15 +65,18 @@ export class StoryManager {
         // ACT 2: SECTOR SWEEP
         // Spawn some targets, give player free reign to find them
         // after they find 4 targets...
-        await this.gameEvents.SectorSweep();
-        await this.dialogueManager.start("act2_morgan1");
 
-        await this.#sleep(5);
-        await this.dialogueManager.start("act2_ashton1");
+        // UNCOMMENT
+
+        //await this.gameEvents.SectorSweep();
+        //await this.dialogueManager.start("act2_morgan1");
+
+        //await this.#sleep(5);
+        //await this.dialogueManager.start("act2_ashton1");
 
         await this.#sleep(5);
         await this.dialogueManager.start("act2_commander1");
-        
+
         await this.gameEvents.MoveToNextSector();
 
         //ship begins moving
@@ -94,7 +97,7 @@ export class StoryManager {
     async Act3() {
         // ACT 3: THE CONTACT
         await this.gameEvents.RequestActiveSonar();// wait till player interacts with the radio
-        
+
         await this.dialogueManager.start("act3_morgan1");
 
         // Ashton sends off a ping here
@@ -120,15 +123,14 @@ export class StoryManager {
         await this.dialogueManager.start("act3_player");
 
         // Chase scene begins
-        await this.gameEvents.Chase();
+        await this.gameEvents.TheChaseBegins();
         // The ship starts to move, then slowly comes to a halt
         await this.dialogueManager.start("act3_commander5");
 
         // Final scene, jumpscare ahead
     }
 
-    async Act4()
-    {
+    async Act4() {
         // ACT 4: THE CHOICE
         // Clark tries to convince you to help save his crew by sacrificing yourself
         // You can choose to press the sonar button or not

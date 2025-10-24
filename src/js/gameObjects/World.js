@@ -79,7 +79,7 @@ export class World extends GameObject {
 
     OnTargetRemoved = (event) =>
     {
-        RemoveSonarTarget(event.detail.target);
+        this.RemoveSonarTarget(event.detail.target);
     }
 
     RemoveSonarTarget(sonarTarget)
