@@ -121,7 +121,7 @@ export class StoryManager {
             {
                 id: "intro3",
                 speaker: "ASHTON",
-                text: "...{p: 1.0} Haha. I told you he would fall for it! ",
+                text: "{>}...{p: 0.8}{>>} Haha. I told you he would fall for it! ",
                 next: "intro4"
             },
             {
@@ -137,7 +137,7 @@ export class StoryManager {
             {
                 id: "intro5",
                 speaker: "CLARK",
-                text: "{>>>}Right, right. Sorry. {p: 0.25}{>>}Just passing the time. {p:0.7}Well,{p:0.2} let's get on with it shall we?",
+                text: "{>>>}Right, right. Sorry. {p: 0.25}{>>}Just passing the time. {p:0.6}Well,{p:0.2} let's get on with it shall we?",
                 next: "tutorial_exposition1",
             }
         ]);
@@ -172,13 +172,14 @@ export class StoryManager {
                 choices:
                     [
                         { text: "Ready to proceed.", next: "tutorial_exposition4" },
+                        { text: "I barely understood what you just said.", next: "tutorial_exposition4" },
                         { text: "What was that last part?", next: "tutorial_exposition4" }
                     ]
             },
             {
                 id: "tutorial_exposition4",
                 speaker: "CLARK",
-                text: "{>>>}Just mark both our ships and we can get started. {>>} Loud as hell, but can still be hard to get a bead on with this old array.",
+                text: "{>>>}Just mark both our ships and we can get started. {p:0.35}{>>}We're loud as hell, but it can still be hard to get a bead with this old array.",
                 next: null
             },
 
@@ -203,7 +204,7 @@ export class StoryManager {
             {
                 id: "tutorial_searchForWhale2",
                 speaker: "CLARK",
-                text: "We heard a pod of whales earlier, before you rotated in. {p: 0.7}Can you locate them on your end?",
+                text: "We heard a pod of whales earlier, before you rotated in. {p: 0.5}Can you locate them on your end?",
                 next: null
             },
 
@@ -236,7 +237,7 @@ export class StoryManager {
             {
                 id: "tutorial_banter1",
                 speaker: "CLARK",
-                text: "Alright then. We have our triangulation then. {p: 0.5}By the wonders of {p: 0.8}trigonometry!",
+                text: "Alright then. We have our triangulation. {p: 0.5}By the wonders of {p: 0.8}trigonometry!",
                 next: "tutorial_banter2"
             },
             {
@@ -248,7 +249,7 @@ export class StoryManager {
             {
                 id: "tutorial_banter3",
                 speaker: "CLARK",
-                text: "{>>>}That's a harmful stereotype, Ashton. Maths can be an aphrodisiac! {p: 1.7}{>>}Anyway..",
+                text: "{>>>}That's a harmful stereotype, Ashton. Maths can be an aphrodisiac! {p: 0.8}{>>}Anyway..",
                 next: "tutorial_complete"
             },
             {

@@ -21,6 +21,7 @@ export class GameEventManager {
         this._dlgGate ??= Promise.resolve();
     }
 
+    // Act 0: Tutorial events
     async HumpbackSearch() {
         const humpbacksConfig = new SonarTargetConfig(
             "Humpbacks",
@@ -95,8 +96,51 @@ export class GameEventManager {
         await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
     }
 
+    // Act 1: Sector Sweep events
     async SectorSweep() {
 
+        const configs = new SonarTargetConfig(
+            "Humpbacks",
+            "humpbacks",
+            {
+                randomizeRadius: true,
+                minRadius: 0.05,
+                maxRadius: 0.1,
+                spawnAtRandomPosition: true
+            }
+        );
+
+
+        const humpbacks = this.world.SpawnSonarTarget(humpbacksConfig);
+
+        this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
+        this.melbourne = this.world.SpawnSonarTarget(melbourneConfig);
+
+        const ships = [this.endeavour, this.melbourne];
+
+        let endeavourDone, melbourneDone;
+
+        this.endeavour.addEventListener("discoveredTarget", (e) => {
+            // build a serialized sequence with say()
+            endeavourDone = (async () => {
+                await this.ThinkToSelf("The USS Endeavour, Ashton is aboard.");
+                await this.ThinkToSelf("He's a smart cookie, and he does make me laugh.");
+            })();
+        }, { once: true });
+
+        this.melbourne.addEventListener("discoveredTarget", (e) => {
+            melbourneDone = (async () => {
+                await this.ThinkToSelf("The USS Melbourne, Clark is aboard.");
+                await this.ThinkToSelf("I once watched him boil kranskies without removing them from the plastic packaging...");
+            })();
+        }, { once: true });
+
+
+        // Resolve when both are discovered...
+        await Promise.all(ships.map(s => this.WaitForEvent(s, "discoveredTarget")));
+
+        // ...then wait for their queued dialogue sequences to finish before continuing story
+        await Promise.all([endeavourDone, melbourneDone].filter(Boolean));
     }
 
 
@@ -146,8 +190,6 @@ export class GameEventManager {
             emitterList.forEach(em => em.addEventListener(type, onHit, { once: true }));
         });
     }
-
-
 
     // queue a single prompt so it runs after previous ones, returns a Promise that
     // resolves when that prompt completes
