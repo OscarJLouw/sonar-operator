@@ -342,7 +342,8 @@ export class GameEventManager {
 
     async WaitForPlayerToPing() {
         const sonarMachine = SceneManager.instance.sonarMachine;
-        sonarMachine.SetActiveSonarAuthorised(true);
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        //sonarParticles.
         const e = await this.WaitForEvent(sonarMachine, "onPing");
     }
 
