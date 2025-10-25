@@ -49,8 +49,9 @@ export class SonarScreenParticles extends GameObject {
         this.showHorrorInPing = false;
     }
 
-    PingAt(originVec2, { radius = 2, showHorror = this.showHorrorInPing } = {}) {
-        this.pingOrigin.copy(originVec2);
+    PingAt(origin, { radius = 2, showHorror = this.showHorrorInPing } = {}) {
+        this.pingOrigin.x = origin.x;
+        this.pingOrigin.y = origin.y;
         this.pingMaxRadius = radius;
         this.showHorrorInPing = showHorror;
         this.Ping(); // reuse your existing setup logic
