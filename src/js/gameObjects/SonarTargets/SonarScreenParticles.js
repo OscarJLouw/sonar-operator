@@ -25,12 +25,13 @@ export class SonarScreenParticles extends GameObject {
             /*, sizeAttenuation:true*/
         });
 
-        // FIX: use the material you created
         this.points = new THREE.Points(this.geometry, this.pointsMaterial);
         this.points.position.z = -0.5;
         this.AddComponent(this.points);
         this.updating = true;
         this.pinging = false;
+        this.pingOrigin = new THREE.Vector2(0, 0);
+        this.pingMaxRadius = 2;
         this.pingGrowTime = 1;
         this.pingHangTime = 1.5;
         this.pingCountdown = 0;
@@ -45,7 +46,14 @@ export class SonarScreenParticles extends GameObject {
         //     .build();
 
         this.tentacles = [];
-        this.showHorrorInPing = true;
+        this.showHorrorInPing = false;
+    }
+
+    PingAt(originVec2, { radius = 2, showHorror = this.showHorrorInPing } = {}) {
+        this.pingOrigin.copy(originVec2);
+        this.pingMaxRadius = radius;
+        this.showHorrorInPing = showHorror;
+        this.Ping(); // reuse your existing setup logic
     }
 
     Ping() {
@@ -60,16 +68,18 @@ export class SonarScreenParticles extends GameObject {
             return;
         }
 
+        // Reset to the ping origin, not (0,0)
         for (let i = 0; i < this.positionCount; i++) {
             const i3 = i * 3;
-            positions[i3 + 0] = 0;
-            positions[i3 + 1] = 0;
+            positions[i3 + 0] = this.pingOrigin.x;
+            positions[i3 + 1] = this.pingOrigin.y;
             positions[i3 + 2] = 0;
         }
 
         // reset CDF cache
         this._angleCDF = null;
         this._cdfRFront = -1;
+        this._cdfOrigin = new THREE.Vector2(this.pingOrigin.x, this.pingOrigin.y);
     }
 
     PingWithHorror() {
@@ -105,7 +115,7 @@ export class SonarScreenParticles extends GameObject {
                     endPosition: new THREE.Vector2(startPointX + Math.cos(endpointAngle) * tentacleLength, startPointY + Math.sin(endpointAngle) * tentacleLength),
                     noiseTimeA: Math.random(),
                     noiseTimeB: Math.random(),
-                    noiseFreqencyA: (2, 5),
+                    noiseFreqencyA: randomBetween(2, 5),
                     noiseFreqencyB: randomBetween(10, 20),
                     noiseSpeedA: randomBetween(0.5, 1),
                     noiseSpeedB: randomBetween(2, 5),
@@ -163,30 +173,37 @@ export class SonarScreenParticles extends GameObject {
             this.pinging = false;
         }
 
-        // Fuzz it up based on ping distance
+        // Fuzz it up based on ping distance, measured from the ping origin
         const growPercentage = 1 - Utils.instance.Clamp((this.pingCountdown - this.pingHangTime) / this.pingGrowTime, 0, 1);
+
+        // Scale min/max by fixed pingMaxRadius
         const pingFuzzSize = 0.5;
-        const pingMin = Utils.instance.Lerp(-pingFuzzSize * 0.5, 1, growPercentage);
-        const pingMax = Utils.instance.Lerp(0, 1 + pingFuzzSize * 0.5, growPercentage);
+        const pingMin = Utils.instance.Lerp(-pingFuzzSize * 0.5, this.pingMaxRadius, growPercentage);
+        const pingMax = Utils.instance.Lerp(0, this.pingMaxRadius + pingFuzzSize * 0.5, growPercentage);
+
         const fuzzinessAmplitude = 0.05;
         const fadeoutTime = 1 - Math.min(this.pingCountdown / this.pingHangTime, 1);
         const fadeoutTimeExponential = Math.pow(fadeoutTime, 4);
+
         for (let i = 0; i < this.positionCount; i++) {
             const i3 = i * 3;
-            const dist = Math.hypot(positions[i3 + 0], positions[i3 + 1]);
+
+            // distance from ping origin (NOT world origin)
+            const dx = positions[i3 + 0] - this.pingOrigin.x;
+            const dy = positions[i3 + 1] - this.pingOrigin.y;
+            const dist = Math.hypot(dx, dy);
+
             if (dist > pingMax) {
+                // re-spawn inside the current ring around the origin point
                 const u = Math.random();
                 const spawnRadius = Math.sqrt(pingMin * pingMin + u * (pingMax * pingMax - pingMin * pingMin));
-
                 const angle = Math.random() * Math.PI * 2;
 
-                positions[i3 + 0] = Math.cos(angle) * spawnRadius;
-                positions[i3 + 1] = Math.sin(angle) * spawnRadius;
+                positions[i3 + 0] = this.pingOrigin.x + Math.cos(angle) * spawnRadius;
+                positions[i3 + 1] = this.pingOrigin.y + Math.sin(angle) * spawnRadius;
                 positions[i3 + 2] = 0;
             } else {
-                //const fuzziness = Utils.instance.InverseLerp(pingMin, pingMax, dist) * fuzzinessAmplitude;
                 const fuzziness = Utils.instance.Clamp(Utils.instance.InverseLerp(pingMin, pingMax, dist), 0, 1) * fuzzinessAmplitude;
-                //fuzziness = 0;
                 positions[i3 + 0] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
                 positions[i3 + 1] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
                 positions[i3 + 2] = 0;
@@ -205,26 +222,34 @@ export class SonarScreenParticles extends GameObject {
 
         if (this.pingCountdown > this.pingHangTime) {
             const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
-            this.pingDistanceOuter = Utils.instance.Lerp(0.1, 1, growPct);
-            this.pingDistance = Utils.instance.Lerp(0, 1, growPct);
+
+            // Fixed-radius ring (front & outer), scaled by pingMaxRadius
+            this.pingDistance = this.pingMaxRadius * Utils.instance.Lerp(0, 1, growPct); // front
+            this.pingDistanceOuter = this.pingMaxRadius * Utils.instance.Lerp(0.1, 1, growPct); // outer
 
             const targetParticlesPlaced = Math.floor(this.positionCount * growPct);
             const difference = targetParticlesPlaced - this.pingParticlesPlaced;
 
             if (difference > 0) {
-                // Build CDF for the *front* of the ring so shadows only appear once the wavefront hits
                 const rFront = this.pingDistance;
-                if (!this._angleCDF || Math.abs(rFront - this._cdfRFront) > 0.002) { // small hysteresis
+
+                // Rebuild CDF if front moved notably or origin changed
+                const originChanged = !this._cdfOrigin ||
+                    this._cdfOrigin.x !== this.pingOrigin.x || this._cdfOrigin.y !== this.pingOrigin.y;
+
+                if (!this._angleCDF || originChanged || Math.abs(rFront - this._cdfRFront) > 0.002) {
                     this._angleCDF = buildOcclusionCDFFront(
                         targetVisualsList,
                         rFront,
-            /* penumbraWidth */ 0.03,
-            /* shadowSpread  */ 0.0   // set >0 to smear shadow behind target
+                        this.pingOrigin,
+                        0.03,   // penumbraWidth
+                        0.0     // shadowSpread
                     );
                     this._cdfRFront = rFront;
+                    this._cdfOrigin = new THREE.Vector2(this.pingOrigin.x, this.pingOrigin.y);
                 }
 
-                // Spawn new points uniformly by area in the current annulus
+                // Spawn in the annulus [front, outer], offset by origin
                 const rInner = this.pingDistance;
                 const rOuter = this.pingDistanceOuter;
 
@@ -236,8 +261,8 @@ export class SonarScreenParticles extends GameObject {
 
                     const angle = sampleAngleFromCDF(this._angleCDF);
 
-                    positions[i3 + 0] = Math.cos(angle) * spawnRadius;
-                    positions[i3 + 1] = Math.sin(angle) * spawnRadius;
+                    positions[i3 + 0] = this.pingOrigin.x + Math.cos(angle) * spawnRadius;
+                    positions[i3 + 1] = this.pingOrigin.y + Math.sin(angle) * spawnRadius;
                     positions[i3 + 2] = 0;
                 }
 
@@ -471,19 +496,20 @@ function halfAngleAtRadius(d, R, rFront) {
 }
 
 // Build occlusion for the *front* of the expanding ring.
-// penumbraWidth adds a tiny soft edge; shadowSpread can smear further behind the target (set 0 for pure silhouette).
-function buildOcclusionCDFFront(targetVisualsList, rFront, penumbraWidth = 0.03, shadowSpread = 0.0) {
+// Now takes `origin` to compute angles/distances relative to the ping source.
+function buildOcclusionCDFFront(targetVisualsList, rFront, origin, penumbraWidth = 0.03, shadowSpread = 0.0) {
     const intervals = [];
     for (let i = 0; i < targetVisualsList.length; i++) {
         const tv = targetVisualsList[i];
-        const cx = tv.sonarTarget.transform.position.x;
-        const cy = tv.sonarTarget.transform.position.y;
+        // relative to pingOrigin:
+        const cx = tv.sonarTarget.transform.position.x - origin.x;
+        const cy = tv.sonarTarget.transform.position.y - origin.y;
         const d = Math.hypot(cx, cy);
         const R = tv.radius;
         const theta = Math.atan2(cy, cx);
 
         let beta = halfAngleAtRadius(d, R, rFront);
-        if (beta <= 0) continue;                      // wavefront hasn't reached this target yet
+        if (beta <= 0) continue;
         beta += penumbraWidth;
         if (shadowSpread > 0) beta += shadowSpread * Math.max(0, rFront - d);
 
@@ -493,6 +519,7 @@ function buildOcclusionCDFFront(targetVisualsList, rFront, penumbraWidth = 0.03,
     const visible = buildVisibleSegments(merged);
     return buildAngleCDF(visible);
 }
+
 
 function randomBetween(min, max) {
     return Math.random() * (max - min) + min;

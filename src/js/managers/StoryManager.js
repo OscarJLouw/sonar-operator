@@ -1,6 +1,4 @@
 import * as THREE from "three";
-import { DialogueManager } from "./DialogueManager";
-import { World } from "../gameObjects/World";
 
 export class StoryManager {
     constructor() {
@@ -41,6 +39,7 @@ export class StoryManager {
         await this.Act1();
         await this.Act2();
         await this.Act3();
+        await this.Act4();
     }
 
     async Intro() {
@@ -56,11 +55,9 @@ export class StoryManager {
         // Act 1: Tutorial
         // search for two ships (anthropogenic example)
         await this.waitForWithHint(
-            this.gameEvents.ShipsSearch(),
-            120000, // 4 minutes
+            this.gameEvents.ShipsSearch(),     // resolves ONLY when ships are actually found
+            60000,                            // 2 minutes
             async () => {
-
-                // Show hints dialogue if player has been stuck for 4 mins
                 await this.dialogueManager.start("stuck_player_hint");
             }
         );
@@ -947,27 +944,33 @@ export class StoryManager {
     }
 
     /**
-     * Helper: Runs a main async action with a timed fallback hint.
-     * If the main action finishes before the timeout, the hint is canceled.
-     * Otherwise, the hint fires, then waits for the main action to finish.
+     * Runs an objective with a timed hint that is canceled the instant the objective completes.
+     * - If the objective finishes before the timeout, the hint never runs.
+     * - If the timeout fires first, the hint runs once, then we still await the objective.
      */
     async waitForWithHint(mainAction, timeoutMs, hintCallback) {
-        let timeoutTriggered = false;
+        // Always treat mainAction as a Promise.
+        const actionPromise = Promise.resolve(mainAction);
 
-        // Create a timeout promise
-        const timeoutPromise = new Promise(async (resolve) => {
-            await new Promise(r => setTimeout(r, timeoutMs));
-            timeoutTriggered = true;
-            await hintCallback();
-            resolve(); // allow continuation after hint
-        });
+        let actionDone = false;
+        let hintStarted = null; // Promise for hint, if it starts
+        const timerId = setTimeout(() => {
+            // This callback may run even after we set actionDone=true if already queued.
+            if (actionDone) return;               // hard guard: do nothing if the action already completed
+            hintStarted = Promise.resolve().then(hintCallback);
+        }, timeoutMs);
 
-        // Race the main action vs. the timeout
-        await Promise.race([mainAction, timeoutPromise]);
+        try {
+            await actionPromise;                   // wait for the REAL completion
+        } finally {
+            actionDone = true;                     // set before clearTimeout to guard queued callbacks
+            clearTimeout(timerId);                 // cancel the timer if it hasn't fired
+        }
 
-        // Always wait for the main action to fully complete before continuing
-        await mainAction;
+        // If the hint started (timeout beat the action), finish it before proceeding.
+        if (hintStarted) {
+            await hintStarted;
+        }
     }
-
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 }

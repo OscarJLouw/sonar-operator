@@ -37,7 +37,6 @@ export class GameEventManager {
             }
         );
 
-
         const humpbacks = this.world.SpawnSonarTarget(humpbacksConfig);
 
         const e = await this.WaitForEvent(humpbacks, "discoveredTarget");
@@ -273,6 +272,9 @@ export class GameEventManager {
     }
 
     async TheEndeavourDisappears() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        sonarParticles.PingAt(this.endeavour.transform.position, {radius: 2, showHorror: false});
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         //this.audioManager.StopFadeOut("underworldVoices", 0.05);
@@ -337,18 +339,30 @@ export class GameEventManager {
     }
 
     async TheMelbournePings() {
-
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: true});
     }
 
     async WaitForPlayerToPing() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
-        //sonarParticles.
+        sonarParticles.showHorrorInPing = true;
         const e = await this.WaitForEvent(sonarMachine, "onPing");
     }
 
     async TheMelbourneDisappears() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: false});
 
+        this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
+        this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);
+
+        await this.#sleep(1);
+        this.melbourne.Destroy();
+
+        await this.#sleep(3);
     }
 
     async FinalPing() {
