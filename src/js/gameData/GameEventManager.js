@@ -44,6 +44,78 @@ export class GameEventManager {
         return e.detail?.target ?? null;
     }
 
+    DebugSetupPrerequisites(activateSonar, addShips, addSub, movePlayerAndShips) {
+        if (activateSonar) {
+            const sonarMachine = SceneManager.instance.sonarMachine;
+            sonarMachine.SetActiveSonarAuthorised(true);
+        }
+
+        if (movePlayerAndShips) {
+            this.world.shipRoot.position.set(
+                Math.random() * 20,
+                Math.random() * 20,
+                0
+            );
+        }
+        const worldPos = this.world.shipRoot.position.clone();
+
+        if (addShips) {
+            
+
+            const melbourneConfig = new SonarTargetConfig(
+                "Melbourne",
+                "ship_melbourne",
+                {
+                    randomizeRadius: false,
+                    radius: 0.05,
+                    spawnAtRandomPosition: false,
+                    spawnPosition: new THREE.Vector3(worldPos.x + 0.6, worldPos.y + 0.2, 0)
+                }
+            );
+
+            const endeavourConfig = new SonarTargetConfig(
+                "Endeavor",
+                "ship_endeavour",
+                {
+                    randomizeRadius: false,
+                    radius: 0.05,
+                    spawnAtRandomPosition: false,
+                    spawnPosition: new THREE.Vector3(worldPos.x + 0.25, worldPos.y-0.2, 0)
+                }
+            );
+
+            this.melbourne = this.world.SpawnSonarTarget(melbourneConfig);
+            this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
+
+            this.melbourne.OnDiscovered();
+            this.endeavour.OnDiscovered();
+        }
+
+
+
+        if (addSub) {
+
+            const worldPos = this.world.shipRoot.position.clone();
+            worldPos.x -= 0.2;
+            worldPos.y -= 0.35;
+
+            // Create the as soon as the ping fires submarine!
+            const submarineContext = new SonarTargetConfig(
+                "Submarine",
+                "submarine",
+                {
+                    randomizeRadius: false,
+                    radius: 0.04,
+                    spawnAtRandomPosition: false,
+                    spawnPosition: worldPos
+                }
+            );
+
+            this.submarine = this.world.SpawnSonarTarget(submarineContext);
+            this.submarine.OnDiscovered();
+        }
+    }
+
     async ShipsSearch() {
 
         const melbourneConfig = new SonarTargetConfig(
@@ -274,7 +346,7 @@ export class GameEventManager {
     async TheEndeavourDisappears() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
-        sonarParticles.PingAt(this.endeavour.transform.position, {radius: 2, showHorror: false});
+        sonarParticles.PingAt(this.endeavour.transform.position, { radius: 2, showHorror: false });
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         //this.audioManager.StopFadeOut("underworldVoices", 0.05);
@@ -290,7 +362,9 @@ export class GameEventManager {
 
     async WaitForPlayerToLookOutWindow() {
         const movementController = this.gameManager.playerMovementController;
-
+        if(movementController.currentState === movementController.states.Porthole)
+            return;
+        
         // Wait until the player enters the Porthole state
         await new Promise((resolve) => {
             const handler = (e) => {
@@ -342,7 +416,7 @@ export class GameEventManager {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
-        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: true});
+        sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
     }
 
     async WaitForPlayerToPing() {
@@ -355,7 +429,7 @@ export class GameEventManager {
     async TheMelbourneDisappears() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
-        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: true});
+        sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);

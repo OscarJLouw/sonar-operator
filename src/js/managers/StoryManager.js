@@ -35,9 +35,10 @@ export class StoryManager {
     }
 
     async Start() {
-        await this.Intro();
-        await this.Act1();
-        await this.Act2();
+        //await this.Intro();
+        //await this.Act1();
+        //await this.Act2();
+        this.gameEvents.DebugSetupPrerequisites(true, true, true, true);
         await this.Act3();
         await this.Act4();
     }
@@ -136,7 +137,7 @@ export class StoryManager {
         await this.dialogueManager.start("act3_ashton4");
 
         // Ashton sends another ping, then his boat suddenly disappears
-        await this.gameEvents.WaitForPlayerToLookOutWindow();
+        await this.gameEvents.WaitForPlayerToGoToSonar();
         await this.gameEvents.TheEndeavourDisappears();
         await this.dialogueManager.start("act3_ashton_ping");
 

@@ -204,7 +204,6 @@ export class SonarTarget extends GameObject {
             if (!this.discovered) {
                 const percentageCorrect = overlap.overlappedArea / this.annularSegmentArea;
                 if (percentageCorrect >= this.targetConfig.discoveryThreshold) {
-                    this.discovered = true;
                     this.OnDiscovered();
                 }
             }
@@ -244,6 +243,8 @@ export class SonarTarget extends GameObject {
     }
 
     OnDiscovered() {
+        this.discovered = true;
+
         this.dispatchEvent(new CustomEvent("discoveredTarget",
             {
                 detail: {
