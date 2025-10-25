@@ -57,7 +57,9 @@ export class SonarScreenParticles extends GameObject {
         this.Ping(); // reuse your existing setup logic
     }
 
-    Ping() {
+    Ping(origin = new THREE.Vector2(0, 0)) {
+        this.pingOrigin = origin.clone ? origin.clone() : new THREE.Vector2(origin.x, origin.y);
+        
         this.pingCountdown = this.pingGrowTime + this.pingHangTime;
         this.pingParticlesPlaced = 0;
         this.pinging = true;
