@@ -164,17 +164,17 @@ export class StoryManager {
 
         if (this.dialogueManager.getVar("escapeChoice") === "noble") {
             // wait for player to get back to console, then the melbourne pings
+            await this.gameEvents.WaitForPlayerToPing();
+        } else {
             await this.gameEvents.WaitForPlayerToGoToSonar();
             await this.gameEvents.TheMelbournePings();
-        } else {
-            await this.gameEvents.WaitForPlayerToPing();
         }
 
         await this.dialogueManager.start("act4_theBeastIsPinged");
         // The melbourne disappears
         await this.gameEvents.TheMelbourneDisappears();
 
-        await this.dialogueManager.start("act4_doorInteract1");
+        //await this.dialogueManager.start("act4_doorInteract1");
 
         await this.gameEvents.FinalPing();
     }
@@ -334,7 +334,7 @@ export class StoryManager {
                         { text: "Where do I even start looking?", next: "tutorial_hint_findingTargets" },
                         { text: "I think I have this ship framed, how do I submit it?", next: "tutorial_hint_framing" },
                         { text: "Why can I not use the active ping?", next: "tutorial_hint_activePing" },
-                        { text: "I will try to play with it again.", next: null },
+                        { text: "Nope. I will try to play with it again.", next: null },
                     ]
             },
 

@@ -354,7 +354,7 @@ export class GameEventManager {
     async TheMelbourneDisappears() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
-        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: false});
+        sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: true});
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);

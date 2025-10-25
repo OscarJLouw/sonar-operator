@@ -218,66 +218,52 @@ export class SonarScreenParticles extends GameObject {
     AnimatePing(deltaTime) {
         this.pingCountdown -= deltaTime;
         const positions = this.points.geometry.attributes.position.array;
-        const targetVisualsList = this.sonarViewController.targetVisualsList;
+        const targets = this.sonarViewController.targetVisualsList;
 
-        if (this.pingCountdown > this.pingHangTime) {
-            const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
+        const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
 
-            // Fixed-radius ring (front & outer), scaled by pingMaxRadius
-            this.pingDistance = this.pingMaxRadius * Utils.instance.Lerp(0, 1, growPct); // front
-            this.pingDistanceOuter = this.pingMaxRadius * Utils.instance.Lerp(0.1, 1, growPct); // outer
+        // Fixed-radius ping scaled by pingMaxRadius
+        const rFront = this.pingMaxRadius * Utils.instance.Lerp(0, 1, growPct); // wavefront
+        const rOuter = this.pingMaxRadius * Utils.instance.Lerp(0.1, 1, growPct); // outer sweep
 
-            const targetParticlesPlaced = Math.floor(this.positionCount * growPct);
-            const difference = targetParticlesPlaced - this.pingParticlesPlaced;
+        // how many particles are "active" so far
+        const activeCount = Math.floor(this.positionCount * growPct);
 
-            if (difference > 0) {
-                const rFront = this.pingDistance;
+        // (Re)build swept-area sampler each frame (cheap: O(bins * targets))
+        const sampler = buildSweptAreaSampler(targets, this.pingOrigin, rFront, rOuter, /*bins*/512);
 
-                // Rebuild CDF if front moved notably or origin changed
-                const originChanged = !this._cdfOrigin ||
-                    this._cdfOrigin.x !== this.pingOrigin.x || this._cdfOrigin.y !== this.pingOrigin.y;
+        // Re-sample ALL active particles within already-swept, unshadowed area
+        // Optional blend for smoother shimmer
+        const BLEND = 1.0; // try 0.3 for smoother motion
 
-                if (!this._angleCDF || originChanged || Math.abs(rFront - this._cdfRFront) > 0.002) {
-                    this._angleCDF = buildOcclusionCDFFront(
-                        targetVisualsList,
-                        rFront,
-                        this.pingOrigin,
-                        0.03,   // penumbraWidth
-                        0.0     // shadowSpread
-                    );
-                    this._cdfRFront = rFront;
-                    this._cdfOrigin = new THREE.Vector2(this.pingOrigin.x, this.pingOrigin.y);
-                }
+        for (let i = 0; i < activeCount; i++) {
+            const i3 = i * 3;
+            const { ang, r } = sampleFromSweptSampler(sampler);
+            const tx = this.pingOrigin.x + Math.cos(ang) * r;
+            const ty = this.pingOrigin.y + Math.sin(ang) * r;
 
-                // Spawn in the annulus [front, outer], offset by origin
-                const rInner = this.pingDistance;
-                const rOuter = this.pingDistanceOuter;
-
-                for (let i = this.pingParticlesPlaced; i < targetParticlesPlaced; i++) {
-                    const i3 = i * 3;
-
-                    const u = Math.random();
-                    const spawnRadius = Math.sqrt(rInner * rInner + u * (rOuter * rOuter - rInner * rInner));
-
-                    const angle = sampleAngleFromCDF(this._angleCDF);
-
-                    positions[i3 + 0] = this.pingOrigin.x + Math.cos(angle) * spawnRadius;
-                    positions[i3 + 1] = this.pingOrigin.y + Math.sin(angle) * spawnRadius;
-                    positions[i3 + 2] = 0;
-                }
-
-                this.pingParticlesPlaced = targetParticlesPlaced;
+            if (BLEND === 1.0) {
+                positions[i3 + 0] = tx;
+                positions[i3 + 1] = ty;
+            } else {
+                positions[i3 + 0] = Utils.instance.Lerp(positions[i3 + 0], tx, BLEND);
+                positions[i3 + 1] = Utils.instance.Lerp(positions[i3 + 1], ty, BLEND);
             }
-        } else if (this.pingCountdown <= 0) {
-            this.pinging = false;
+            positions[i3 + 2] = 0;
         }
 
-        // slight jitter
-        for (let i = 0; i < this.pingParticlesPlaced; i++) {
+        // Park any not-yet-active particles at the origin point (or leave as-is)
+        for (let i = activeCount; i < this.positionCount; i++) {
             const i3 = i * 3;
-            positions[i3 + 0] += (Math.random() - 0.5) * deltaTime * 0.2;
-            positions[i3 + 1] += (Math.random() - 0.5) * deltaTime * 0.2;
+            positions[i3 + 0] = this.pingOrigin.x;
+            positions[i3 + 1] = this.pingOrigin.y;
             positions[i3 + 2] = 0;
+        }
+
+        this.pingParticlesPlaced = activeCount;
+
+        if (this.pingCountdown <= 0) {
+            this.pinging = false;
         }
 
         this.points.geometry.attributes.position.needsUpdate = true;
@@ -529,4 +515,86 @@ function randomPointInUnitCircle() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.random();
     return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
+}
+
+// --- Swept-area sampler (angle → allowed r up to rVisible(φ)) ---
+function rayCircleNear(origin, cx, cy, R, ang) {
+    // Ray from origin in direction ang → distance to first hit (t >= 0) or +Inf if none.
+    const ux = Math.cos(ang), uy = Math.sin(ang);
+    const dx = cx - origin.x, dy = cy - origin.y;
+    const b = dx * ux + dy * uy;
+    const d2 = dx * dx + dy * dy;
+    const perp2 = d2 - b * b;
+    const rad2 = R * R;
+    const m = rad2 - perp2;
+    if (m < 0) return Infinity;               // miss
+    const s = Math.sqrt(m);
+    const t0 = b - s;
+    const t1 = b + s;
+    if (t1 < 0) return Infinity;              // both behind
+    if (t0 <= 0) return 0;                    // origin inside or grazing
+    return t0;                                // near intersection in front of origin
+}
+
+// Build a per-angle sampler over the *already-swept* region.
+// For each angle bin φ, allowed radius is:
+//   rVisible(φ) = rOuter           if rFront < s_near(φ)
+//               = min(rOuter, s_near(φ)) otherwise.
+// Weight per bin ∝ rVisible(φ)^2 so sampling is uniform-by-area.
+function buildSweptAreaSampler(targets, origin, rFront, rOuter, bins = 512) {
+    const dphi = (Math.PI * 2) / bins;
+    const rmax = new Float32Array(bins);
+    const weights = new Float32Array(bins);
+    let total = 0;
+
+    for (let i = 0; i < bins; i++) {
+        const ang = (i + 0.5) * dphi; // bin center
+        // nearest blocker along this ray
+        let sNear = Infinity;
+        for (let t = 0; t < targets.length; t++) {
+            const tv = targets[t];
+            const cx = tv.sonarTarget.transform.position.x;
+            const cy = tv.sonarTarget.transform.position.y;
+            const R = tv.radius;
+            const d = rayCircleNear(origin, cx, cy, R, ang);
+            if (d < sNear) sNear = d;
+        }
+
+        let rVis = rOuter;
+        if (rFront >= sNear) rVis = Math.min(rVis, sNear);
+
+        rmax[i] = Math.max(0, rVis);
+        const w = rmax[i] * rmax[i]; // ∝ area (½ cancels out across bins)
+        weights[i] = w;
+        total += w;
+    }
+
+    // build CDF
+    const cdf = new Float32Array(bins);
+    if (total <= 1e-12) {
+        for (let i = 0; i < bins; i++) cdf[i] = (i + 1) / bins; // degenerate fallback
+        return { bins, dphi, rmax, cdf, total: 0, origin: origin.clone() };
+    }
+    let acc = 0;
+    for (let i = 0; i < bins; i++) {
+        acc += weights[i] / total;
+        cdf[i] = acc;
+    }
+    return { bins, dphi, rmax, cdf, total, origin: origin.clone() };
+}
+
+function sampleFromSweptSampler(s) {
+    // pick bin
+    const u = Math.random();
+    let lo = 0, hi = s.cdf.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (u <= s.cdf[mid]) hi = mid; else lo = mid + 1;
+    }
+    // angle within bin
+    const ang = (lo + Math.random()) * s.dphi;
+    const rMax = s.rmax[lo];
+    // radius uniform by area
+    const r = Math.sqrt(Math.random()) * rMax;
+    return { ang, r };
 }
