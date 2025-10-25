@@ -156,11 +156,16 @@ export class Utils {
         return a + (b - a) * t;
     }
 
-    
+    InverseLerp(start, end, value) {
+        // Handle cases where start and end are the same to prevent division by zero
+        if (start === end) {
+            return start === value ? 0.5 : (value < start ? 0 : 1);
+        }
+        return (value - start) / (end - start);
+    }
 
 
-    CircleLineIntersections(slope, circleX, circleY, circleRadius) 
-    {
+    CircleLineIntersections(slope, circleX, circleY, circleRadius) {
         var a = 1 + slope * slope;
         var b = 2 * (slope * (0 - circleY) - circleX);
         var c = circleX * circleX + (0 - circleY) * (0 - circleY) - circleRadius * circleRadius;
@@ -171,7 +176,7 @@ export class Utils {
             return [(-b + Math.sqrt(d)) / (2 * a)];
         } else if (d > 0) {
             return [(-b + Math.sqrt(d)) / (2 * a), (-b - Math.sqrt(d)) / (2 * a)];
-        } 
+        }
 
         return [];
     };
@@ -220,8 +225,8 @@ export class Utils {
         }
     }
 
-    VectorEquals(vector1, vector2, epsilon = Number.EPSILON ) {
-        return ( ( Math.abs( vector1.x - vector2.x ) < epsilon ) && ( Math.abs( vector1.y - vector2.y ) < epsilon ) && ( Math.abs( vector1.z - vector2.z ) < epsilon ) );
+    VectorEquals(vector1, vector2, epsilon = Number.EPSILON) {
+        return ((Math.abs(vector1.x - vector2.x) < epsilon) && (Math.abs(vector1.y - vector2.y) < epsilon) && (Math.abs(vector1.z - vector2.z) < epsilon));
     }
 }
 

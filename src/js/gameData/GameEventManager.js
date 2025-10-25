@@ -272,7 +272,7 @@ export class GameEventManager {
         await this.#sleep(3);
     }
 
-    async AshtonDisappears() {
+    async TheEndeavourDisappears() {
 
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         //this.audioManager.StopFadeOut("underworldVoices", 0.05);
@@ -313,13 +313,46 @@ export class GameEventManager {
     }
 
 
-    async TheChaseBegins() {
+    async TheMelbourneFlees() {
 
         this.melbourne.SetVelocity(0.04, 0.08, 10);
         this.portalsController.SendMessage("Vessel2_Flee", this.portalsController.TaskStates.AnyToComplete);
     }
 
     // ACT 4: THE CHOICE
+    async WaitForPlayerToGoToSonar() {
+        const movementController = this.gameManager.playerMovementController;
+
+        // Wait until the player enters the Porthole state
+        await new Promise((resolve) => {
+            const handler = (e) => {
+                if (e.detail.newState === movementController.states.UsingSonar) {
+                    movementController.removeEventListener("onEnterState", handler);
+                    resolve(); // continue execution
+                }
+            };
+
+            movementController.addEventListener("onEnterState", handler);
+        });
+    }
+
+    async TheMelbournePings() {
+
+    }
+
+    async WaitForPlayerToPing() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        sonarMachine.SetActiveSonarAuthorised(true);
+        const e = await this.WaitForEvent(sonarMachine, "onPing");
+    }
+
+    async TheMelbourneDisappears() {
+
+    }
+
+    async FinalPing() {
+
+    }
 
 
 

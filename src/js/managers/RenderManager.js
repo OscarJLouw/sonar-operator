@@ -23,7 +23,7 @@ export class RenderManager extends Resizable {
         this.targetWidth  = Math.round(this.targetHeight * this.targetAspect);
 
         // ----- renderer -----
-        this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+        this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
         this.renderer.shadowMap.enabled = true;
 
         // Render at a stable internal res (ignore device DPR)

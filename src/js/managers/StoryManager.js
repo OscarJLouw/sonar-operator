@@ -139,7 +139,7 @@ export class StoryManager {
         await this.dialogueManager.start("act3_ashton4");
 
         // Ashton sends another ping, then his boat suddenly disappears
-        await this.gameEvents.AshtonDisappears();
+        await this.gameEvents.TheEndeavourDisappears();
         await this.dialogueManager.start("act3_ashton_ping");
 
         // check the window
@@ -150,18 +150,36 @@ export class StoryManager {
         await this.gameEvents.CreateMultipleContacts();
         await this.dialogueManager.start("act3_clark6");
 
-        // Chase scene begins
-        await this.gameEvents.TheChaseBegins();
+        // The melbourne attempts to flee
+        await this.gameEvents.TheMelbourneFlees();
         // The ship starts to move, then slowly comes to a halt
         await this.dialogueManager.start("act3_commander5");
 
+
         // Final scene, jumpscare ahead
+
     }
 
     async Act4() {
-        // ACT 4: THE CHOICE
-        // Clark tries to convince you to help save his crew by sacrificing yourself
-        // You can choose to press the sonar button or not
+        // ACT 4: OFFERING
+        // Wait till player gets to console
+        // Either they ping, or the melbourne pings
+
+        if (this.dialogueManager.getVar("escapeChoice") === "noble") {
+            // wait for player to get back to console, then the melbourne pings
+            await this.gameEvents.WaitForPlayerToGoToSonar();
+            await this.gameEvents.TheMelbournePings();
+        } else {
+            await this.gameEvents.WaitForPlayerToPing();
+        }
+
+        await this.dialogueManager.start("act4_theBeastIsPinged");
+        // The melbourne disappears
+        await this.gameEvents.TheMelbourneDisappears();
+
+        await this.dialogueManager.start("act4_doorInteract1");
+
+        await this.gameEvents.FinalPing();
     }
 
 
@@ -333,7 +351,7 @@ export class StoryManager {
             {
                 id: "tutorial_hint_findingTargets2",
                 speaker: "CLARK",
-                text: "And of course, most of the info is using your ears. You can hear where the edges of the start shape by carefully crossing over it.",
+                text: "And of course, most of the info is using your ears. You can hear where the edges of the shape start and end by carefully crossing over it.",
                 next: "tutorial_hint4"
             },
 
@@ -647,7 +665,7 @@ export class StoryManager {
                 next: null  //exit
             },
 
-
+            // You manage to mark the sub on the map
             {
                 id: "act3_clark2",
                 speaker: "COMMANDER MORGAN",
@@ -691,22 +709,23 @@ export class StoryManager {
                 text: "{>}Oh {p:0.5}but I am home.",
                 next: null
             },
+            // A beat before ashton responds
             {
                 id: "act3_ashton3",
                 speaker: "ASHTON",
                 text: "{>>}This guy has the bends.",
-                next: "act3_clark4"
+                next: "act3_morgan5"
             },
             {
                 id: "act3_morgan5",
                 speaker: "COMMANDER MORGAN",
-                text: "Commander Harper. This is Commander Morgan. You appear to be dead in the water there.",
-                next: "act3_harper4"
+                text: "Commander Harper. This is Commander Morgan. You appear to be dead in the water.",
+                next: "act3_morgan6"
             },
             {
                 id: "act3_morgan6",
                 speaker: "COMMANDER MORGAN",
-                text: "We need help locating you to send down a diver. {p: 0.9} Give a ping, or bang on your hull.",
+                text: "We need your precise location to send down a diver. {p: 0.5} Give a ping, or bang on your hull.",
                 next: "act3_harper4"
             },
             {
@@ -719,7 +738,7 @@ export class StoryManager {
             {
                 id: "act3_ashton4",
                 speaker: "ASHTON",
-                text: "All right then. I'll ping this weirdo.",
+                text: "This weirdo. All right then, I'll ping instead.",
                 next: null  //exit
             },
 
@@ -727,7 +746,7 @@ export class StoryManager {
             {
                 id: "act3_ashton_ping",
                 speaker: "CLARK",
-                text: "{>}...{p: 2.0}where are you...? {p: 0.8}Wait- {>}Ashton's gone.",
+                text: "{>}...{p: 0.5}hmm, some interference from th... {p: 0.8}Wait- {>>}Ashton's gone!",
                 choices: [
                     { text: "Clark?! Do you see the Endeavor on sonar?", next: "act3_clark5" }
                 ]
@@ -735,9 +754,9 @@ export class StoryManager {
             {
                 id: "act3_clark5",
                 speaker: "CLARK",
-                text: "No. It was just there. Do you have a visual, Smith?",
+                text: "No. It was just there. Do you have a visual, Smith? Look out your porthole.",
                 choices: [
-                    { text: "Surely a malfunction. Let me check.", next: null } //exit
+                    { text: "Must be a malfunction. I'll get eyes.", next: null } //exit
                 ]
             },
             // when the player goes to the window
@@ -755,17 +774,17 @@ export class StoryManager {
                 id: "act3_harper6",
                 speaker: "HARPER",
                 text: "{>>}Now he takes what is offered up to him. {p: 0.9}He takes those calves that bare their necks to the master's blade. {>}He takes what is owed him!",
-                next: "act3_clark6"
+                next: null
             },
             // make multiple contacts appear here
             {
                 id: "act3_clark6",
                 speaker: "CLARK",
-                text: "Multiple contacts, Smith. Or one contact? {p: 1.0}What IS that?",
+                text: "Multiple contacts, Smith. Or... one contact? {p: 1.0}What IS that?",
                 choices: [
                     { text: "I have no idea, let me confirm.", next: "act3_clark7" },
                     { text: "I think it's time we leave.", next: "act3_clark7" },
-                    { text: "Could this be a deception?", next: "act3_clark7" }
+                    { text: "Could this be deception?", next: "act3_clark7" }
                 ]
             },
             {
@@ -773,8 +792,8 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "We're getting out of here.{p: 0.8} I've already suggested we veer North. {>}Good luck, Smith.",
                 choices: [
-                    { text: "Good luck.", next: null }, //exit
-                    { text: "WAIT! I need to convince my commander!", next: null } //exit
+                    { text: "You're right. Good luck.", next: null }, //exit
+                    { text: "Wait! I need to convince my commander!", next: null } //exit
                 ]
             },
 
@@ -782,7 +801,13 @@ export class StoryManager {
             {
                 id: "act3_commander5",
                 speaker: "COMMANDER MORGAN",
-                text: "I see him. {>}The great spawn! {p: 0.7}He takes what is owed him!",
+                text: "I see him. {>}The great spawn!",
+                next: "act3_clark8"
+            },
+            {
+                id: "act3_commander5",
+                speaker: "COMMANDER MORGAN",
+                text: "{>}... he takes what is owed him!",
                 next: "act3_clark8"
             },
             {
@@ -798,27 +823,126 @@ export class StoryManager {
                 speaker: "CLARK",
                 text: "... what now?",
                 choices: [
-                    { text: "You have a chance of escaping. I'll use my active sonar to draw it away.", next: "act3_nobleSacrifice" },
-                    { text: "If you use your active, it might give us enough time to knock some sense into the Captain.", next: "act3_selfish" }
+                    {
+                        text: "I'll use my active sonar to draw it away. You have a chance of escaping.",
+                        next: "act3_nobleSacrifice",
+                        onSelect: vars => {
+                            vars.escapeChoice = "noble";
+                        }
+                    },
+                    {
+                        text: "Use your active, it might delay it enough for me to knock some sense into the Captain.",
+                        next: "act3_selfish",
+                        onSelect: vars => {
+                            vars.escapeChoice = "selfish";
+                        }
+                    }
                 ]
             },
-            // branching decision
+
+            // Branching decision
+            // Branch A: noble
             {
                 id: "act3_nobleSacrifice",
                 speaker: "CLARK",
-                text: "Good god... {p: 0.8}Best of luck.",
+                text: "Good god{>}... {p: 0.4}Best of luck.",
                 next: null  // exit
             },
-
+            // Branch B: selfish
             {
                 id: "act3_selfish",
                 speaker: "CLARK",
-                text: "Good god... {p: 0.8}Best of luck.",
-                next: null // exit
+                text: "You're right, I have a head start, I can probably still outrun it.",
+                next: "act3_selfish2"
+            },
+            {
+                id: "act3_selfish2",
+                speaker: "CLARK",
+                text: "You best get to your console before I ping. Maybe we can get a look at whatever this is.",
+                choices: [
+                    { text: "Copy that. Thank you, Clark.", next: null },
+                ]
             },
 
-            // Final act, the god approaches. You can use the active sonar to draw him towards you.
-            // Then the screen jumpscare.
+            // Wait till player gets to console
+            {
+                id: "act4_theBeastIsPinged",
+                speaker: "CLARK",
+                text: "Do you still read me Smith?",
+                choices: [
+                    { text: "Yes. You saw what I saw.", next: "act4_theBeastIsPinged2" },
+                ]
+            },
+            {
+                id: "act4_theBeastIsPinged2",
+                speaker: "CLARK",
+                text: "Indeed.",
+                choices: [
+                    {
+                        text: "How long do I have? I'll need time to get to the Captain.",
+                        next: "act4_clarksMadness1",
+                        condition: vars => vars.escapeChoice == "selfish"
+                    },
+                    {
+                        text: "How fast was it moving? Do you have time to escape?",
+                        next: "act4_clarksMadness1",
+                        condition: vars => vars.escapeChoice == "noble"
+                    },
+                ]
+            },
+            {
+                id: "act4_clarksMadness1",
+                speaker: "CLARK",
+                text: "?",
+                next: "act4_clarksMadness2"
+            },
+            {
+                id: "act4_clarksMadness2",
+                speaker: "CLARK",
+                text: "Time?",
+                next: "act4_clarksMadness3"
+            },
+            {
+                id: "act4_clarksMadness3",
+                speaker: "CLARK",
+                text: "What has heard us lies beyond time.",
+                next: "act4_clarksMadness4"
+            },
+            {
+                id: "act4_clarksMadness4",
+                speaker: "CLARK",
+                text: "We are {>}KNOWN{>>} by him!",
+                next: "act4_cultChant1"
+            },
+            {
+                id: "act4_cultChant1",
+                speaker: "CLARK",
+                text: "{>}To be known is to be offered.",
+                next: "act4_cultChant2"
+            },
+            {
+                id: "act4_cultChant2",
+                speaker: "COMMANDER MORGAN",
+                text: "{>}To offer is to owe.",
+                next: "act4_cultChant3"
+            },
+            {
+                id: "act4_cultChant3",
+                speaker: "HARPER",
+                text: "{>}He takes what is owed him.",
+                next: null
+            },
+            // The melbourne disappears
+
+            // You hear a clang behind you. The door is bolted.
+            {
+                id: "act4_doorInteract1",
+                speaker: "COMMANDER MORGAN",
+                text: "Offer us. Press the button.",
+                next: null
+            },
+
+            // Press the sonar button to cause the final jumpscare.
         ]);
     }
 

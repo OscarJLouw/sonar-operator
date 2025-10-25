@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { GameObject } from '../GameObject';
 import { Utils } from '../../utils/Utils';
+import { MeshSurfaceSampler } from 'three/examples/jsm/Addons.js';
 
-
-// --------------------------- main class ---------------------------
 export class SonarScreenParticles extends GameObject {
     Awake() {
         this.positionCount = 2000;
@@ -40,6 +39,13 @@ export class SonarScreenParticles extends GameObject {
         // cache for angle CDF across frames while the front moves slowly
         this._angleCDF = null;
         this._cdfRFront = -1;
+
+        // const surfaceSampler = new MeshSurfaceSampler(surfaceMesh)
+        //     .setWeightAttribute('color')
+        //     .build();
+
+        this.tentacles = [];
+        this.showHorrorInPing = true;
     }
 
     Ping() {
@@ -48,6 +54,12 @@ export class SonarScreenParticles extends GameObject {
         this.pinging = true;
 
         const positions = this.points.geometry.attributes.position.array;
+
+        if (this.showHorrorInPing) {
+            this.PingWithHorror();
+            return;
+        }
+
         for (let i = 0; i < this.positionCount; i++) {
             const i3 = i * 3;
             positions[i3 + 0] = 0;
@@ -60,6 +72,132 @@ export class SonarScreenParticles extends GameObject {
         this._cdfRFront = -1;
     }
 
+    PingWithHorror() {
+        this.CreateTentacles();
+    }
+
+    CreateTentacles({
+        spawnAngleMin = 0.5, spawnAngleMax = 0.8,
+        endpointSpread = 0.1,
+        tentacleLengthMin = 0.3, tentacleLengthMax = 0.5,
+        animScaleMin = 0, animScaleMax = 0.5
+    } = {}) {
+        const TAU = Math.PI * 2;
+        this.numTentaces = 20;
+        this.tentacles.length = 0;
+
+        this.particlesPerTentacle = Math.floor(this.positionCount / this.numTentaces);
+
+
+        for (let i = 0; i < this.numTentaces; i++) {
+
+            const spawnAngle = randomBetween(spawnAngleMin, spawnAngleMax) * Math.PI * 2;
+            const startPointX = Math.cos(spawnAngle);
+            const startPointY = Math.sin(spawnAngle);
+            const angleToCenter = Math.atan2(-startPointY, -startPointX)
+            const endpointAngle = angleToCenter + randomBetween(-endpointSpread, endpointSpread) * Math.PI * 2;
+            const tentacleLength = randomBetween(tentacleLengthMin, tentacleLengthMax);
+
+            this.tentacles.push(
+                {
+                    startIndex: i * this.particlesPerTentacle,
+                    startPosition: new THREE.Vector2(startPointX, startPointY),
+                    endPosition: new THREE.Vector2(startPointX + Math.cos(endpointAngle) * tentacleLength, startPointY + Math.sin(endpointAngle) * tentacleLength),
+                    noiseTimeA: Math.random(),
+                    noiseTimeB: Math.random(),
+                    noiseFreqencyA: (2, 5),
+                    noiseFreqencyB: randomBetween(10, 20),
+                    noiseSpeedA: randomBetween(0.5, 1),
+                    noiseSpeedB: randomBetween(2, 5),
+                    noiseAmplitudeA: Math.random() * 3,
+                    noiseAmplitudeB: Math.random() * 1.5,
+                    noiseAmplitudeAtBase: 1,
+                    noiseAmplitudeAtTip: 5,
+                    noisePow: 1,
+                    widthAtBase: 0.05,
+                    widthAtTip: 0.01,
+                    targetPos: randomPointInUnitCircle(),
+                    animScale: randomBetween(animScaleMin, animScaleMax)
+                }
+            );
+        }
+    }
+
+    UpdateTentacles(deltaTime) {
+        this.pingCountdown -= deltaTime;
+        const positions = this.points.geometry.attributes.position.array;
+
+        const animPercent = this.pingCountdown / (this.pingGrowTime + this.pingHangTime);
+        if (this.pingCountdown > 0) {
+            const noiseAmplitudeGlobal = 0.01;
+
+            for (let i = 0; i < this.tentacles.length; i++) {
+
+                const tentacle = this.tentacles[i];
+                const lerpedEndPosX = Utils.instance.Lerp(tentacle.endPosition.x, tentacle.targetPos.x * 0.6, (1 - animPercent) * tentacle.animScale);
+                const lerpedEndPosY = Utils.instance.Lerp(tentacle.endPosition.y, tentacle.targetPos.y * 0.6, (1 - animPercent) * tentacle.animScale);
+                tentacle.noiseTimeA += deltaTime * tentacle.noiseSpeedA;
+                tentacle.noiseTimeB += deltaTime * tentacle.noiseSpeedB;
+
+                const tangentX = -(lerpedEndPosY - tentacle.startPosition.y);
+                const tangentY = lerpedEndPosX - tentacle.startPosition.x;
+
+                for (let j = tentacle.startIndex; j < tentacle.startIndex + this.particlesPerTentacle; j++) {
+                    const j3 = j * 3;
+                    const percentageAlongTentacle = (j - tentacle.startIndex) / this.particlesPerTentacle;
+                    const widthAtPoint = Utils.instance.Lerp(tentacle.widthAtBase, tentacle.widthAtTip, percentageAlongTentacle);
+                    const noiseAmplitudeAtPoint = Utils.instance.Lerp(tentacle.noiseAmplitudeAtBase, tentacle.noiseAmplitudeAtTip, percentageAlongTentacle);
+
+                    const noiseA = Math.sin(tentacle.noiseTimeA + percentageAlongTentacle * tentacle.noiseFreqencyA) * tentacle.noiseAmplitudeA * noiseAmplitudeGlobal;
+                    const noiseB = Math.sin(tentacle.noiseTimeB + percentageAlongTentacle * tentacle.noiseFreqencyB) * tentacle.noiseAmplitudeB * noiseAmplitudeGlobal;
+
+                    var noiseAtPoint = Math.pow(noiseA + noiseB, tentacle.noisePow);
+                    const randomWidthAtPoint = randomBetween(-widthAtPoint, widthAtPoint);
+                    noiseAtPoint = Utils.instance.Clamp(noiseAtPoint, -1, 1) * noiseAmplitudeAtPoint;
+                    positions[j3 + 0] = Utils.instance.Lerp(tentacle.startPosition.x, lerpedEndPosX, percentageAlongTentacle) + tangentX * noiseAtPoint + tangentX * randomWidthAtPoint;
+                    positions[j3 + 1] = Utils.instance.Lerp(tentacle.startPosition.y, lerpedEndPosY, percentageAlongTentacle) + tangentY * noiseAtPoint + tangentY * randomWidthAtPoint;
+                    positions[j3 + 2] = 0;
+                }
+            }
+        } else if (this.pingCountdown <= 0) {
+            this.pinging = false;
+        }
+
+        // Fuzz it up based on ping distance
+        const growPercentage = 1 - Utils.instance.Clamp((this.pingCountdown - this.pingHangTime) / this.pingGrowTime, 0, 1);
+        const pingFuzzSize = 0.5;
+        const pingMin = Utils.instance.Lerp(-pingFuzzSize * 0.5, 1, growPercentage);
+        const pingMax = Utils.instance.Lerp(0, 1 + pingFuzzSize * 0.5, growPercentage);
+        const fuzzinessAmplitude = 0.05;
+        const fadeoutTime = 1 - Math.min(this.pingCountdown / this.pingHangTime, 1);
+        const fadeoutTimeExponential = Math.pow(fadeoutTime, 4);
+        for (let i = 0; i < this.positionCount; i++) {
+            const i3 = i * 3;
+            const dist = Math.hypot(positions[i3 + 0], positions[i3 + 1]);
+            if (dist > pingMax) {
+                const u = Math.random();
+                const spawnRadius = Math.sqrt(pingMin * pingMin + u * (pingMax * pingMax - pingMin * pingMin));
+
+                const angle = Math.random() * Math.PI * 2;
+
+                positions[i3 + 0] = Math.cos(angle) * spawnRadius;
+                positions[i3 + 1] = Math.sin(angle) * spawnRadius;
+                positions[i3 + 2] = 0;
+            } else {
+                //const fuzziness = Utils.instance.InverseLerp(pingMin, pingMax, dist) * fuzzinessAmplitude;
+                const fuzziness = Utils.instance.Clamp(Utils.instance.InverseLerp(pingMin, pingMax, dist), 0, 1) * fuzzinessAmplitude;
+                //fuzziness = 0;
+                positions[i3 + 0] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
+                positions[i3 + 1] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
+                positions[i3 + 2] = 0;
+            }
+        }
+
+        this.points.geometry.attributes.position.needsUpdate = true;
+    }
+
+
+
     AnimatePing(deltaTime) {
         this.pingCountdown -= deltaTime;
         const positions = this.points.geometry.attributes.position.array;
@@ -68,14 +206,14 @@ export class SonarScreenParticles extends GameObject {
         if (this.pingCountdown > this.pingHangTime) {
             const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
             this.pingDistanceOuter = Utils.instance.Lerp(0.1, 1, growPct);
-            this.pingDistanceInner = Utils.instance.Lerp(0, 1, growPct);
+            this.pingDistance = Utils.instance.Lerp(0, 1, growPct);
 
             const targetParticlesPlaced = Math.floor(this.positionCount * growPct);
             const difference = targetParticlesPlaced - this.pingParticlesPlaced;
 
             if (difference > 0) {
                 // Build CDF for the *front* of the ring so shadows only appear once the wavefront hits
-                const rFront = this.pingDistanceInner;
+                const rFront = this.pingDistance;
                 if (!this._angleCDF || Math.abs(rFront - this._cdfRFront) > 0.002) { // small hysteresis
                     this._angleCDF = buildOcclusionCDFFront(
                         targetVisualsList,
@@ -87,7 +225,7 @@ export class SonarScreenParticles extends GameObject {
                 }
 
                 // Spawn new points uniformly by area in the current annulus
-                const rInner = this.pingDistanceInner;
+                const rInner = this.pingDistance;
                 const rOuter = this.pingDistanceOuter;
 
                 for (let i = this.pingParticlesPlaced; i < targetParticlesPlaced; i++) {
@@ -124,7 +262,11 @@ export class SonarScreenParticles extends GameObject {
         if (this.sonarViewController == null || !this.updating) return;
 
         if (this.pinging) {
-            this.AnimatePing(deltaTime);
+            if (this.showHorrorInPing) {
+                this.UpdateTentacles(deltaTime);
+            } else {
+                this.AnimatePing(deltaTime);
+            }
             return;
         }
 
@@ -350,4 +492,14 @@ function buildOcclusionCDFFront(targetVisualsList, rFront, penumbraWidth = 0.03,
     const merged = mergeIntervals(intervals);
     const visible = buildVisibleSegments(merged);
     return buildAngleCDF(visible);
+}
+
+function randomBetween(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function randomPointInUnitCircle() {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random();
+    return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
 }
