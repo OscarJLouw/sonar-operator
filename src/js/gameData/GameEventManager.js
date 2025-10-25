@@ -364,7 +364,7 @@ export class GameEventManager {
         const movementController = this.gameManager.playerMovementController;
         if(movementController.currentState === movementController.states.Porthole)
             return;
-        
+
         // Wait until the player enters the Porthole state
         await new Promise((resolve) => {
             const handler = (e) => {
@@ -398,6 +398,8 @@ export class GameEventManager {
     // ACT 4: THE CHOICE
     async WaitForPlayerToGoToSonar() {
         const movementController = this.gameManager.playerMovementController;
+        if(movementController.currentState === movementController.states.UsingSonar)
+            return;
 
         // Wait until the player enters the Porthole state
         await new Promise((resolve) => {
@@ -417,6 +419,7 @@ export class GameEventManager {
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
+        await this.#sleep(4);
     }
 
     async WaitForPlayerToPing() {
@@ -424,6 +427,7 @@ export class GameEventManager {
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         sonarParticles.showHorrorInPing = true;
         const e = await this.WaitForEvent(sonarMachine, "onPing");
+        await this.#sleep(4);
     }
 
     async TheMelbourneDisappears() {
