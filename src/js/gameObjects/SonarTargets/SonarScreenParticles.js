@@ -47,17 +47,23 @@ export class SonarScreenParticles extends GameObject {
 
         this.tentacles = [];
         this.showHorrorInPing = false;
+        this._ignoreOccluders = null;
     }
 
-    PingAt(origin, { radius = 2, showHorror = this.showHorrorInPing } = {}) {
+    PingAt(origin, { radius = 2, showHorror = this.showHorrorInPing, ignore = [] } = {}) {
         this.pingOrigin.x = origin.x;
         this.pingOrigin.y = origin.y;
         this.pingMaxRadius = radius;
         this.showHorrorInPing = showHorror;
-        this.Ping(); // reuse your existing setup logic
+        this._ignoreOccluders = new Set(ignore);
+        this.Ping(origin); // reuse your existing setup logic
     }
 
     Ping(origin = new THREE.Vector2(0, 0)) {
+        if (origin) {
+            // accept Vector2 or Vector3
+            this.pingOrigin.set(origin.x, origin.y);
+        }
         this.pingOrigin = origin.clone ? origin.clone() : new THREE.Vector2(origin.x, origin.y);
 
         this.pingCountdown = this.pingGrowTime + this.pingHangTime;
@@ -223,17 +229,22 @@ export class SonarScreenParticles extends GameObject {
         const positions = this.points.geometry.attributes.position.array;
         const targets = this.sonarViewController.targetVisualsList;
 
-        const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
+        //const growPct = 1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime);
+
+        const growPct = Utils.instance.Clamp(
+            1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime),
+            0, 1
+        );
 
         // Fixed-radius ping scaled by pingMaxRadius
         const rFront = this.pingMaxRadius * Utils.instance.Lerp(0, 1, growPct); // wavefront
         const rOuter = this.pingMaxRadius * Utils.instance.Lerp(0.1, 1, growPct); // outer sweep
 
         // how many particles are "active" so far
-        const activeCount = Math.floor(this.positionCount * growPct);
+        const activeCount = Math.min(this.positionCount, Math.floor(this.positionCount * growPct));
 
         // (Re)build swept-area sampler each frame (cheap: O(bins * targets))
-        const sampler = buildSweptAreaSampler(targets, this.pingOrigin, rFront, rOuter, /*bins*/512);
+        const sampler = buildSweptAreaSampler(targets, this.pingOrigin, rFront, rOuter, /*bins*/512, this._ignoreOccluders);
 
         // Re-sample ALL active particles within already-swept, unshadowed area
         // Optional blend for smoother shimmer
@@ -486,10 +497,12 @@ function halfAngleAtRadius(d, R, rFront) {
 
 // Build occlusion for the *front* of the expanding ring.
 // Now takes `origin` to compute angles/distances relative to the ping source.
-function buildOcclusionCDFFront(targetVisualsList, rFront, origin, penumbraWidth = 0.03, shadowSpread = 0.0) {
+function buildOcclusionCDFFront(targetVisualsList, rFront, origin, penumbraWidth = 0.03, shadowSpread = 0.0, ignoreSet = null) {
     const intervals = [];
     for (let i = 0; i < targetVisualsList.length; i++) {
         const tv = targetVisualsList[i];
+        if (shouldIgnoreOccluder(tv, origin, ignoreSet)) continue;
+
         // relative to pingOrigin:
         const cx = tv.sonarTarget.transform.position.x - origin.x;
         const cy = tv.sonarTarget.transform.position.y - origin.y;
@@ -544,7 +557,7 @@ function rayCircleNear(origin, cx, cy, R, ang) {
 //   rVisible(φ) = rOuter           if rFront < s_near(φ)
 //               = min(rOuter, s_near(φ)) otherwise.
 // Weight per bin ∝ rVisible(φ)^2 so sampling is uniform-by-area.
-function buildSweptAreaSampler(targets, origin, rFront, rOuter, bins = 512) {
+function buildSweptAreaSampler(targets, origin, rFront, rOuter, bins = 512, ignoreSet = null) {
     const dphi = (Math.PI * 2) / bins;
     const rmax = new Float32Array(bins);
     const weights = new Float32Array(bins);
@@ -556,6 +569,8 @@ function buildSweptAreaSampler(targets, origin, rFront, rOuter, bins = 512) {
         let sNear = Infinity;
         for (let t = 0; t < targets.length; t++) {
             const tv = targets[t];
+            if (shouldIgnoreOccluder(tv, origin, ignoreSet)) continue;
+
             const cx = tv.sonarTarget.transform.position.x;
             const cy = tv.sonarTarget.transform.position.y;
             const R = tv.radius;
@@ -600,4 +615,19 @@ function sampleFromSweptSampler(s) {
     // radius uniform by area
     const r = Math.sqrt(Math.random()) * rMax;
     return { ang, r };
+}
+
+function shouldIgnoreOccluder(tv, origin, ignoreSet, eps = 1e-6) {
+    // explicit ignores (can be tv, tv.sonarTarget, or its transform)
+    if (ignoreSet) {
+        if (ignoreSet.has(tv) ||
+            ignoreSet.has(tv.sonarTarget) ||
+            ignoreSet.has(tv.sonarTarget?.transform)) return true;
+    }
+    // auto-ignore if the ping origin lies inside the target circle
+    const cx = tv.sonarTarget.transform.position.x;
+    const cy = tv.sonarTarget.transform.position.y;
+    const R = tv.radius;
+    const d0 = Math.hypot(cx - origin.x, cy - origin.y);
+    return d0 <= R + eps;
 }

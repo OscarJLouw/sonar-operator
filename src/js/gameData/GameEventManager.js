@@ -431,24 +431,20 @@ export class GameEventManager {
     }
 
     async TheMelbourneDisappears() {
-        const sonarMachine = SceneManager.instance.sonarMachine;
-        const sonarParticles = sonarMachine.sonarViewController.particlesController;
-        sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
+        //const sonarMachine = SceneManager.instance.sonarMachine;
+        //const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        //sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
+        //this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
 
-        this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);
-
-        await this.#sleep(1);
         this.melbourne.Destroy();
 
-        await this.#sleep(3);
+        //await this.#sleep(3);
     }
 
     async FinalPing() {
 
     }
-
-
 
     // HELPERS
 
