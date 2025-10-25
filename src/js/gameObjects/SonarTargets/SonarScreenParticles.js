@@ -59,7 +59,7 @@ export class SonarScreenParticles extends GameObject {
 
     Ping(origin = new THREE.Vector2(0, 0)) {
         this.pingOrigin = origin.clone ? origin.clone() : new THREE.Vector2(origin.x, origin.y);
-        
+
         this.pingCountdown = this.pingGrowTime + this.pingHangTime;
         this.pingParticlesPlaced = 0;
         this.pinging = true;
@@ -323,7 +323,7 @@ export class SonarScreenParticles extends GameObject {
             for (let i = randomParticlesCount; i < this.positionCount; i++) {
                 const i3 = currentPoint * 3;
                 positions[i3 + 0] = 0;
-                positions[i3 + 1] = 0
+                positions[i3 + 1] = 0;
                 positions[i3 + 2] = 0;
                 currentPoint++;
             }

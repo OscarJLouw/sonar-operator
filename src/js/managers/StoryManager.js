@@ -136,6 +136,7 @@ export class StoryManager {
         await this.dialogueManager.start("act3_ashton4");
 
         // Ashton sends another ping, then his boat suddenly disappears
+        await this.gameEvents.WaitForPlayerToLookOutWindow();
         await this.gameEvents.TheEndeavourDisappears();
         await this.dialogueManager.start("act3_ashton_ping");
 
@@ -167,6 +168,7 @@ export class StoryManager {
             await this.gameEvents.WaitForPlayerToPing();
         } else {
             await this.gameEvents.WaitForPlayerToGoToSonar();
+            await this.dialogueManager.start("act4_hereGoesNothing");
             await this.gameEvents.TheMelbournePings();
         }
 
@@ -860,6 +862,14 @@ export class StoryManager {
                     { text: "Copy that. Thank you, Clark.", next: null },
                 ]
             },
+
+            {
+                id: "act4_hereGoesNothing",
+                speaker: "CLARK",
+                text: "Here goes nothing",
+                next: null
+            },
+            
 
             // Wait till player gets to console
             {

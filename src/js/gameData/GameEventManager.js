@@ -303,9 +303,9 @@ export class GameEventManager {
             movementController.addEventListener("onEnterState", handler);
         });
 
-        this.audioManager.StopFadeOut("underworldVoices", 1);
+        //this.audioManager.StopFadeOut("underworldVoices", 1);
 
-        this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
+        //this.portalsController.SendMessage("FadeToBlack", this.portalsController.TaskStates.AnyToComplete);
     }
 
 
@@ -341,6 +341,7 @@ export class GameEventManager {
     async TheMelbournePings() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         sonarParticles.PingAt(this.melbourne.transform.position, {radius: 2, showHorror: true});
     }
 
