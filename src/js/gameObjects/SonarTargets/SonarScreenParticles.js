@@ -54,8 +54,9 @@ export class SonarScreenParticles extends GameObject {
         this.faceActive = false;
         this.faceSeeds3D = null;                        // Float32Array of length faceParticleBudget*3
         this.faceCenter = new THREE.Vector2(0, 0);      // where the face sits on the sonar plane
-        this.faceScale = 0.9;                           // overall XY scale on the sonar
-        this.faceDepthScale = 0.9;                      // how much Z “pops” out
+        this.faceScaleX = 0.9;                           // overall XY scale on the sonar
+        this.faceScaleY = 0.9;                           // overall XY scale on the sonar
+        this.faceScaleZ = 0.9;                      // how much Z “pops” out
         this.faceYawSpeed = 0.25;                       // rad/s
         this.facePitchSpeed = 0.1;
         this.faceRollSpeed = 0.0;
@@ -249,8 +250,9 @@ export class SonarScreenParticles extends GameObject {
 
     StartFaceFromMesh(mesh, {
         center = new THREE.Vector2(0, 0),
-        scale = 0.9,
-        depthScale = 0.9,
+        scaleX = 0.9,
+        scaleY = 0.9,
+        scaleZ = 0.9,
         yawSpeed = 0.25,
         pitchSpeed = 0.1,
         rollSpeed = 0.0,
@@ -271,8 +273,9 @@ export class SonarScreenParticles extends GameObject {
             }
         }
         this.faceCenter.copy(center);
-        this.faceScale = scale;
-        this.faceDepthScale = depthScale;
+        this.faceScaleX = scaleX;
+        this.faceScaleY = scaleY;
+        this.faceScaleZ = scaleZ;
         this.faceYawSpeed = yawSpeed;
         this.facePitchSpeed = pitchSpeed;
         this.faceRollSpeed = rollSpeed;
@@ -294,7 +297,9 @@ export class SonarScreenParticles extends GameObject {
         const positions = this.points.geometry.attributes.position.array;
         const start = this.faceStartIndex;
         const count = this.faceParticleBudget;
-        const sXY = this.faceScale, sZ = this.faceDepthScale;
+        const sX = this.faceScaleX;
+        const sY = this.faceScaleY;
+        const sZ = this.faceScaleZ;
         const v = this._tmpV3;
 
         // ========= POOL MODE =========
@@ -317,8 +322,8 @@ export class SonarScreenParticles extends GameObject {
                 const jy = (Math.random() * 2 - 1) * this.faceJitter;
                 const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
 
-                positions[i3 + 0] = this.faceCenter.x + v.x * sXY + jx;
-                positions[i3 + 1] = this.faceCenter.y + v.y * sXY + jy;
+                positions[i3 + 0] = this.faceCenter.x + v.x * sX + jx;
+                positions[i3 + 1] = this.faceCenter.y + v.y * sY + jy;
                 positions[i3 + 2] = v.z * sZ + jz;
             }
             this.points.geometry.attributes.position.needsUpdate = true;

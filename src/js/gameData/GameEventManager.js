@@ -457,12 +457,16 @@ export class GameEventManager {
 
 
     async SpawnFace() {
+
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        //SceneManager.instance.CreateControls(sonarParticles.transform);
 
         // 1) Trigger horror (tentacles)
-        sonarParticles.CreateTentacles({spawnAngleMin: 0, spawnAngleMax: 1, endpointSpread: 0.2,
-        tentacleLengthMin: 0.3, tentacleLengthMax: 0.5, animScaleMin: 0, animScaleMax: 0.5});
+        sonarParticles.CreateTentacles({
+            spawnAngleMin: 0, spawnAngleMax: 1, endpointSpread: 0.2,
+            tentacleLengthMin: 0.3, tentacleLengthMax: 0.5, animScaleMin: 0, animScaleMax: 0.5
+        });
 
         sonarParticles.PingAt(new THREE.Vector2(0, 0), { radius: 2, showHorror: true });
 
@@ -474,8 +478,9 @@ export class GameEventManager {
         //sonarParticles.facePoolSize = 20000;           // more variety if you want
         sonarParticles.StartFaceFromMesh(faceMesh, {
             center: new THREE.Vector2(0, 0),
-            scale: 0.4,
-            depthScale: 0.4,
+            scaleX: 0.4,
+            scaleY: 0.4,
+            scaleZ: 0.4,
             yawSpeed: 0,
             pitchSpeed: 0,
             rollSpeed: 0,
@@ -483,33 +488,45 @@ export class GameEventManager {
             weightTexture: eyeTexture,
             weightChannel: 'r',                       // or 'r' if you painted pure red
         });
-        sonarParticles.faceRot.set(Math.PI/2, 0, 0);
+        sonarParticles.faceRot.set(Math.PI / 2, 0, 0);
 
-        const start = performance.now();
-        const duration = 0.25 * 1000;
-        const easeInOutQuad = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        var start = performance.now();
+        var duration = 0.2 * 1000;
+        var duration2 = 0.25 * 1000;
 
-        while(true)
-        {
-            const now = performance.now();    
-            const t = Math.min((now - start) / duration, 1);
 
-            sonarParticles.faceRot.set(Math.PI/2, 0, Utils.instance.Lerp(Math.PI/6, 0, easeInOutQuad(t)));
+        while (true) {
+            const now = performance.now();
+            const t1 = Math.min((now - start) / duration, 1);
+            const t2 = Math.min((now - start) / duration2, 1);
+
+            sonarParticles.faceRot.set(Math.PI / 2, 0, Utils.instance.Lerp(Math.PI / 6, 0, this.easeOutBack(t1)));
+            sonarParticles.faceScaleX = Utils.instance.Lerp(0.2, 0.4, this.easeOutBack(t2));
+            //sonarParticles.faceScaleY = Utils.instance.Lerp(0, 0.4, easeInOutQuad(t));
             await this.nextFrame();
 
-            if (t >= 1) break;
+            if (Math.min(t1, t2) >= 1) break;
         }
-        await this.#sleep(3);
+        await this.#sleep(6);
 
 
         start = performance.now();
-        duration = 3 * 1000;
-        while(true)
-        {
-            const now = performance.now();    
+        duration = 0.4 * 1000;
+        const startX = sonarParticles.transform.position.x;
+        const startY = sonarParticles.transform.position.y;
+        const startZ = sonarParticles.transform.position.z;
+        const realOrigin = sonarParticles.transform.worldToLocal(new THREE.Vector3(0, 0, 0));
+        while (true) {
+            const now = performance.now();
             const t = Math.min((now - start) / duration, 1);
 
-            sonarParticles.faceRot.set(Math.PI/2, 0, Utils.instance.Lerp(Math.PI/6, 0, easeInOutQuad(t)));
+            sonarParticles.transform.position.x = Utils.instance.Lerp(startX, realOrigin.x, this.easeInQuad(t));
+            sonarParticles.transform.position.y = Utils.instance.Lerp(startY, realOrigin.y, this.easeInQuad(t));
+            sonarParticles.transform.position.z = Utils.instance.Lerp(startZ, 10, this.easeInQuad(t));
+            sonarParticles.transform.scale.x = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
+            sonarParticles.transform.scale.y = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
+            sonarParticles.transform.scale.z = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
+
             await this.nextFrame();
 
             if (t >= 1) break;
@@ -596,4 +613,25 @@ export class GameEventManager {
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
     nextFrame = () => new Promise(requestAnimationFrame);
+
+    easeInQuad = t => t * t;
+    easeOutQuad = t => t * (2 - t);
+    easeInOutQuad = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+    easeInBack = (t, overshoot = 1.70158) => {
+        const c1 = overshoot;
+        return (c1 + 1) * t * t * t - c1 * t * t;
+    }
+
+    easeOutBack = (t, overshoot = 1.70158) => {
+        const c1 = overshoot;
+        return 1 + (c1 + 1) * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+    easeInOutBack = (t, overshoot = 1.70158) => {
+        const c1 = overshoot;
+        const c2 = c1 * 1.525;
+        return t < 0.5
+            ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
+            : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
+    };
 }
