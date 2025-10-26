@@ -295,7 +295,7 @@ export class GameEventManager {
         await this.#sleep(0.2);
         this.audioManager.playOneShot("analogBeep", { bus: 'sfx' });
         await this.#sleep(1);
-        this.audioManager.PlayFadeIn("ghostFrequency", { seconds: 30 });
+        this.audioManager.PlayFadeIn("ghostFrequency", { seconds: 10 });
     }
 
     // ACT 3: THE CONTACT
@@ -603,6 +603,9 @@ export class GameEventManager {
 
     async EndCredits() {
         await this.#sleep(5);
+        this.audioManager.FadeBusByID("ambience", 0.001, 5);
+        this.audioManager.FadeBusByID("sonar", 0.001, 5);
+        this.audioManager.FadeBusByID("sfx", 0.001, 5);
         this.audioManager.PlayFadeIn("creditsMusic", { to: 0.3, seconds: 3, randomizeStart: false });
 
     }

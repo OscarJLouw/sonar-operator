@@ -244,6 +244,7 @@ export class SonarTarget extends GameObject {
 
     OnDiscovered() {
         this.discovered = true;
+        AudioManager.instance.playOneShot("targetAppearNormal", { bus: 'sfx', volume: 0.5, rate: 1, jitter: 0.15 });
 
         this.dispatchEvent(new CustomEvent("discoveredTarget",
             {

@@ -62,6 +62,7 @@ export class AudioManager {
     // SFX
     analogBeep: { path: './audio/sfx/consoleSFX/AnalogBeep.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     targetAppear: { path: './audio/sfx/consoleSFX/sfxD06.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
+    targetAppearNormal: { path: './audio/sfx/consoleSFX/sfxD05.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     sonarBlip: { path: './audio/sfx/sonarBlip.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     monster1: { path: './audio/sonarTargets/unknown/Monster1.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
@@ -73,7 +74,7 @@ export class AudioManager {
     distortedScreams2: { path: './audio/sfx/spooky/Distorted_Screams_10.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     eyeOfSonar: { path: './audio/sfx/spooky/Eye_Of_Sonar_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     nightmareRiser: { path: './audio/sfx/spooky/Nightmare_Riser_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 0.9, loop: false, bus: 'sfx', autostart: false },
+    screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 0.8, loop: false, bus: 'sfx', autostart: false },
     
     // Music
     creditsMusic: { path: './audio/music/horrorpiano_out.ogg', volume: 0.9, loop: false, bus: 'music', autostart: false },

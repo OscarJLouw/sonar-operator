@@ -44,6 +44,7 @@ export class StoryManager {
         await this.Act3();
         await this.Act4();
         await this.gameEvents.CutToBlack();
+        await this.EndCredits();
     }
 
     async Intro() {
