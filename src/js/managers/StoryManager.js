@@ -38,7 +38,7 @@ export class StoryManager {
         this.gameEvents.DebugSetupPrerequisites(true, true, true, true); //sonar, ships, sub, move
         //await this.Intro();
 
-        //await this.gameEvents.SpawnFace();
+        await this.gameEvents.SpawnFace();
         //await this.Act1();
         //await this.Act2();
         //await this.Act3();

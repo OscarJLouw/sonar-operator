@@ -257,66 +257,115 @@ export class SonarScreenParticles extends GameObject {
     }
 
     UpdateTentacles(deltaTime) {
-        this.tentaclesTime += deltaTime;
+        // Drive horror wavefront by the ping timer (restores your old behavior)
+        this.pingCountdown -= deltaTime;
+
         const positions = this.points.geometry.attributes.position.array;
+        const totalPingTime = (this.pingGrowTime + this.pingHangTime);
+        const animPercent = totalPingTime > 0 ? (this.pingCountdown / totalPingTime) : 0;
 
-        // Drive tentacle growth with its own timeline
-        const animPercent = Utils.instance.Clamp(
-            this.tentaclesTime / (this.tentaclesGrowTime + this.tentaclesHangTime), 0, 1
-        );
+        // 1) Draw tentacle strands (as before)
+        if (this.pingCountdown > 0) {
+            const noiseAmplitudeGlobal = 0.01;
 
-        const noiseAmplitudeGlobal = 0.01;
+            for (let i = 0; i < this.tentacles.length; i++) {
+                const tentacle = this.tentacles[i];
 
-        // 1) Write tentacle strands into their reserved slice only
-        for (let i = 0; i < this.tentacles.length; i++) {
-            const t = this.tentacles[i];
+                const lerpedEndPosX = Utils.instance.Lerp(
+                    tentacle.endPosition.x,
+                    tentacle.targetPos.x * 0.6,
+                    (1 - animPercent) * tentacle.animScale
+                );
+                const lerpedEndPosY = Utils.instance.Lerp(
+                    tentacle.endPosition.y,
+                    tentacle.targetPos.y * 0.6,
+                    (1 - animPercent) * tentacle.animScale
+                );
 
-            // endpoints can “search” a bit as before
-            const endX = Utils.instance.Lerp(t.endPosition.x, t.targetPos.x * t.targetDistance, animPercent * t.animScale);
-            const endY = Utils.instance.Lerp(t.endPosition.y, t.targetPos.y * t.targetDistance, animPercent * t.animScale);
+                tentacle.noiseTimeA += deltaTime * tentacle.noiseSpeedA;
+                tentacle.noiseTimeB += deltaTime * tentacle.noiseSpeedB;
 
-            t.noiseTimeA += deltaTime * t.noiseSpeedA;
-            t.noiseTimeB += deltaTime * t.noiseSpeedB;
+                const tangentX = -(lerpedEndPosY - tentacle.startPosition.y);
+                const tangentY = (lerpedEndPosX - tentacle.startPosition.x);
 
-            const tanX = -(endY - t.startPosition.y);
-            const tanY = (endX - t.startPosition.x);
+                const jStart = tentacle.startIndex;
+                const jEnd = jStart + this.particlesPerTentacle;
 
-            const jStart = t.startIndex;
-            const jEnd = jStart + this.particlesPerTentacle;
+                for (let j = jStart; j < jEnd; j++) {
+                    const j3 = j * 3;
+                    const u = (j - jStart) / this.particlesPerTentacle;
 
-            for (let j = jStart; j < jEnd; j++) {
-                const j3 = j * 3;
-                const u = (j - jStart) / this.particlesPerTentacle;
+                    const width = Utils.instance.Lerp(tentacle.widthAtBase, tentacle.widthAtTip, u);
+                    const ampPoint = Utils.instance.Lerp(tentacle.noiseAmplitudeAtBase, tentacle.noiseAmplitudeAtTip, u);
 
-                const width = Utils.instance.Lerp(t.widthAtBase, t.widthAtTip, u);
-                const ampPoint = Utils.instance.Lerp(t.noiseAmplitudeAtBase, t.noiseAmplitudeAtTip, u);
+                    const noiseA = Math.sin(tentacle.noiseTimeA + u * tentacle.noiseFreqencyA) * tentacle.noiseAmplitudeA * noiseAmplitudeGlobal;
+                    const noiseB = Math.sin(tentacle.noiseTimeB + u * tentacle.noiseFreqencyB) * tentacle.noiseAmplitudeB * noiseAmplitudeGlobal;
 
-                const noiseA = Math.sin(t.noiseTimeA + u * t.noiseFreqencyA) * t.noiseAmplitudeA * noiseAmplitudeGlobal;
-                const noiseB = Math.sin(t.noiseTimeB + u * t.noiseFreqencyB) * t.noiseAmplitudeB * noiseAmplitudeGlobal;
-                let noise = Math.pow(noiseA + noiseB, t.noisePow);
-                noise = Utils.instance.Clamp(noise, -1, 1) * ampPoint;
+                    let noise = Math.pow(noiseA + noiseB, tentacle.noisePow);
+                    noise = Utils.instance.Clamp(noise, -1, 1) * ampPoint;
 
-                const rndW = randomBetween(-width, width);
+                    const rndW = randomBetween(-width, width);
 
-                positions[j3 + 0] = Utils.instance.Lerp(t.startPosition.x, endX, u) + tanX * (noise + rndW);
-                positions[j3 + 1] = Utils.instance.Lerp(t.startPosition.y, endY, u) + tanY * (noise + rndW);
-                positions[j3 + 2] = 0;
+                    positions[j3 + 0] = Utils.instance.Lerp(tentacle.startPosition.x, lerpedEndPosX, u) + tangentX * (noise + rndW);
+                    positions[j3 + 1] = Utils.instance.Lerp(tentacle.startPosition.y, lerpedEndPosY, u) + tangentY * (noise + rndW);
+                    positions[j3 + 2] = 0;
+                }
             }
         }
 
-        // 2) Optional: micro shimmer over the same slice (no radial respawn!)
-        //    Keep it tiny so the silhouette stays visible.
-        const micro = 0.003;
+        // 2) Ring-based respawn + fuzz (ONLY over the tentacle slice)
+        //    This is what makes the ping “paint behind” and then shimmer/fade.
+        const growPercentage = Utils.instance.Clamp(
+            1 - ((this.pingCountdown - this.pingHangTime) / this.pingGrowTime), 0, 1
+        );
+
+        const pingFuzzSize = 0.5;
+        const pingMin = Utils.instance.Lerp(-pingFuzzSize * 0.5, this.pingMaxRadius, growPercentage);
+        const pingMax = Utils.instance.Lerp(0, this.pingMaxRadius + pingFuzzSize * 0.5, growPercentage);
+
+        const fuzzinessAmplitude = 0.05;
+        const fadeoutTime = 1 - Math.min(this.pingCountdown / this.pingHangTime, 1);
+        const fadeoutTimeExponential = Math.pow(fadeoutTime, 4);
+
         for (let i = 0; i < this.tentacleParticleBudget; i++) {
             const i3 = i * 3;
-            positions[i3 + 0] += randomBetween(-micro, micro);
-            positions[i3 + 1] += randomBetween(-micro, micro);
-            // z stays 0 here
+
+            // distance from ping ORIGIN (not world origin)
+            const dx = positions[i3 + 0] - this.pingOrigin.x;
+            const dy = positions[i3 + 1] - this.pingOrigin.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > pingMax) {
+                // Not yet swept by the annulus → pull into the current ring
+                const u = Math.random();
+                const spawnRadius = Math.sqrt(
+                    pingMin * pingMin + u * (pingMax * pingMax - pingMin * pingMin)
+                );
+                const angle = Math.random() * Math.PI * 2;
+
+                positions[i3 + 0] = this.pingOrigin.x + Math.cos(angle) * spawnRadius;
+                positions[i3 + 1] = this.pingOrigin.y + Math.sin(angle) * spawnRadius;
+                positions[i3 + 2] = 0;
+            } else {
+                // Already swept → shimmer/fuzz with a fade over hang time
+                const fuzziness = Utils.instance.Clamp(
+                    Utils.instance.InverseLerp(pingMin, pingMax, dist), 0, 1
+                ) * fuzzinessAmplitude;
+
+                positions[i3 + 0] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
+                positions[i3 + 1] += randomBetween(-fuzziness, fuzziness) + randomBetween(-fadeoutTimeExponential, fadeoutTimeExponential);
+                // z stays 0
+            }
+        }
+
+        // 3) Wrap-up when the ping completes
+        if (this.pingCountdown <= 0) {
+            this.pinging = false;          // stop driving the horror ping branch
+            this.tentaclesActive = false;  // allow passive scatter to resume after this frame
         }
 
         this.points.geometry.attributes.position.needsUpdate = true;
     }
-
 
     AnimatePing(deltaTime) {
         this.pingCountdown -= deltaTime;
@@ -391,7 +440,7 @@ export class SonarScreenParticles extends GameObject {
                 this.AnimatePing(deltaTime);
                 return;
             }
-            
+
             return;
         }
 
