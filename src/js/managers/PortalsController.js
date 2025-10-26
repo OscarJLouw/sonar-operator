@@ -38,7 +38,6 @@ export class PortalsController {
         await this.#sleep(1);
         //this.SendMessage("FadeFromBlack", this.TaskStates.AnyToActive);
         await this.#sleep(1);
-        this.SendMessage("FadeFromBlack", this.TaskStates.AnyToComplete);
 
     }
 
