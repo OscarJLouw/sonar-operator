@@ -43,6 +43,7 @@ export class AudioManager {
     underwater2: { path: './audio/ambience/Ambience_Underwater_02_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     underworldVoices: { path: './audio/ambience/Ambience_Underworld_Voices_Loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
     subInterior: { path: './audio/ambience/machine_10_loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
+    ghostFrequency: { path: './audio/ambience/TheGhostFrequency.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
 
     // Biophony samples
     humpbacks: { path: './audio/sonarTargets/biophony/HumpbackWhales2.ogg', volume: 0.5, loop: true, bus: 'sonar', autostart: false },

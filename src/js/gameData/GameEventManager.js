@@ -292,6 +292,7 @@ export class GameEventManager {
         await this.#sleep(0.2);
         this.audioManager.playOneShot("analogBeep", { bus: 'sfx' });
         await this.#sleep(1);
+        this.audioManager.PlayFadeIn("ghostFrequency", { seconds: 30 });
     }
 
     // ACT 3: THE CONTACT
@@ -465,6 +466,8 @@ export class GameEventManager {
     }
 
     async FinalPing() {
+
+        this.audioManager.StopFadeOut("ghostFrequency", { seconds: 10 });
 
         const sonarMachine = SceneManager.instance.sonarMachine;
         sonarMachine.SetActiveSonarAuthorised(true);
