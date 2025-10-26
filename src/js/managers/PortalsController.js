@@ -31,12 +31,12 @@ export class PortalsController {
     }
 
     async StartGame() {
-        this.SendMessage("FadeToBlack", this.TaskStates.AnyToActive);
+        //this.SendMessage("FadeToBlack", this.TaskStates.AnyToActive);
         await this.#sleep(1);
-        this.SendMessage("FadeToBlack", this.TaskStates.AnyToComplete);
+        //this.SendMessage("FadeToBlack", this.TaskStates.AnyToComplete);
         this.SendMessage("StartGame", this.TaskStates.NotActiveToActive);
         await this.#sleep(1);
-        this.SendMessage("FadeFromBlack", this.TaskStates.AnyToActive);
+        //this.SendMessage("FadeFromBlack", this.TaskStates.AnyToActive);
         await this.#sleep(1);
         this.SendMessage("FadeFromBlack", this.TaskStates.AnyToComplete);
 
