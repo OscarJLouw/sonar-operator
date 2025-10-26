@@ -37,8 +37,6 @@ export class StoryManager {
     async Start() {
         this.gameEvents.DebugSetupPrerequisites(true, true, true, true); //sonar, ships, sub, move
         //await this.Intro();
-
-        await this.gameEvents.SpawnFace();
         //await this.Act1();
         //await this.Act2();
         //await this.Act3();
@@ -889,12 +887,16 @@ export class StoryManager {
                     {
                         text: "How long do I have? I'll need time to get to the Captain.",
                         next: "act4_clarksMadness1",
-                        condition: vars => vars.escapeChoice == "selfish"
+                        condition: vars => vars.escapeChoice === "selfish"
                     },
                     {
                         text: "How fast was it moving? Do you have time to escape?",
                         next: "act4_clarksMadness1",
-                        condition: vars => vars.escapeChoice == "noble"
+                        condition: vars => vars.escapeChoice === "noble"
+                    },
+                    {
+                        text: "Time to go.",
+                        next: "act4_clarksMadness1",
                     },
                 ]
             },

@@ -81,7 +81,8 @@ export class MeshManager {
             './models/ArrowButtons.glb',
             './models/SonarViewerPanel.glb',
             './models/ActiveSonarButton.glb',
-            './models/YogSothothDecimated.glb'
+            //'./models/YogSothothDecimated.glb'
+            './models/EyeballTest.glb'
         ];
 
         const modelPromises = modelPaths.map(path => {
@@ -107,7 +108,8 @@ export class MeshManager {
                 indicatorLight: this.ExtractModel(loadedModels[5], "IndicatorLight"),
                 sonarButton: this.ExtractModel(loadedModels[6], "Button"),
                 sonarHousing: this.ExtractModel(loadedModels[6], "ButtonHousing"),
-                eldritchHorror: this.ExtractModel(loadedModels[7], "Mesh_0")
+                //eldritchHorror: this.ExtractModel(loadedModels[7], "Mesh_0")
+                eldritchHorror: this.ExtractModel(loadedModels[7], "Sphere")
             };
         } catch (error) {
             console.error("Error loading models:", error);

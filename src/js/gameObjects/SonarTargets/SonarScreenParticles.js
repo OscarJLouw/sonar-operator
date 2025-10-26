@@ -5,7 +5,7 @@ import { MeshSurfaceSampler } from 'three/examples/jsm/Addons.js';
 
 export class SonarScreenParticles extends GameObject {
     Awake() {
-        this.positionCount = 2000;
+        this.positionCount = 3000;
         this.positions = new Float32Array(this.positionCount * 3);
 
         for (let i = 0; i < this.positionCount; i++) {
@@ -50,7 +50,7 @@ export class SonarScreenParticles extends GameObject {
         this._ignoreOccluders = null;
 
         // ---- Face (3D) ----
-        this.faceParticleBudget = 800;                  // face uses the top slice of the buffer
+        this.faceParticleBudget = 2500;                  // face uses the top slice of the buffer
         this.faceActive = false;
         this.faceSeeds3D = null;                        // Float32Array of length faceParticleBudget*3
         this.faceCenter = new THREE.Vector2(0, 0);      // where the face sits on the sonar plane
@@ -64,6 +64,14 @@ export class SonarScreenParticles extends GameObject {
         this._faceQuat = new THREE.Quaternion();
         this._tmpV3 = new THREE.Vector3();
 
+        this.faceResampleMode = 'pool';      // choose: 'pool' | 'full' | 'partial'
+        this.facePoolSize = 16384;
+        this._facePoolStride = 8191;         // co-prime with poolSize (if poolSize is power-of-two, any odd stride is OK)
+        this._faceFrameStep = 127;           // step the offset each frame (co-prime-ish with poolSize)
+        this._faceFrame = 0;
+        this.faceSeedsPool3D = null;
+        this.faceBounds = { center: new THREE.Vector3(), radius: 1 };
+        
         // Reserve particle ranges (no overlap with tentacles)
         this.faceStartIndex = Math.max(0, this.positionCount - this.faceParticleBudget);
         this.tentacleParticleBudget = this.faceStartIndex; // tentacles use [0 .. faceStartIndex-1]
@@ -73,6 +81,8 @@ export class SonarScreenParticles extends GameObject {
         this.tentaclesTime = 0;
         this.tentaclesGrowTime = 1.0;
         this.tentaclesHangTime = 1.5;
+
+
 
     }
 
@@ -118,6 +128,32 @@ export class SonarScreenParticles extends GameObject {
         this.tentaclesActive = true;
         this.tentaclesTime = 0;
     }
+
+    BuildFaceSeedsPool3D(mesh, poolSize = this.facePoolSize) {
+        if (!mesh || !mesh.isMesh) return false;
+
+        const geom = mesh.geometry;
+        geom.computeBoundingSphere();
+        const bs = geom.boundingSphere;
+        (this.faceBounds ??= { center: new THREE.Vector3(), radius: 1 });
+        this.faceBounds.center.copy(bs.center);
+        this.faceBounds.radius = bs.radius || 1;
+
+        this.faceSampler = new MeshSurfaceSampler(mesh).build();
+
+        const pool = new Float32Array(poolSize * 3);
+        const v = this._tmpV3;
+        for (let i = 0; i < poolSize; i++) {
+            this.faceSampler.sample(v);
+            v.sub(this.faceBounds.center).divideScalar(this.faceBounds.radius);
+            pool[i * 3 + 0] = v.x;
+            pool[i * 3 + 1] = v.y;
+            pool[i * 3 + 2] = v.z;
+        }
+        this.faceSeedsPool3D = pool;
+        return true;
+    }
+
     PrepareFaceSeedsFromMesh3D(mesh, count = this.faceParticleBudget) {
         if (!mesh || !mesh.isMesh) { console.warn("Expected THREE.Mesh"); return false; }
         const geom = mesh.geometry;
@@ -154,7 +190,13 @@ export class SonarScreenParticles extends GameObject {
         rollSpeed = 0.0,
         jitter = 0.004,
     } = {}) {
-        if (mesh && !this.PrepareFaceSeedsFromMesh3D(mesh, this.faceParticleBudget)) return;
+        if (mesh) {
+            if (this.faceResampleMode === 'pool') {
+                if (!this.BuildFaceSeedsPool3D(mesh, this.facePoolSize)) return;
+            } else {
+                if (!this.PrepareFaceSeedsFromMesh3D(mesh, this.faceParticleBudget)) return;
+            }
+        }
         this.faceCenter.copy(center);
         this.faceScale = scale;
         this.faceDepthScale = depthScale;
@@ -168,46 +210,105 @@ export class SonarScreenParticles extends GameObject {
 
     // Per-frame writer into the reserved face slice (keeps running after ping ends)
     UpdateFace3D(deltaTime) {
-        if (!this.faceActive || !this.faceSeeds3D) return;
+        if (!this.faceActive) return;
 
-        // advance rotation
-        this.faceRot.y += this.faceYawSpeed * deltaTime; // yaw
-        this.faceRot.x += this.facePitchSpeed * deltaTime; // pitch
-        this.faceRot.z += this.faceRollSpeed * deltaTime; // roll
+        // advance rotation (shared)
+        this.faceRot.y += this.faceYawSpeed * deltaTime;
+        this.faceRot.x += this.facePitchSpeed * deltaTime;
+        this.faceRot.z += this.faceRollSpeed * deltaTime;
         this._faceQuat.setFromEuler(this.faceRot);
 
         const positions = this.points.geometry.attributes.position.array;
         const start = this.faceStartIndex;
         const count = this.faceParticleBudget;
         const sXY = this.faceScale, sZ = this.faceDepthScale;
-
         const v = this._tmpV3;
 
-        for (let i = 0; i < count; i++) {
-            const i3 = (start + i) * 3;
+        // ========= POOL MODE =========
+        if (this.faceResampleMode === 'pool') {
+            if (!this.faceSeedsPool3D || !this.faceSampler) return; // must be built
+            this._faceFrame = (this._faceFrame + 1) | 0;
 
-            v.set(
-                this.faceSeeds3D[i * 3 + 0],
-                this.faceSeeds3D[i * 3 + 1],
-                this.faceSeeds3D[i * 3 + 2]
-            ).applyQuaternion(this._faceQuat);
+            const pool = this.faceSeedsPool3D;
+            const N = this.facePoolSize | 0;
+            const stride = this._facePoolStride | 0;    // odd vs power-of-two N is fine
+            const offset = (this._faceFrame * this._faceFrameStep) % N;
 
-            // map to sonar space; keep Z for true 3D shape
-            const x = this.faceCenter.x + v.x * sXY;
-            const y = this.faceCenter.y + v.y * sXY;
-            const z = v.z * sZ; // local z; added to this.points.position.z in world
+            for (let i = 0; i < count; i++) {
+                const k = (offset + i * stride) % N;      // pseudo-random slice walk
+                const i3 = (start + i) * 3;
 
-            const jx = (Math.random() * 2 - 1) * this.faceJitter;
-            const jy = (Math.random() * 2 - 1) * this.faceJitter;
-            const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
+                v.set(pool[k * 3 + 0], pool[k * 3 + 1], pool[k * 3 + 2]).applyQuaternion(this._faceQuat);
 
-            positions[i3 + 0] = x + jx;
-            positions[i3 + 1] = y + jy;
-            positions[i3 + 2] = z + jz;
+                const jx = (Math.random() * 2 - 1) * this.faceJitter;
+                const jy = (Math.random() * 2 - 1) * this.faceJitter;
+                const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
+
+                positions[i3 + 0] = this.faceCenter.x + v.x * sXY + jx;
+                positions[i3 + 1] = this.faceCenter.y + v.y * sXY + jy;
+                positions[i3 + 2] = v.z * sZ + jz;
+            }
+            this.points.geometry.attributes.position.needsUpdate = true;
+            return;
         }
 
-        this.points.geometry.attributes.position.needsUpdate = true;
+        // ========= FULL MODE =========
+        if (this.faceResampleMode === 'full') {
+            if (!this.faceSampler || !this.faceBounds) return;
+
+            for (let i = 0; i < count; i++) {
+                const i3 = (start + i) * 3;
+
+                this.faceSampler.sample(v); // mesh-local
+                v.sub(this.faceBounds.center).divideScalar(this.faceBounds.radius);
+                v.applyQuaternion(this._faceQuat);
+
+                const jx = (Math.random() * 2 - 1) * this.faceJitter;
+                const jy = (Math.random() * 2 - 1) * this.faceJitter;
+                const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
+
+                positions[i3 + 0] = this.faceCenter.x + v.x * sXY + jx;
+                positions[i3 + 1] = this.faceCenter.y + v.y * sXY + jy;
+                positions[i3 + 2] = v.z * sZ + jz;
+            }
+            this.points.geometry.attributes.position.needsUpdate = true;
+            return;
+        }
+
+        // ========= PARTIAL MODE =========
+        // refresh a fraction of seeds per frame; reuse the rest
+        if (this.faceResampleMode === 'partial') {
+            if (!this.faceSampler || !this.faceBounds || !this.faceSeeds3D) return;
+
+            for (let i = 0; i < count; i++) {
+                const refresh = Math.random() < (this.faceResampleFraction ?? 0.25);
+                if (refresh) {
+                    this.faceSampler.sample(v);
+                    v.sub(this.faceBounds.center).divideScalar(this.faceBounds.radius);
+                    this.faceSeeds3D[i * 3 + 0] = v.x;
+                    this.faceSeeds3D[i * 3 + 1] = v.y;
+                    this.faceSeeds3D[i * 3 + 2] = v.z;
+                } else {
+                    v.set(this.faceSeeds3D[i * 3 + 0], this.faceSeeds3D[i * 3 + 1], this.faceSeeds3D[i * 3 + 2]);
+                }
+
+                v.applyQuaternion(this._faceQuat);
+
+                const i3 = (start + i) * 3;
+                const jx = (Math.random() * 2 - 1) * this.faceJitter;
+                const jy = (Math.random() * 2 - 1) * this.faceJitter;
+                const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
+
+                positions[i3 + 0] = this.faceCenter.x + v.x * sXY + jx;
+                positions[i3 + 1] = this.faceCenter.y + v.y * sXY + jy;
+                positions[i3 + 2] = v.z * sZ + jz;
+            }
+            this.points.geometry.attributes.position.needsUpdate = true;
+            return;
+        }
     }
+
+
     CreateTentacles({
         spawnAngleMin = 0.5, spawnAngleMax = 0.8,
         endpointSpread = 0.1,

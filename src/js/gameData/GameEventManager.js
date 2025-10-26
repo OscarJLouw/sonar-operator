@@ -25,28 +25,6 @@ export class GameEventManager {
         this.portalsController = this.gameManager.portalsController;
     }
 
-    async SpawnFace() {
-        const sonarMachine = SceneManager.instance.sonarMachine;
-        const sonarParticles = sonarMachine.sonarViewController.particlesController;
-
-        // 1) Trigger horror (tentacles)
-        sonarParticles.PingAt(new THREE.Vector2(0, 0), { radius: 2, showHorror: true });
-
-        // 2) After a short beat, start the face reveal.
-        //    Pass a THREE.Mesh (or find one inside a loaded GLTF scene).
-        const faceMesh = MeshManager.instance.models.eldritchHorror;
-
-        sonarParticles.StartFaceFromMesh(faceMesh, {
-            center: new THREE.Vector2(0, 0),
-            scale: 0.9,
-            depthScale: 0.9,
-            yawSpeed: 0.22,
-            pitchSpeed: 0.08,
-            rollSpeed: 0.0,
-            jitter: 0.004
-        });
-    }
-
     // Act 1: Tutorial events
     async HumpbackSearch() {
         const humpbacksConfig = new SonarTargetConfig(
@@ -459,8 +437,8 @@ export class GameEventManager {
         //sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
         //this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
 
-        this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);
-        this.melbourne.Destroy();
+        //this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);
+        //this.melbourne.Destroy();
 
         //await this.#sleep(3);
     }
@@ -472,8 +450,32 @@ export class GameEventManager {
         //sonarParticles.
 
         const e = await this.WaitForEvent(sonarMachine, "onPing");
-
+        this.SpawnFace();
     }
+
+
+    async SpawnFace() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+
+        // 1) Trigger horror (tentacles)
+        sonarParticles.PingAt(new THREE.Vector2(0, 0), { radius: 2, showHorror: true });
+
+        // 2) After a short beat, start the face reveal.
+        //    Pass a THREE.Mesh (or find one inside a loaded GLTF scene).
+        const faceMesh = MeshManager.instance.models.eldritchHorror;
+        sonarParticles.faceResampleMode = 'pool';
+
+        sonarParticles.StartFaceFromMesh(faceMesh, {
+            center: new THREE.Vector2(0, 0),
+            scale: 0.9,
+            depthScale: 0.9,
+            yawSpeed: 0.22,
+            pitchSpeed: 0.08,
+            jitter: 0
+        });
+    }
+
 
     async AnimateCameraFOV() {
         // wherever your finale begins:
