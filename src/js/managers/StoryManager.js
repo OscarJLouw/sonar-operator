@@ -35,11 +35,11 @@ export class StoryManager {
     }
 
     async Start() {
-        this.gameEvents.DebugSetupPrerequisites(true, true, true, true); //sonar, ships, sub, move
-        //await this.Intro();
-        //await this.Act1();
-        //await this.Act2();
-        //await this.Act3();
+        //this.gameEvents.DebugSetupPrerequisites(true, true, true, true); //sonar, ships, sub, move
+        await this.Intro();
+        await this.Act1();
+        await this.Act2();
+        await this.Act3();
         await this.Act4();
     }
 
