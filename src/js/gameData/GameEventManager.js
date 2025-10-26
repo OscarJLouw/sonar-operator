@@ -24,6 +24,17 @@ export class GameEventManager {
         this.portalsController = this.gameManager.portalsController;
     }
 
+    async FadeIn() {
+        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
+        await this.#sleep(0.25);
+        this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToNotActive);
+    }
+
+    CutToBlack() {
+        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
+        
+    }
+
     // Act 1: Tutorial events
     async HumpbackSearch() {
         const humpbacksConfig = new SonarTargetConfig(
@@ -537,7 +548,7 @@ export class GameEventManager {
             sonarParticles.faceScaleX = lerpedScale;
             sonarParticles.faceScaleY = lerpedScale;
             sonarParticles.faceScaleZ = lerpedScale;
-            sonarParticles.faceJitter = Utils.instance.Lerp(startJitter, 0.5, tEased) ;
+            sonarParticles.faceJitter = Utils.instance.Lerp(startJitter, 0.5, tEased);
             //sonarParticles.transform.scale.x = Utils.instance.Lerp(1, 3, tEased);
             //sonarParticles.transform.scale.y = Utils.instance.Lerp(1, 3, tEased);
             //sonarParticles.transform.scale.z = Utils.instance.Lerp(1, 3, tEased);
