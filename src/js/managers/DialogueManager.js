@@ -66,7 +66,9 @@ export class DialogueManager {
             this.currentNodeId = null;      // id of node currently displayed
             this.currentColor = null;       // current color span while typing
             this.currentSpeed = this.speedPresets.normal;
-
+            this.defaultNameColor = '#e9ecf1';
+            this.speakerColors = null;
+            
             // Callbacks
             /** @type {(ch:string, index:number, ctx:{nodeId:string})=>void | null} */
             this.onChar = null; // set via setCharacterCallback
