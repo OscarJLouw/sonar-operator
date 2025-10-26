@@ -804,10 +804,10 @@ export class StoryManager {
                 id: "act3_commander5",
                 speaker: "COMMANDER MORGAN",
                 text: "I see him. {>}The great spawn!",
-                next: "act3_clark8"
+                next: "act3_commander6"
             },
             {
-                id: "act3_commander5",
+                id: "act3_commander6",
                 speaker: "COMMANDER MORGAN",
                 text: "{>}... he takes what is owed him!",
                 next: "act3_clark8"
