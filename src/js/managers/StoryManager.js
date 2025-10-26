@@ -171,9 +171,9 @@ export class StoryManager {
             await this.gameEvents.TheMelbournePings();
         }
 
-        await this.gameEvents.FinalPing();  // DEBUG
-
         await this.dialogueManager.start("act4_theBeastIsPinged");
+        this.audioManager.playOneShot("nightmareRiser", { bus: 'sfx', volume: 0.1, rate: 1 });
+
         // The melbourne disappears
         await this.gameEvents.TheMelbourneDisappears();
 

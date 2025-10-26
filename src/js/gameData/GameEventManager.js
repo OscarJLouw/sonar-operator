@@ -416,10 +416,13 @@ export class GameEventManager {
 
     async TheMelbournePings() {
         const sonarMachine = SceneManager.instance.sonarMachine;
+        sonarMachine.SetActiveSonarAuthorised(false);
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
         sonarParticles.CreateTentacles();
         sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
+        this.audioManager.playOneShot("eyeOfSonar", { bus: 'sfx', volume: 0.9, rate: 1 });
+
         await this.#sleep(4);
     }
 
@@ -429,6 +432,7 @@ export class GameEventManager {
         sonarParticles.CreateTentacles();
         sonarParticles.showHorrorInPing = true;
         const e = await this.WaitForEvent(sonarMachine, "onPing");
+        this.audioManager.playOneShot("eyeOfSonar", { bus: 'sfx', volume: 0.9, rate: 1 });
         await this.#sleep(4);
     }
 
@@ -445,6 +449,7 @@ export class GameEventManager {
     }
 
     async FinalPing() {
+
         const sonarMachine = SceneManager.instance.sonarMachine;
         sonarMachine.SetActiveSonarAuthorised(true);
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
@@ -461,6 +466,8 @@ export class GameEventManager {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         //SceneManager.instance.CreateControls(sonarParticles.transform);
+
+        this.audioManager.playOneShot("core", { bus: 'sfx', volume: 0.9, rate: 1 });
 
         // 1) Trigger horror (tentacles)
         sonarParticles.CreateTentacles({
@@ -511,12 +518,16 @@ export class GameEventManager {
 
 
         start = performance.now();
-        duration = 3 * 1000;
+        duration = 1 * 1000;
         const realOrigin = sonarParticles.transform.worldToLocal(new THREE.Vector3(0, 0, 0));
+        const startJitter = sonarParticles.faceJitter;
+        this.audioManager.playOneShot("distortedScreams1", { bus: 'sfx', volume: 0.9, rate: 1 });
+
         while (true) {
             const now = performance.now();
             const t = Math.min((now - start) / duration, 1);
-            const tEased = this.easeInExpo(t);
+            //const tEased = this.easeInBack(t);
+            const tEased = t;
 
             const lerpedScale = Utils.instance.Lerp(0.4, 2, tEased);
 
@@ -526,6 +537,7 @@ export class GameEventManager {
             sonarParticles.faceScaleX = lerpedScale;
             sonarParticles.faceScaleY = lerpedScale;
             sonarParticles.faceScaleZ = lerpedScale;
+            sonarParticles.faceJitter = Utils.instance.Lerp(startJitter, 0.5, tEased) ;
             //sonarParticles.transform.scale.x = Utils.instance.Lerp(1, 3, tEased);
             //sonarParticles.transform.scale.y = Utils.instance.Lerp(1, 3, tEased);
             //sonarParticles.transform.scale.z = Utils.instance.Lerp(1, 3, tEased);

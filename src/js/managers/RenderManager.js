@@ -5,6 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SceneManager } from './SceneManager';
+import { FilmPass } from 'three/examples/jsm/Addons.js';
 
 export class RenderManager extends Resizable {
     constructor() {
@@ -58,9 +59,10 @@ export class RenderManager extends Resizable {
             this.composer.addPass(this.renderPass);
         }
 
-
+        this.composer.addPass(new FilmPass(0.35));
 
         this.outputPass = new OutputPass();
+
         this.composer.addPass(this.outputPass);
 
         // Composer uses the same fixed internal size

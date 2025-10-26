@@ -65,6 +65,13 @@ export class AudioManager {
     sonarBlip: { path: './audio/sfx/sonarBlip.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     monster1: { path: './audio/sonarTargets/unknown/Monster1.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
+    // Cinematic SFX
+    core: { path: './audio/sfx/spooky/Core_03.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    distortedScreams1: { path: './audio/sfx/spooky/Distorted_Screams_05.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    distortedScreams2: { path: './audio/sfx/spooky/Distorted_Screams_10.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    eyeOfSonar: { path: './audio/sfx/spooky/Eye_Of_Sonar_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    nightmareRiser: { path: './audio/sfx/spooky/Nightmare_Riser_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
   };
 
   // --- NEW: modular manifest plumbing ---
