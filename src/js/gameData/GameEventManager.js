@@ -463,6 +463,7 @@ export class GameEventManager {
     }
 
     async WaitForPlayerToPing() {
+        
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         sonarParticles.CreateTentacles();
@@ -667,6 +668,8 @@ export class GameEventManager {
         this.subOrbitTask = null;
 
         this.submarine.Destroy();
+
+        this.portalsController.SendMessage("Vessel2_Disappear", this.portalsController.TaskStates.AnyToComplete);
     }
 
     // HELPERS
