@@ -72,6 +72,7 @@ export class SonarScreenParticles extends GameObject {
         this._faceFrame = 0;
         this.faceSeedsPool3D = null;
         this.faceBounds = { center: new THREE.Vector3(), radius: 1 };
+        this.facePos = new THREE.Vector3(0, 0, 0);
 
         // Reserve particle ranges (no overlap with tentacles)
         this.faceStartIndex = Math.max(0, this.positionCount - this.faceParticleBudget);
@@ -322,9 +323,9 @@ export class SonarScreenParticles extends GameObject {
                 const jy = (Math.random() * 2 - 1) * this.faceJitter;
                 const jz = (Math.random() * 2 - 1) * (this.faceJitter * 0.5);
 
-                positions[i3 + 0] = this.faceCenter.x + v.x * sX + jx;
-                positions[i3 + 1] = this.faceCenter.y + v.y * sY + jy;
-                positions[i3 + 2] = v.z * sZ + jz;
+                positions[i3 + 0] = this.facePos.x + v.x * sX + jx;
+                positions[i3 + 1] = this.facePos.y + v.y * sY + jy;
+                positions[i3 + 2] = this.facePos.z + v.z * sZ + jz;
             }
             this.points.geometry.attributes.position.needsUpdate = true;
             return;

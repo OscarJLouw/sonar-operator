@@ -511,21 +511,24 @@ export class GameEventManager {
 
 
         start = performance.now();
-        duration = 0.4 * 1000;
-        const startX = sonarParticles.transform.position.x;
-        const startY = sonarParticles.transform.position.y;
-        const startZ = sonarParticles.transform.position.z;
+        duration = 3 * 1000;
         const realOrigin = sonarParticles.transform.worldToLocal(new THREE.Vector3(0, 0, 0));
         while (true) {
             const now = performance.now();
             const t = Math.min((now - start) / duration, 1);
+            const tEased = this.easeInExpo(t);
 
-            sonarParticles.transform.position.x = Utils.instance.Lerp(startX, realOrigin.x, this.easeInQuad(t));
-            sonarParticles.transform.position.y = Utils.instance.Lerp(startY, realOrigin.y, this.easeInQuad(t));
-            sonarParticles.transform.position.z = Utils.instance.Lerp(startZ, 10, this.easeInQuad(t));
-            sonarParticles.transform.scale.x = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
-            sonarParticles.transform.scale.y = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
-            sonarParticles.transform.scale.z = Utils.instance.Lerp(1, 3, this.easeInQuad(t));
+            const lerpedScale = Utils.instance.Lerp(0.4, 2, tEased);
+
+            sonarParticles.facePos.x = Utils.instance.Lerp(0, realOrigin.x, tEased);
+            sonarParticles.facePos.y = Utils.instance.Lerp(0, realOrigin.y, tEased);
+            sonarParticles.facePos.z = Utils.instance.Lerp(0, 10, tEased);
+            sonarParticles.faceScaleX = lerpedScale;
+            sonarParticles.faceScaleY = lerpedScale;
+            sonarParticles.faceScaleZ = lerpedScale;
+            //sonarParticles.transform.scale.x = Utils.instance.Lerp(1, 3, tEased);
+            //sonarParticles.transform.scale.y = Utils.instance.Lerp(1, 3, tEased);
+            //sonarParticles.transform.scale.z = Utils.instance.Lerp(1, 3, tEased);
 
             await this.nextFrame();
 
@@ -617,6 +620,10 @@ export class GameEventManager {
     easeInQuad = t => t * t;
     easeOutQuad = t => t * (2 - t);
     easeInOutQuad = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+    easeInExpo(t) {
+        return t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
+    }
 
     easeInBack = (t, overshoot = 1.70158) => {
         const c1 = overshoot;
