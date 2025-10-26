@@ -73,7 +73,10 @@ export class AudioManager {
     distortedScreams2: { path: './audio/sfx/spooky/Distorted_Screams_10.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     eyeOfSonar: { path: './audio/sfx/spooky/Eye_Of_Sonar_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     nightmareRiser: { path: './audio/sfx/spooky/Nightmare_Riser_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
-    screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 0.9, loop: false, bus: 'sfx', autostart: false },
+    
+    // Music
+    creditsMusic: { path: './audio/music/horrorpiano_out.ogg', volume: 0.9, loop: false, bus: 'music', autostart: false },
   };
 
   // --- NEW: modular manifest plumbing ---

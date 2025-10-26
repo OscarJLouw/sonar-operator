@@ -567,9 +567,18 @@ export class GameEventManager {
         }
 
         sonarMachine.SetActive(false);
+        this.gameManager.playerControls.HideAll();
+
         //sonarParticles.faceRollSpeed = 0;
     }
 
+
+    async EndCredits()
+    {
+        await this.#sleep(5);
+        this.audioManager.PlayFadeIn("creditsMusic", {to: 0.3, seconds: 3, randomizeStart: false});
+        
+    }
 
     async AnimateCameraFOV() {
         // wherever your finale begins:

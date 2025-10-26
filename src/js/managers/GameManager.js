@@ -109,6 +109,7 @@ export class GameManager {
     }
 
     MainMenu() {
+        this.audioManager.PlayFadeIn("creditsMusic", {to: 0.2, seconds: 3, randomizeStart: false});
         this.gameState = "Main Menu";
         this.mainMenu.Show();
         //this.StartGame();
@@ -117,6 +118,7 @@ export class GameManager {
     StartGame() {
 
         this.gameState = "Starting";
+        this.audioManager.StopFadeOut("creditsMusic", 4);
 
         // Start the game in Portals
         this.portalsController.StartGame();
