@@ -22,6 +22,9 @@ export class GameEventManager {
 
         this._dlgGate ??= Promise.resolve();
         this.portalsController = this.gameManager.portalsController;
+
+        this.subOrbitCtrl = null;
+        this.subOrbitTask = null;
     }
 
     async FadeIn() {
@@ -315,7 +318,7 @@ export class GameEventManager {
 
         const worldPos = this.world.shipRoot.position.clone();
         worldPos.x -= 0.2;
-        worldPos.y -= 0.35;
+        worldPos.y -= 0.45;
 
         // Create the as soon as the ping fires submarine!
         const submarineContext = new SonarTargetConfig(
@@ -333,7 +336,23 @@ export class GameEventManager {
 
         await this.#sleep(0.25);
         this.audioManager.playOneShot("targetAppear", { bus: 'sfx', volume: 0.5, rate: 1 });
+
+        // --- start moving slowly around the player here (non-blocking) ---
+        // cancel any prior orbit if it exists
+        this.subOrbitCtrl?.abort();
+        this.subOrbitCtrl = new AbortController();
+
+        this.subOrbitTask = this.OrbitUntilAbort(
+            this.submarine.worldTransform,
+            this.world.shipRoot.position.clone(),
+            {
+                angularSpeed: -Math.PI*0.02,    // slower circle
+                signal: this.subOrbitCtrl.signal,
+            }
+        );
+
         await this.#sleep(1);
+
     }
 
     async MarkTheSub() {
@@ -485,6 +504,8 @@ export class GameEventManager {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         //SceneManager.instance.CreateControls(sonarParticles.transform);
+        sonarMachine.SetActiveSonarAuthorised(false);
+        this.gameManager.playerControls.HideAll();
 
         this.audioManager.playOneShot("core", { bus: 'sfx', volume: 0.9, rate: 1 });
 
@@ -567,16 +588,14 @@ export class GameEventManager {
         }
 
         sonarMachine.SetActive(false);
-        this.gameManager.playerControls.HideAll();
 
         //sonarParticles.faceRollSpeed = 0;
     }
 
 
-    async EndCredits()
-    {
+    async EndCredits() {
         await this.#sleep(5);
-        this.audioManager.PlayFadeIn("creditsMusic", {to: 0.3, seconds: 3, randomizeStart: false});
+        this.audioManager.PlayFadeIn("creditsMusic", { to: 0.3, seconds: 3, randomizeStart: false });
 
     }
 
@@ -587,6 +606,56 @@ export class GameEventManager {
             finalFovDeg: 40,    // taste
             easing: (t) => t * t * (3 - 2 * t)  // smoothstep
         });
+    }
+
+    async OrbitUntilAbort(
+        object3D,
+        centerPoint,                      // () => THREE.Vector3 (called every frame; follows a moving ship)
+        {
+            angularSpeed = Math.PI / 2,  // radians per second (slow circle)
+            signal,                       // AbortSignal to stop
+        } = {}
+    ) {
+        let last = await this.nextFrameResolver(); // prime with first timestamp
+
+
+        var offsetX = object3D.position.x - centerPoint.x;
+        var offsetY = object3D.position.y - centerPoint.y;
+        var originalZ = object3D.position.z;
+        const orbitRadius = Math.hypot(offsetX, offsetY);
+        var angle = Math.atan2(offsetY, offsetX);
+
+        while (!signal?.aborted) {
+            const now = await this.nextFrameResolver();
+            const dt = (now - last) / 1000; // seconds
+            last = now;
+
+            angle += angularSpeed * dt;
+
+            const x = centerPoint.x + Math.cos(angle) * orbitRadius;
+            const y = centerPoint.y + Math.sin(angle) * orbitRadius;
+
+            object3D.position.set(x, y, originalZ);
+        }
+    }
+
+    async StopSubmarineMoving() {
+        if (!this.subOrbitCtrl) return;
+
+        // abort the loop
+        this.subOrbitCtrl.abort();
+
+        // optionally wait for the task to finish cleanly
+        try {
+            await this.subOrbitTask;
+        } catch (_) {
+            // ignore if it was already stopped
+        }
+
+        this.subOrbitCtrl = null;
+        this.subOrbitTask = null;
+
+        this.submarine.Destroy();
     }
 
     // HELPERS
@@ -658,6 +727,7 @@ export class GameEventManager {
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
 
     nextFrame = () => new Promise(requestAnimationFrame);
+    nextFrameResolver = () => new Promise(resolve => requestAnimationFrame(resolve));
 
     easeInQuad = t => t * t;
     easeOutQuad = t => t * (2 - t);

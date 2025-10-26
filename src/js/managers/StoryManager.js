@@ -40,6 +40,7 @@ export class StoryManager {
         await this.Intro();
         await this.Act1();
         await this.Act2();
+        //this.gameEvents.DebugSetupPrerequisites(false, true, false, true); //sonar, ships, sub, move
         await this.Act3();
         await this.Act4();
         await this.gameEvents.CutToBlack();
@@ -179,6 +180,7 @@ export class StoryManager {
         // The melbourne disappears
         await this.gameEvents.TheMelbourneDisappears();
 
+        await this.gameEvents.StopSubmarineMoving();
         //await this.dialogueManager.start("act4_doorInteract1");
         //await this.gameEvents.AnimateCameraFOV();
         await this.gameEvents.FinalPing();
@@ -901,6 +903,7 @@ export class StoryManager {
                     {
                         text: "Time to go.",
                         next: "act4_clarksMadness1",
+                        condition: vars => vars.escapeChoice == null
                     },
                 ]
             },
