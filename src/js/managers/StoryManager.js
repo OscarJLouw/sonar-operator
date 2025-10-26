@@ -35,12 +35,13 @@ export class StoryManager {
     }
 
     async Start() {
-        await this.Intro();
-        await this.Act1();
-        await this.Act2();
-        //sonar, ships, sub, move
-        //this.gameEvents.DebugSetupPrerequisites(true, true, false, true);
-        await this.Act3();
+        this.gameEvents.DebugSetupPrerequisites(true, true, true, true); //sonar, ships, sub, move
+        //await this.Intro();
+
+        //await this.gameEvents.SpawnFace();
+        //await this.Act1();
+        //await this.Act2();
+        //await this.Act3();
         await this.Act4();
     }
 
@@ -50,7 +51,6 @@ export class StoryManager {
         await this.dialogueManager.start("intro1");
         await this.#sleep(4);
         await this.dialogueManager.start("intro2");
-
     }
 
     async Act1() {
@@ -152,7 +152,6 @@ export class StoryManager {
 
         // The melbourne attempts to flee
         await this.gameEvents.TheMelbourneFlees();
-        // The ship starts to move, then slowly comes to a halt
         await this.dialogueManager.start("act3_commander5");
 
 
@@ -179,7 +178,7 @@ export class StoryManager {
         await this.gameEvents.TheMelbourneDisappears();
 
         //await this.dialogueManager.start("act4_doorInteract1");
-
+        //await this.gameEvents.AnimateCameraFOV();
         await this.gameEvents.FinalPing();
     }
 

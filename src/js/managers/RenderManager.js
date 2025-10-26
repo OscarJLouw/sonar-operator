@@ -20,7 +20,7 @@ export class RenderManager extends Resizable {
         // ----- fixed internal render size -----
         this.targetAspect = SceneManager.instance.targetAspectRatio; // e.g., 16/9
         this.targetHeight = typeof opts.targetHeight === 'number' ? opts.targetHeight : 180;
-        this.targetWidth  = Math.round(this.targetHeight * this.targetAspect);
+        this.targetWidth = Math.round(this.targetHeight * this.targetAspect);
 
         // ----- renderer -----
         this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
@@ -91,17 +91,33 @@ export class RenderManager extends Resizable {
 
     SetInternalResolutionByHeight(newTargetHeight) {
         this.targetHeight = Math.max(1, Math.floor(newTargetHeight));
-        this.targetWidth  = Math.round(this.targetHeight * this.targetAspect);
+        this.targetWidth = Math.round(this.targetHeight * this.targetAspect);
 
         this.renderer.setPixelRatio(1);
         this.renderer.setSize(this.targetWidth, this.targetHeight, false);
         this.composer.setSize(this.targetWidth, this.targetHeight);
 
         const canvas = this.renderer.domElement;
-        canvas.style.width  = `${this.targetWidth}px`;
+        canvas.style.width = `${this.targetWidth}px`;
         canvas.style.height = `${this.targetHeight}px`;
 
         if (this.camera && this.camera.isPerspectiveCamera) {
+            this.camera.aspect = this.targetAspect;
+            this.camera.updateProjectionMatrix();
+        }
+    }
+
+    // RenderManager.js
+    SetCamera(camera) {
+        this.camera = camera;
+
+        if (this.hasPixelatePass && this.renderPixelatedPass) {
+            this.renderPixelatedPass.camera = camera;
+        } else if (this.renderPass) {
+            this.renderPass.camera = camera;
+        }
+
+        if (this.camera.isPerspectiveCamera) {
             this.camera.aspect = this.targetAspect;
             this.camera.updateProjectionMatrix();
         }
@@ -119,7 +135,7 @@ export class RenderManager extends Resizable {
         const displayH = targetH * scale;
 
         const canvas = this.renderer.domElement;
-        canvas.style.width  = `${displayW}px`;
+        canvas.style.width = `${displayW}px`;
         canvas.style.height = `${displayH}px`;
 
         // Lock camera to target aspect (not the window’s)

@@ -3,6 +3,7 @@ import { DialogueManager } from "../managers/DialogueManager";
 import { SonarTargetConfig } from "../gameObjects/SonarTargets/SonarTargetConfig";
 import { PortalsController } from "../managers/PortalsController";
 import { SceneManager } from "../managers/SceneManager";
+import { MeshManager } from "../managers/MeshManager";
 
 export class GameEventManager {
     constructor() {
@@ -22,6 +23,28 @@ export class GameEventManager {
 
         this._dlgGate ??= Promise.resolve();
         this.portalsController = this.gameManager.portalsController;
+    }
+
+    async SpawnFace() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+
+        // 1) Trigger horror (tentacles)
+        sonarParticles.PingAt(new THREE.Vector2(0, 0), { radius: 2, showHorror: true });
+
+        // 2) After a short beat, start the face reveal.
+        //    Pass a THREE.Mesh (or find one inside a loaded GLTF scene).
+        const faceMesh = MeshManager.instance.models.eldritchHorror;
+
+        sonarParticles.StartFaceFromMesh(faceMesh, {
+            center: new THREE.Vector2(0, 0),
+            scale: 0.9,
+            depthScale: 0.9,
+            yawSpeed: 0.22,
+            pitchSpeed: 0.08,
+            rollSpeed: 0.0,
+            jitter: 0.004
+        });
     }
 
     // Act 1: Tutorial events
@@ -60,7 +83,7 @@ export class GameEventManager {
         const worldPos = this.world.shipRoot.position.clone();
 
         if (addShips) {
-            
+
 
             const melbourneConfig = new SonarTargetConfig(
                 "Melbourne",
@@ -80,7 +103,7 @@ export class GameEventManager {
                     randomizeRadius: false,
                     radius: 0.05,
                     spawnAtRandomPosition: false,
-                    spawnPosition: new THREE.Vector3(worldPos.x + 0.25, worldPos.y-0.2, 0)
+                    spawnPosition: new THREE.Vector3(worldPos.x + 0.25, worldPos.y - 0.2, 0)
                 }
             );
 
@@ -362,7 +385,7 @@ export class GameEventManager {
 
     async WaitForPlayerToLookOutWindow() {
         const movementController = this.gameManager.playerMovementController;
-        if(movementController.currentState === movementController.states.Porthole)
+        if (movementController.currentState === movementController.states.Porthole)
             return;
 
         // Wait until the player enters the Porthole state
@@ -398,7 +421,7 @@ export class GameEventManager {
     // ACT 4: THE CHOICE
     async WaitForPlayerToGoToSonar() {
         const movementController = this.gameManager.playerMovementController;
-        if(movementController.currentState === movementController.states.UsingSonar)
+        if (movementController.currentState === movementController.states.UsingSonar)
             return;
 
         // Wait until the player enters the Porthole state
@@ -443,7 +466,22 @@ export class GameEventManager {
     }
 
     async FinalPing() {
+        const sonarMachine = SceneManager.instance.sonarMachine;
+        sonarMachine.SetActiveSonarAuthorised(true);
+        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        //sonarParticles.
 
+        const e = await this.WaitForEvent(sonarMachine, "onPing");
+
+    }
+
+    async AnimateCameraFOV() {
+        // wherever your finale begins:
+        SceneManager.instance.StartPerspectiveTransition({
+            duration: 3,     // seconds
+            finalFovDeg: 40,    // taste
+            easing: (t) => t * t * (3 - 2 * t)  // smoothstep
+        });
     }
 
     // HELPERS
