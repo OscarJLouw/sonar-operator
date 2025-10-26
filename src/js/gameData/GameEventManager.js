@@ -25,14 +25,17 @@ export class GameEventManager {
     }
 
     async FadeIn() {
-        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
+        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToComplete);
         await this.#sleep(0.25);
-        this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToNotActive);
+        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
+        this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToActive);
+        await this.#sleep(0.25);
+        this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
     }
 
     CutToBlack() {
-        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
-        
+        this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToComplete);
+
     }
 
     // Act 1: Tutorial events
