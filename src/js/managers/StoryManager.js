@@ -171,6 +171,8 @@ export class StoryManager {
             await this.gameEvents.TheMelbournePings();
         }
 
+        await this.gameEvents.FinalPing();  // DEBUG
+
         await this.dialogueManager.start("act4_theBeastIsPinged");
         // The melbourne disappears
         await this.gameEvents.TheMelbourneDisappears();

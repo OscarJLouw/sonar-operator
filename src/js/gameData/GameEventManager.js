@@ -1,9 +1,8 @@
 import * as THREE from "three";
-import { DialogueManager } from "../managers/DialogueManager";
 import { SonarTargetConfig } from "../gameObjects/SonarTargets/SonarTargetConfig";
-import { PortalsController } from "../managers/PortalsController";
 import { SceneManager } from "../managers/SceneManager";
 import { MeshManager } from "../managers/MeshManager";
+import { Utils } from "../utils/Utils";
 
 export class GameEventManager {
     constructor() {
@@ -419,6 +418,7 @@ export class GameEventManager {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         this.audioManager.playOneShot("sonarBlip", { bus: 'sfx', volume: 0.9, rate: 1 });
+        sonarParticles.CreateTentacles();
         sonarParticles.PingAt(this.melbourne.transform.position, { radius: 2, showHorror: true });
         await this.#sleep(4);
     }
@@ -426,6 +426,7 @@ export class GameEventManager {
     async WaitForPlayerToPing() {
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        sonarParticles.CreateTentacles();
         sonarParticles.showHorrorInPing = true;
         const e = await this.WaitForEvent(sonarMachine, "onPing");
         await this.#sleep(4);
@@ -449,6 +450,7 @@ export class GameEventManager {
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         //sonarParticles.
 
+        sonarParticles.fadeoutTentacles = false;
         const e = await this.WaitForEvent(sonarMachine, "onPing");
         this.SpawnFace();
     }
@@ -459,21 +461,60 @@ export class GameEventManager {
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
 
         // 1) Trigger horror (tentacles)
+        sonarParticles.CreateTentacles({spawnAngleMin: 0, spawnAngleMax: 1, endpointSpread: 0.2,
+        tentacleLengthMin: 0.3, tentacleLengthMax: 0.5, animScaleMin: 0, animScaleMax: 0.5});
+
         sonarParticles.PingAt(new THREE.Vector2(0, 0), { radius: 2, showHorror: true });
 
         // 2) After a short beat, start the face reveal.
         //    Pass a THREE.Mesh (or find one inside a loaded GLTF scene).
         const faceMesh = MeshManager.instance.models.eldritchHorror;
+        const eyeTexture = MeshManager.instance.textures.eyeTexture;
         sonarParticles.faceResampleMode = 'pool';
-
+        //sonarParticles.facePoolSize = 20000;           // more variety if you want
         sonarParticles.StartFaceFromMesh(faceMesh, {
             center: new THREE.Vector2(0, 0),
-            scale: 0.9,
-            depthScale: 0.9,
-            yawSpeed: 0.22,
-            pitchSpeed: 0.08,
-            jitter: 0
+            scale: 0.4,
+            depthScale: 0.4,
+            yawSpeed: 0,
+            pitchSpeed: 0,
+            rollSpeed: 0,
+            jitter: 0.01,
+            weightTexture: eyeTexture,
+            weightChannel: 'r',                       // or 'r' if you painted pure red
         });
+        sonarParticles.faceRot.set(Math.PI/2, 0, 0);
+
+        const start = performance.now();
+        const duration = 0.25 * 1000;
+        const easeInOutQuad = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+
+        while(true)
+        {
+            const now = performance.now();    
+            const t = Math.min((now - start) / duration, 1);
+
+            sonarParticles.faceRot.set(Math.PI/2, 0, Utils.instance.Lerp(Math.PI/6, 0, easeInOutQuad(t)));
+            await this.nextFrame();
+
+            if (t >= 1) break;
+        }
+        await this.#sleep(3);
+
+
+        start = performance.now();
+        duration = 3 * 1000;
+        while(true)
+        {
+            const now = performance.now();    
+            const t = Math.min((now - start) / duration, 1);
+
+            sonarParticles.faceRot.set(Math.PI/2, 0, Utils.instance.Lerp(Math.PI/6, 0, easeInOutQuad(t)));
+            await this.nextFrame();
+
+            if (t >= 1) break;
+        }
+        //sonarParticles.faceRollSpeed = 0;
     }
 
 
@@ -553,4 +594,6 @@ export class GameEventManager {
     ThinkToSelf = (text, speaker = "") => this.QueuePrompt({ speaker, text });
 
     #sleep(s) { return new Promise(r => setTimeout(r, s * 1000)); }
+
+    nextFrame = () => new Promise(requestAnimationFrame);
 }

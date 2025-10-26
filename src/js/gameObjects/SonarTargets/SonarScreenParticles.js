@@ -5,7 +5,7 @@ import { MeshSurfaceSampler } from 'three/examples/jsm/Addons.js';
 
 export class SonarScreenParticles extends GameObject {
     Awake() {
-        this.positionCount = 3000;
+        this.positionCount = 6000;
         this.positions = new Float32Array(this.positionCount * 3);
 
         for (let i = 0; i < this.positionCount; i++) {
@@ -50,7 +50,7 @@ export class SonarScreenParticles extends GameObject {
         this._ignoreOccluders = null;
 
         // ---- Face (3D) ----
-        this.faceParticleBudget = 2500;                  // face uses the top slice of the buffer
+        this.faceParticleBudget = 4000;                  // face uses the top slice of the buffer
         this.faceActive = false;
         this.faceSeeds3D = null;                        // Float32Array of length faceParticleBudget*3
         this.faceCenter = new THREE.Vector2(0, 0);      // where the face sits on the sonar plane
@@ -71,7 +71,7 @@ export class SonarScreenParticles extends GameObject {
         this._faceFrame = 0;
         this.faceSeedsPool3D = null;
         this.faceBounds = { center: new THREE.Vector3(), radius: 1 };
-        
+
         // Reserve particle ranges (no overlap with tentacles)
         this.faceStartIndex = Math.max(0, this.positionCount - this.faceParticleBudget);
         this.tentacleParticleBudget = this.faceStartIndex; // tentacles use [0 .. faceStartIndex-1]
@@ -81,9 +81,7 @@ export class SonarScreenParticles extends GameObject {
         this.tentaclesTime = 0;
         this.tentaclesGrowTime = 1.0;
         this.tentaclesHangTime = 1.5;
-
-
-
+        this.fadeoutTentacles = true;
     }
 
     PingAt(origin, { radius = 2, showHorror = this.showHorrorInPing, ignore = [] } = {}) {
@@ -124,14 +122,81 @@ export class SonarScreenParticles extends GameObject {
     }
 
     PingWithHorror() {
-        this.CreateTentacles();
         this.tentaclesActive = true;
         this.tentaclesTime = 0;
     }
 
-    BuildFaceSeedsPool3D(mesh, poolSize = this.facePoolSize) {
+    BuildFaceSeedsPool3D(mesh, poolSize = this.facePoolSize, {
+        texture = null,           // default tries mesh.material.map
+        channel = 'luma',         // 'luma' | 'r' | 'g' | 'b' | 'a'
+        maxTriesPerSample = 24,   // guard against infinite loops
+    } = {}) {
         if (!mesh || !mesh.isMesh) return false;
 
+        const geom = mesh.geometry;
+        if (!geom.attributes.uv) {
+            console.warn('BuildFaceSeedsPool3D: geometry has no UVs; falling back to uniform sampling.');
+            return this.BuildFaceSeedsPool3D_Unweighted(mesh, poolSize);
+        }
+
+        geom.computeBoundingSphere();
+        const bs = geom.boundingSphere;
+        (this.faceBounds ??= { center: new THREE.Vector3(), radius: 1 });
+        this.faceBounds.center.copy(bs.center);
+        this.faceBounds.radius = bs.radius || 1;
+
+        // Choose texture: explicit, or mesh.material.map (handles array)
+        if (!texture) {
+            const mat = mesh.material;
+            texture = Array.isArray(mat) ? (mat[0]?.map ?? null) : (mat?.map ?? null);
+        }
+        const imgData = getImageDataFromTexture(texture);
+        if (!imgData) {
+            console.warn('BuildFaceSeedsPool3D: could not read texture image; using unweighted.');
+            return this.BuildFaceSeedsPool3D_Unweighted(mesh, poolSize);
+        }
+
+        // Build sampler that can output UVs
+        this.faceSampler = new MeshSurfaceSampler(mesh).build();
+
+        const pool = new Float32Array(poolSize * 3);
+        const v = this._tmpV3;
+        const uv = new THREE.Vector2();
+
+        let filled = 0;
+        while (filled < poolSize) {
+            let accepted = false;
+            for (let tries = 0; tries < maxTriesPerSample && !accepted; tries++) {
+                // Ask sampler to write UVs too:
+                this.faceSampler.sample(v, undefined, undefined, uv);
+
+                const w = weightFromUV(imgData, uv, channel);
+                if (Math.random() <= w) {
+                    v.sub(this.faceBounds.center).divideScalar(this.faceBounds.radius);
+                    pool[filled * 3 + 0] = v.x;
+                    pool[filled * 3 + 1] = v.y;
+                    pool[filled * 3 + 2] = v.z;
+                    filled++;
+                    accepted = true;
+                }
+            }
+            // If we failed too many times (e.g., black texture), just accept one to make progress
+            if (!accepted) {
+                this.faceSampler.sample(v, undefined, undefined, uv);
+                v.sub(this.faceBounds.center).divideScalar(this.faceBounds.radius);
+                pool[filled * 3 + 0] = v.x;
+                pool[filled * 3 + 1] = v.y;
+                pool[filled * 3 + 2] = v.z;
+                filled++;
+            }
+        }
+
+        this.faceSeedsPool3D = pool;
+        return true;
+    }
+
+    // fallback unweighted pool (kept around)
+    BuildFaceSeedsPool3D_Unweighted(mesh, poolSize = this.facePoolSize) {
         const geom = mesh.geometry;
         geom.computeBoundingSphere();
         const bs = geom.boundingSphere;
@@ -153,6 +218,7 @@ export class SonarScreenParticles extends GameObject {
         this.faceSeedsPool3D = pool;
         return true;
     }
+
 
     PrepareFaceSeedsFromMesh3D(mesh, count = this.faceParticleBudget) {
         if (!mesh || !mesh.isMesh) { console.warn("Expected THREE.Mesh"); return false; }
@@ -189,10 +255,17 @@ export class SonarScreenParticles extends GameObject {
         pitchSpeed = 0.1,
         rollSpeed = 0.0,
         jitter = 0.004,
+        weightTexture = null,    // optional override; defaults to mesh.material.map
+        weightChannel = 'luma',  // 'luma' | 'r' | 'g' | 'b' | 'a'
     } = {}) {
         if (mesh) {
             if (this.faceResampleMode === 'pool') {
-                if (!this.BuildFaceSeedsPool3D(mesh, this.facePoolSize)) return;
+                const ok =
+                    this.BuildFaceSeedsPool3D(mesh, this.facePoolSize, {
+                        texture: weightTexture,
+                        channel: weightChannel,
+                    });
+                if (!ok) return;
             } else {
                 if (!this.PrepareFaceSeedsFromMesh3D(mesh, this.faceParticleBudget)) return;
             }
@@ -366,7 +439,7 @@ export class SonarScreenParticles extends GameObject {
         const animPercent = totalPingTime > 0 ? (this.pingCountdown / totalPingTime) : 0;
 
         // 1) Draw tentacle strands (as before)
-        if (this.pingCountdown > 0) {
+        if (this.pingCountdown > 0 || this.fadeoutTentacles == false) {
             const noiseAmplitudeGlobal = 0.01;
 
             for (let i = 0; i < this.tentacles.length; i++) {
@@ -447,7 +520,7 @@ export class SonarScreenParticles extends GameObject {
                 positions[i3 + 0] = this.pingOrigin.x + Math.cos(angle) * spawnRadius;
                 positions[i3 + 1] = this.pingOrigin.y + Math.sin(angle) * spawnRadius;
                 positions[i3 + 2] = 0;
-            } else {
+            } else if (this.fadeoutTentacles) {
                 // Already swept → shimmer/fuzz with a fade over hang time
                 const fuzziness = Utils.instance.Clamp(
                     Utils.instance.InverseLerp(pingMin, pingMax, dist), 0, 1
@@ -460,9 +533,11 @@ export class SonarScreenParticles extends GameObject {
         }
 
         // 3) Wrap-up when the ping completes
-        if (this.pingCountdown <= 0) {
-            this.pinging = false;          // stop driving the horror ping branch
-            this.tentaclesActive = false;  // allow passive scatter to resume after this frame
+        if (this.fadeoutTentacles) {
+            if (this.pingCountdown <= 0) {
+                this.pinging = false;          // stop driving the horror ping branch
+                this.tentaclesActive = false;  // allow passive scatter to resume after this frame
+            }
         }
 
         this.points.geometry.attributes.position.needsUpdate = true;
@@ -883,4 +958,55 @@ function shouldIgnoreOccluder(tv, origin, ignoreSet, eps = 1e-6) {
     const R = tv.radius;
     const d0 = Math.hypot(cx - origin.x, cy - origin.y);
     return d0 <= R + eps;
+}
+
+
+function getImageDataFromTexture(tex) {
+    // Works for Image/Canvas/ImageBitmap textures. For KTX2/compressed, see note below.
+    const image = tex?.image;
+    if (!image) return null;
+
+    // If already a canvas with 2D context, just grab it
+    if (image instanceof HTMLCanvasElement) {
+        const ctx = image.getContext('2d');
+        return ctx.getImageData(0, 0, image.width, image.height);
+    }
+
+    // Draw onto an offscreen canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+// simple luminance (sRGB-ish) → 0..1
+function luminance01(r, g, b) {
+    // r,g,b are 0..255 in sRGB; quick luma is fine for weights
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+// sample weight from imageData at UV (handles V-flip)
+function weightFromUV(imageData, uv, channel = 'luma') {
+    if (!imageData) return 1;
+    let u = uv.x, v = uv.y;
+    // wrap just in case
+    u = u - Math.floor(u);
+    v = v - Math.floor(v);
+    const x = Math.min(imageData.width - 1, Math.max(0, Math.floor(u * imageData.width)));
+    const y = Math.min(imageData.height - 1, Math.max(0, Math.floor((1 - v) * imageData.height))); // flip V
+    const idx = (y * imageData.width + x) * 4;
+    const r = imageData.data[idx + 0];
+    const g = imageData.data[idx + 1];
+    const b = imageData.data[idx + 2];
+    const a = imageData.data[idx + 3];
+
+    switch (channel) {
+        case 'r': return r / 255;
+        case 'g': return g / 255;
+        case 'b': return b / 255;
+        case 'a': return a / 255;
+        default: return luminance01(r, g, b); // 'luma'
+    }
 }

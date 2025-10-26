@@ -40,14 +40,16 @@ export class MeshManager {
         this.indicatorMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.8, 0.2) });
         this.buttonMaterial = new THREE.MeshBasicMaterial({ transparent: true });//{ color: new THREE.Color(, 0.4, 0.4) });
 
-        this.passiveSonarTargetMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0 });
+        this.passiveSonarTargetMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0 });
     }
 
     async LoadTextures() {
         const textureLoader = this.textureLoader;
         const texturePaths = [
             './textures/StartGameButton.png',
-            './textures/GraphicsSettingsPromptDownscaled.png'
+            './textures/GraphicsSettingsPromptDownscaled.png',
+            //'./textures/EyeTexture.png'
+            './textures/EyeTexture2.png'
         ];
 
         const texturePromises = texturePaths.map(path => {
@@ -62,8 +64,10 @@ export class MeshManager {
             this.textures =
             {
                 startButtonTexture: this.SetupColorTexture(loadedTextures[0]),
-                graphicsSettingsPrompt: this.SetupColorTexture(loadedTextures[1])
+                graphicsSettingsPrompt: this.SetupColorTexture(loadedTextures[1]),
+                eyeTexture: loadedTextures[2]
             };
+
         } catch (error) {
             console.error("Error loading textures:", error);
         }
@@ -82,7 +86,7 @@ export class MeshManager {
             './models/SonarViewerPanel.glb',
             './models/ActiveSonarButton.glb',
             //'./models/YogSothothDecimated.glb'
-            './models/EyeballTest.glb'
+            './models/Eyeball.glb'
         ];
 
         const modelPromises = modelPaths.map(path => {
@@ -109,18 +113,17 @@ export class MeshManager {
                 sonarButton: this.ExtractModel(loadedModels[6], "Button"),
                 sonarHousing: this.ExtractModel(loadedModels[6], "ButtonHousing"),
                 //eldritchHorror: this.ExtractModel(loadedModels[7], "Mesh_0")
-                eldritchHorror: this.ExtractModel(loadedModels[7], "Sphere")
+                eldritchHorror: this.ExtractModel(loadedModels[7], "Eyeball")
             };
         } catch (error) {
             console.error("Error loading models:", error);
         }
     }
 
-    ExtractModel(model, modelName)
-    {
+    ExtractModel(model, modelName) {
         return this.SetupModelProperties(model.scene.getObjectByName(modelName));
     }
-    
+
     SetupColorTexture(texture) {
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
@@ -154,13 +157,13 @@ export class MeshManager {
                 if (mat.emissiveMap) this.SetupColorTexture(mat.emissiveMap);
 
                 // Data textures
-                if(mat.normalMap) this.SetupDataTexture(mat.normalMap);
-                if(mat.roughnessMap) this.SetupDataTexture(mat.roughnessMap);
-                if(mat.metalnessMap) this.SetupDataTexture(mat.metalnessMap);
-                if(mat.aoMap) this.SetupDataTexture(mat.aoMap);
-                if(mat.displacementMap) this.SetupDataTexture(mat.displacementMap);
-                if(mat.bumpMap) this.SetupDataTexture(mat.bumpMap);
-                if(mat.alphaMap) this.SetupDataTexture(mat.alphaMap);
+                if (mat.normalMap) this.SetupDataTexture(mat.normalMap);
+                if (mat.roughnessMap) this.SetupDataTexture(mat.roughnessMap);
+                if (mat.metalnessMap) this.SetupDataTexture(mat.metalnessMap);
+                if (mat.aoMap) this.SetupDataTexture(mat.aoMap);
+                if (mat.displacementMap) this.SetupDataTexture(mat.displacementMap);
+                if (mat.bumpMap) this.SetupDataTexture(mat.bumpMap);
+                if (mat.alphaMap) this.SetupDataTexture(mat.alphaMap);
 
                 mat.needsUpdate = true;
             }
