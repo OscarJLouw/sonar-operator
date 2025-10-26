@@ -151,7 +151,6 @@ export class StoryManager {
         await this.dialogueManager.start("act3_clark6");
 
         // The melbourne attempts to flee
-        await this.gameEvents.TheMelbourneFlees();
         await this.dialogueManager.start("act3_commander5");
 
 
@@ -172,6 +171,7 @@ export class StoryManager {
             await this.dialogueManager.start("act4_hereGoesNothing");
             await this.gameEvents.TheMelbournePings();
         }
+        await this.gameEvents.TheMelbourneFlees();
 
         await this.dialogueManager.start("act4_theBeastIsPinged");
         this.audioManager.playOneShot("nightmareRiser", { bus: 'sfx', volume: 0.1, rate: 1 });

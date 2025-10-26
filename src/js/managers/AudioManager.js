@@ -66,6 +66,7 @@ export class AudioManager {
     monster1: { path: './audio/sonarTargets/unknown/Monster1.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
 
     // Cinematic SFX
+    echoCymbal: { path: './audio/sfx/spooky/Echo_Cymbal_04.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
     core: { path: './audio/sfx/spooky/Core_03.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     distortedScreams1: { path: './audio/sfx/spooky/Distorted_Screams_05.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     distortedScreams2: { path: './audio/sfx/spooky/Distorted_Screams_10.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
