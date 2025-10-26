@@ -38,6 +38,7 @@ export class CharacterVoices {
 
         dialogueManager.addEventListener('dialogueEnded', () => {
             this.usingVoice = false;
+            this.dialogueManager?.setNameColor(null);
         });
 
         /*
@@ -89,10 +90,10 @@ export class CharacterVoices {
     }
 
     CreateVoices() {
-        this.ashton = { characterName: "ASHTON", type: "deep", shortCount: 10, longCount: 10 };
-        this.clark = { characterName: "CLARK", type: "high", shortCount: 13, longCount: 14 }; // (typo fixed)
-        this.morgan = { characterName: "MORGAN", type: "mellow", shortCount: 15, longCount: 14 };
-        this.harper = { characterName: "HARPER", type: "wacko", shortCount: 13, longCount: 13 };
+        this.ashton = { characterName: "ASHTON", type: "deep", color: "#FF7A70", shortCount: 10, longCount: 10 };
+        this.clark = { characterName: "CLARK", type: "high", color: "#7CD1FF", shortCount: 13, longCount: 14 };
+        this.morgan = { characterName: "MORGAN", type: "mellow", color: "#A2F39B", shortCount: 15, longCount: 14 };
+        this.harper = { characterName: "HARPER", type: "wacko", color: "#E2A8FF", shortCount: 13, longCount: 13 };
         this.voices = [
             this.ashton,
             this.clark,
@@ -143,18 +144,31 @@ export class CharacterVoices {
     }
 
     _applyVoiceForSpeaker(speaker) {
-        if(speaker == null || speaker == "")
-        {
+        if (speaker == null || speaker == "") {
             this.usingVoice = false;
+            this.dialogueManager?.setNameColor(null);
             return;
         }
-        const idx = this.voices.findIndex(v => speaker.includes(v.characterName));
+
+        const s = String(speaker).toUpperCase();
+        const idx = this.voices.findIndex(v => {
+            const name = v.characterName.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape
+            const re = new RegExp(`\\b${name}\\b`); // match as a whole word
+            return re.test(s);
+        });
+
         if (idx < 0) {
             this.usingVoice = false;
+            this.dialogueManager?.setNameColor(null);
             return;
         }
         this.usingVoice = true;
         this.currentVoice = this.voices[idx];
+        if (this.currentVoice.color) {
+            this.dialogueManager?.setNameColor(this.currentVoice.color);
+        } else {
+            this.dialogueManager?.setNameColor(null);
+        }
     }
 
 }

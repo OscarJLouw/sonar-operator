@@ -68,7 +68,7 @@ export class DialogueManager {
             this.currentSpeed = this.speedPresets.normal;
             this.defaultNameColor = '#e9ecf1';
             this.speakerColors = null;
-            
+
             // Callbacks
             /** @type {(ch:string, index:number, ctx:{nodeId:string})=>void | null} */
             this.onChar = null; // set via setCharacterCallback
@@ -139,6 +139,18 @@ export class DialogueManager {
 
     /** Optional callback when a choice is selected (telemetry). */
     setChoiceCallback(fn) { this.onChoice = fn; }
+
+    /** Optional bulk mapping: { 'ASHTON': '#ff7a70', 'CLARK': '#7cd1ff', ... } */
+    setSpeakerColors(map) { this.speakerColors = map ?? null; }
+
+    /** Imperative setter used by CharacterVoices (or your code) */
+    setNameColor(color) {
+        // defer until overlay exists
+        if (!this.panelEl || !this.nameEl) return;
+        const c = color || this.defaultNameColor;
+        this.nameEl.style.color = c; // belt
+        this.panelEl.style.setProperty('--dm-speaker-color', c); // suspenders
+    }
 
     /**
      * Start dialogue at a node id. Returns when the conversation ends or is suspended.
@@ -245,7 +257,17 @@ export class DialogueManager {
         }));
 
         this.#prepareForNewLine();
-        if (node.speaker) this.nameEl.textContent = node.speaker; else this.nameEl.textContent = '';
+        if (node.speaker) {
+            this.nameEl.textContent = node.speaker;
+            // if you provided a mapping, apply it
+            if (this.speakerColors && this.speakerColors[node.speaker]) {
+                // Only apply if we actually have a mapping; otherwise let CharacterVoices stand.
+                this.setNameColor(this.speakerColors[node.speaker]);
+            }
+        } else {
+            this.nameEl.textContent = '';
+            this.setNameColor(this.defaultNameColor);
+        }
 
         // type text (with controls)
         await this.#typeLine(node.id, node.text ?? '');

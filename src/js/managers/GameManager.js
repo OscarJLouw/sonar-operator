@@ -47,7 +47,7 @@ export class GameManager {
     }
 
     async CreateManagers() {
-        
+
         this.sceneManager = new SceneManager();
         this.sceneManager.Setup(1.3333333);
 
@@ -60,7 +60,7 @@ export class GameManager {
         await this.audioManager.Setup(this.sceneManager.camera);
 
         this.renderManager = new RenderManager();
-        this.renderManager.Setup(this.sceneManager, true, {targetHeight: 1024});
+        this.renderManager.Setup(this.sceneManager, true, { targetHeight: 1024 });
         this.renderManager.SetPixellation(1.5);
 
         this.mouseHandler = new MouseHandler();
@@ -74,6 +74,14 @@ export class GameManager {
 
         this.dialogueManager = new DialogueManager();
         this.dialogueManager.Setup({ gameManager: this, audioManager: this.audioManager });
+
+        this.dialogueManager.setSpeakerColors({
+            ASHTON: '#FF7A70',
+            CLARK: '#7CD1FF',
+            MORGAN: '#A2F39B',
+            HARPER: '#E2A8FF',
+            XO: '#FFC857',
+        });
 
         this.storyManager = new StoryManager();
         this.storyManager.Setup(this, this.dialogueManager, this.audioManager);
@@ -98,7 +106,7 @@ export class GameManager {
 
         this.handleDialogueStarted = event => this.OnDialogueStarted(event.detail.nodeId);
         this.dialogueManager.addEventListener("dialogueStarted", this.handleDialogueStarted);
-        
+
         this.handleDialogueEnded = event => this.OnDialogueEnded(event.detail.reason);
         this.dialogueManager.addEventListener("dialogueEnded", this.handleDialogueEnded);
 
@@ -109,7 +117,7 @@ export class GameManager {
     }
 
     MainMenu() {
-        this.audioManager.PlayFadeIn("creditsMusic", {to: 0.2, seconds: 3, randomizeStart: false});
+        this.audioManager.PlayFadeIn("creditsMusic", { to: 0.2, seconds: 3, randomizeStart: false });
         this.gameState = "Main Menu";
         this.mainMenu.Show();
         //this.StartGame();
@@ -125,7 +133,7 @@ export class GameManager {
 
         // Fade in the audio
 
-        
+
         this.audioManager.Start();
         this.audioManager.FadeInAmbience(0.2, 3);
 
@@ -146,8 +154,7 @@ export class GameManager {
         this.StartStory();
     }
 
-    async StartStory()
-    {
+    async StartStory() {
         await this.storyManager.Start();
     }
 
@@ -170,13 +177,12 @@ export class GameManager {
             var iterations = 0;
             const maxIterations = 50;
 
-            while(this.gameObjectsToDestroy.length > 0 && iterations < maxIterations)
-            {
+            while (this.gameObjectsToDestroy.length > 0 && iterations < maxIterations) {
                 objectsToDestroyThisIteration = [...this.gameObjectsToDestroy];
                 this.gameObjectsToDestroy.length = 0;
 
                 objectsToDestroyThisIteration.forEach(gameObject => {
-                    console.log("GameManager destroying GameObject: " + gameObject.name + " | ID: ["+gameObject.id+"]");
+                    console.log("GameManager destroying GameObject: " + gameObject.name + " | ID: [" + gameObject.id + "]");
 
                     this.gameObjects.delete(gameObject.id);
                     gameObject.OnDestroy();
@@ -187,8 +193,7 @@ export class GameManager {
                 iterations++;
             }
 
-            if(iterations >= maxIterations)
-            {
+            if (iterations >= maxIterations) {
                 console.error("Exceeded max destroy iterations. There's probably a destroy loop of some kind. Current gameObjectsToDestroy: " + this.gameObjectsToDestroy);
             }
 
@@ -208,8 +213,7 @@ export class GameManager {
                 break;
         }
 
-        switch(newState)
-        {
+        switch (newState) {
             case states.UsingSonar:
                 // Fade in sonar sound sources
                 this.audioManager.FadeInSonarBus(0.9, 0.5);
@@ -219,20 +223,18 @@ export class GameManager {
         }
     }
 
-    OnDialogueStarted(nodeId)
-    {
+    OnDialogueStarted(nodeId) {
         console.log("Dialogue started");
         this.playerControls.HideAll();
     }
 
-    OnDialogueEnded(reason)
-    {
+    OnDialogueEnded(reason) {
         console.log("Dialogue Ended");
         this.playerControls.ShowButtonsForValidExits();
     }
 
     RegisterGameObject(gameObject) {
-        console.log("GameManager registered GameObject: " + gameObject.name + " | ID: [ " + gameObject.id+"]");
+        console.log("GameManager registered GameObject: " + gameObject.name + " | ID: [ " + gameObject.id + "]");
         this.gameObjects.set(gameObject.id, gameObject);
     }
 
