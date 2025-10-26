@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GameObject } from './GameObject';
 import { Utils } from '../utils/Utils';
 import { SonarScreenParticles } from './SonarTargets/SonarScreenParticles';
+import { AudioManager } from '../managers/AudioManager';
 
 export class SonarViewController extends GameObject {
 
@@ -67,20 +68,22 @@ export class SonarViewController extends GameObject {
 
         this.particlesController = GameObject.Instantiate(SonarScreenParticles, this.transform, "Sonar Screen Particles");
         this.particlesController.SetSonarViewController(this);
+
+        this.audioHandle = AudioManager.instance.spawnRingPanned("scroll", { bus: "sonar", loop: true, R: 1.3, autostart: false });
+
     }
 
-    Ping()
-    {
+    Ping() {
+        AudioManager.instance.playOneShot("pingButton", { bus: 'sfx', volume: 0.7, rate: 1, jitter: 0.05 });
+
         this.particlesController.Ping();
     }
 
-    AddSonarTargetVisuals(sonarTargetVisual)
-    {
+    AddSonarTargetVisuals(sonarTargetVisual) {
         this.targetVisualsList.push(sonarTargetVisual);
     }
 
-    RemoveSonarTargetVisuals(sonarTargetVisual)
-    {
+    RemoveSonarTargetVisuals(sonarTargetVisual) {
         const targetIndex = this.targetVisualsList.indexOf(sonarTargetVisual);
         if (targetIndex > -1) {
             this.targetVisualsList.splice(targetIndex, 1);
@@ -146,23 +149,41 @@ export class SonarViewController extends GameObject {
         var angleDifference = Utils.instance.GetSignedAngleDifference(this.angle, this.targetAngle);
         var angleDelta = Utils.instance.Clamp(angleDifference, -maxAngleChangeSpeed, maxAngleChangeSpeed);
 
+        var anyStillMoving = false;
         if (Math.abs(angleDelta) > 0) {
             this.SetAngle(this.angle + angleDelta);
+            anyStillMoving = true;
         }
 
         var angleRangeDelta = Utils.instance.Clamp(this.targetAngleRange - this.angleRange, -maxAngleRangeChangeSpeed, maxAngleRangeChangeSpeed);
         if (Math.abs(angleRangeDelta) > 0) {
             this.SetAngleRange(this.angleRange + angleRangeDelta);
+            anyStillMoving = true;
         }
 
         var distanceDelta = Utils.instance.Clamp(this.targetDistance - this.distance, -maxDistanceChangeSpeed, maxDistanceChangeSpeed);
         if (Math.abs(distanceDelta) > 0) {
             this.SetDistance(this.distance + distanceDelta);
+            anyStillMoving = true;
         }
 
         var distanceRangeDelta = Utils.instance.Clamp(this.targetDistanceRange - this.distanceRange, -maxDistanceRangeChangeSpeed, maxDistanceRangeChangeSpeed);
         if (Math.abs(distanceRangeDelta) > 0) {
             this.SetDistanceRange(this.distanceRange + distanceRangeDelta);
+            anyStillMoving = true;
+        }
+
+        const RAMP = 0.08;  // 30ms ramp is usually pop-free
+        const targetVolume = 0.2;
+
+        if (anyStillMoving) {
+            if (!this.audioHandle.isPlaying()) {
+                this.audioHandle.play(0, RAMP); // fade in from 0
+            }
+            this.audioHandle.setVolumeSmooth(targetVolume, RAMP);
+
+        } else {
+            this.audioHandle.setVolumeSmooth(0, RAMP);
         }
     }
 
@@ -322,10 +343,9 @@ export class SonarViewController extends GameObject {
         return true;
     }
 
-    CalculateArcArea(outerRadius, innerRadius, thetaMin, thetaMax)
-    {
+    CalculateArcArea(outerRadius, innerRadius, thetaMin, thetaMax) {
         // area = pi(R^2 - r^2) * theta / (PI*2)
-        const area = Math.PI * (outerRadius * outerRadius - innerRadius * innerRadius) * (Math.abs(Utils.instance.GetSignedAngleDifference(thetaMin, thetaMax)) / (Math.PI*2));
+        const area = Math.PI * (outerRadius * outerRadius - innerRadius * innerRadius) * (Math.abs(Utils.instance.GetSignedAngleDifference(thetaMin, thetaMax)) / (Math.PI * 2));
         return area;
     }
 }

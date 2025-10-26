@@ -3,6 +3,7 @@ import { MeshManager } from "../../managers/MeshManager";
 import { GameObject } from "../GameObject";
 import { Button } from "./Button";
 import { SceneManager } from '../../managers/SceneManager';
+import { AudioManager } from '../../managers/AudioManager';
 
 
 export class MainMenu extends GameObject {
@@ -32,6 +33,8 @@ export class MainMenu extends GameObject {
     }
 
     StartGame() {
+        AudioManager.instance.playOneShot("pingButton", { bus: 'sfx', volume: 0.7, rate: 1, jitter: 0.05 });
+        
         this.Hide();
         this.gameManager.StartGame();
     }

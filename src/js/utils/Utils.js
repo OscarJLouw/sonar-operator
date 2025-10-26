@@ -122,6 +122,10 @@ export class Utils {
         return mod(s + t * len, TAU);
     }
 
+    RandomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
     GetSignedAngleDifference(angle1, angle2) {
         const PI = Math.PI;
         const TWO_PI = 2 * PI;

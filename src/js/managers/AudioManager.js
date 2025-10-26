@@ -66,6 +66,20 @@ export class AudioManager {
     staticGlitch: { path: './audio/sfx/consoleSFX/StaticGlitchShort.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
     sonarBlip: { path: './audio/sfx/sonarBlip.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     monster1: { path: './audio/sonarTargets/unknown/Monster1.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
+    scroll: { path: './audio/sfx/consoleSFX/LOOP_01.ogg', volume: 0.1, loop:true, bus: 'sfx', autostart: false },
+    pingButton: { path: './audio/sfx/consoleSFX/BUTTON_03.ogg', volume: 0.7, loop: false, bus: 'sfx', autostart: false },
+
+    // Player SFX
+    footstep1: { path: './audio/sfx/playerSFX/Footstep1.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep2: { path: './audio/sfx/playerSFX/Footstep2.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep3: { path: './audio/sfx/playerSFX/Footstep3.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep4: { path: './audio/sfx/playerSFX/Footstep4.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep5: { path: './audio/sfx/playerSFX/Footstep5.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep6: { path: './audio/sfx/playerSFX/Footstep6.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep7: { path: './audio/sfx/playerSFX/Footstep7.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep8: { path: './audio/sfx/playerSFX/Footstep8.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep9: { path: './audio/sfx/playerSFX/Footstep9.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    footstep10: { path: './audio/sfx/playerSFX/Footstep10.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
 
     // Cinematic SFX
     echoCymbal: { path: './audio/sfx/spooky/Echo_Cymbal_04.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },

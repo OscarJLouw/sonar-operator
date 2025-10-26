@@ -1,5 +1,7 @@
+import { AudioManager } from "../../managers/AudioManager";
 import { DialogueManager } from "../../managers/DialogueManager";
 import { MeshManager } from "../../managers/MeshManager";
+import { Utils } from "../../utils/Utils";
 import { GameObject } from "../GameObject";
 import { Button } from "./Button";
 
@@ -71,15 +73,13 @@ export class PlayerControls extends GameObject {
                 break;
         }
 
-        if(flipX)
-        {
+        if (flipX) {
             newButton.arrowMesh.rotateY(-Math.PI);
-            newButton.arrowMesh.rotateX(Math.PI*0.25);
+            newButton.arrowMesh.rotateX(Math.PI * 0.25);
         } else {
-            newButton.arrowMesh.rotateX(Math.PI*-0.25);
+            newButton.arrowMesh.rotateX(Math.PI * -0.25);
         }
-        if(flipY)
-        {
+        if (flipY) {
             newButton.arrowMesh.rotateX(-Math.PI);
 
         }
@@ -151,14 +151,25 @@ export class PlayerControls extends GameObject {
 
         this.currentExits = this.playerMovementController.GetExits(newState);
 
-        if (import.meta.env.PROD) {
+        //if (import.meta.env.PROD) {
             // Hide controls while moving
-            await this.#sleep(0.3);
+            
+            await this.#sleep(0.1);
+            this.PlayFootstep();
+            await this.#sleep(0.2);
+            this.PlayFootstep();
+
+
             if (DialogueManager.instance.active)
                 return;
-        }
+        //}
 
         this.ShowButtonsForValidExits();
+    }
+
+
+    PlayFootstep() {
+        AudioManager.instance.playOneShot("footstep" + Math.floor(Utils.instance.RandomBetween(1, 11)), { bus: 'sfx', volume: Utils.instance.RandomBetween(0.4, 0.5), rate: 1, jitter: 0.1 });
     }
 
     // Utils
