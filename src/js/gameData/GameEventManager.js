@@ -467,7 +467,7 @@ export class GameEventManager {
 
     async FinalPing() {
 
-        this.audioManager.StopFadeOut("ghostFrequency", { seconds: 10 });
+        this.audioManager.StopFadeOut("ghostFrequency", 10);
 
         const sonarMachine = SceneManager.instance.sonarMachine;
         sonarMachine.SetActiveSonarAuthorised(true);
@@ -577,7 +577,7 @@ export class GameEventManager {
     {
         await this.#sleep(5);
         this.audioManager.PlayFadeIn("creditsMusic", {to: 0.3, seconds: 3, randomizeStart: false});
-        
+
     }
 
     async AnimateCameraFOV() {
