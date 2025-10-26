@@ -502,7 +502,15 @@ export class GameEventManager {
     async SpawnFace() {
 
         const sonarMachine = SceneManager.instance.sonarMachine;
-        const sonarParticles = sonarMachine.sonarViewController.particlesController;
+        const sonarViewController = sonarMachine.sonarViewController;
+        const sonarParticles = sonarViewController.particlesController;
+
+        sonarViewController.mesh.visible = false;
+        sonarViewController.mesh.layers.set(1);
+        sonarViewController.targetMesh.visible = false;
+        sonarViewController.targetMesh.layers.set(1);
+
+        
         //SceneManager.instance.CreateControls(sonarParticles.transform);
         sonarMachine.SetActiveSonarAuthorised(false);
         this.gameManager.playerControls.HideAll();
