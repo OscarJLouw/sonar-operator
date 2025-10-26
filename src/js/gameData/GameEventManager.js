@@ -560,6 +560,8 @@ export class GameEventManager {
 
             if (t >= 1) break;
         }
+
+        sonarMachine.SetActive(false);
         //sonarParticles.faceRollSpeed = 0;
     }
 
