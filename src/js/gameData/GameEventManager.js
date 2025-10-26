@@ -34,10 +34,16 @@ export class GameEventManager {
         this.audioManager.playOneShot("echoCymbal", { bus: 'sfx', volume: 0.1, rate: 1 });
         await this.#sleep(2);
         this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
-        this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
+        //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
         //this.SendMessage("FadeFromBlack", this.TaskStates.AnyToComplete);
 
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
+
+        await this.#sleep(1);
+        this.gameManager.playerControls.hiddenOverride = false;
+        this.gameManager.playerControls.ShowButtonsForValidExits();
+
+
     }
 
     CutToBlack() {

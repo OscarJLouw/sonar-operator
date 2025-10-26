@@ -49,7 +49,7 @@ export class StoryManager {
 
     async Intro() {
         // Intro
-        await this.#sleep(10);
+        await this.#sleep(20);
         await this.dialogueManager.start("intro1");
         await this.#sleep(4);
         await this.dialogueManager.start("intro2");

@@ -38,6 +38,7 @@ export class PlayerControls extends GameObject {
         this.playerMovementController.addEventListener("onEnterState", this.handleStateChange);
 
         this.currentExits = null;
+        this.hiddenOverride = false;
     }
 
     CreateButton(buttonName, moveDirection) {
@@ -105,6 +106,12 @@ export class PlayerControls extends GameObject {
     }
 
     ShowButton(direction) {
+        if(this.hiddenOverride)
+        {
+            button.Hide();
+            return;
+        }
+
         var button = this.buttons.get(direction);
 
         if (button != undefined) {
@@ -137,6 +144,12 @@ export class PlayerControls extends GameObject {
     }
 
     ShowButtonsForValidExits() {
+        if(this.hiddenOverride)
+        {
+            this.HideAll()
+            return;
+        }
+
         if (this.currentExits == null) {
             return;
         }
@@ -154,9 +167,11 @@ export class PlayerControls extends GameObject {
         //if (import.meta.env.PROD) {
             // Hide controls while moving
             
-            await this.#sleep(0.1);
+            const stepInterval = Math.random() * 0.1+0.05;
+            const remainingStepInterval = 0.25 - stepInterval;
+            await this.#sleep(stepInterval);
             this.PlayFootstep();
-            await this.#sleep(0.2);
+            await this.#sleep(remainingStepInterval);
             this.PlayFootstep();
 
 

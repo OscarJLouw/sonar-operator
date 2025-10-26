@@ -149,7 +149,8 @@ export class GameManager {
 
         // Put the player in the entrance hallway
         this.playerMovementController.EnterState(this.playerMovementController.states.Entry);
-
+        this.playerControls.hiddenOverride = true;
+        this.playerControls.HideAll();
         // Let's go!
         this.StartStory();
     }
