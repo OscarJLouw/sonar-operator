@@ -3,6 +3,7 @@ import { SonarTargetConfig } from "../gameObjects/SonarTargets/SonarTargetConfig
 import { SceneManager } from "../managers/SceneManager";
 import { MeshManager } from "../managers/MeshManager";
 import { Utils } from "../utils/Utils";
+import { OverlayTextManager } from "../managers/OverlayTextManager";
 
 export class GameEventManager {
     constructor() {
@@ -28,11 +29,16 @@ export class GameEventManager {
     }
 
     async FadeIn() {
+        this.overlayTextManager = new OverlayTextManager();
+        this.overlayTextManager.Create();
+
         this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToComplete);
         //this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToActive);
         this.audioManager.playOneShot("echoCymbal", { bus: 'sfx', volume: 0.1, rate: 1 });
         await this.#sleep(2);
+        await this.overlayTextManager.PlayIntro();
+
         this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
         //this.SendMessage("FadeFromBlack", this.TaskStates.AnyToComplete);

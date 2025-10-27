@@ -57,6 +57,47 @@
       /* Ensures the button appears on top of other content */
     }
 
+
+    .textOverlay {
+      display: flex;
+  align-items: center;
+  justify-content: center; 
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: black;
+      color: white;
+    }
+
+    .titleOverlay {
+      size: 4em;
+      color: white;
+      text-align: center;
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    .creditsOverlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      color: white;
+    }
+
+    .fade-text {
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+    }
+    .fade-text.show {
+      opacity: 1;
+    }
+    .fade-text.hide {
+      opacity: 0;
+    }
+
     .dm-root {
       position: fixed;
       inset: 0;

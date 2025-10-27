@@ -43,7 +43,7 @@ export class AudioManager {
     underwater2: { path: './audio/ambience/Ambience_Underwater_02_Loop.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
     underworldVoices: { path: './audio/ambience/Ambience_Underworld_Voices_Loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
     subInterior: { path: './audio/ambience/machine_10_loop.ogg', volume: 0.2, loop: true, bus: 'ambience', autostart: false },
-    ghostFrequency: { path: './audio/ambience/TheGhostFrequency.ogg', volume: 0.4, loop: true, bus: 'ambience', autostart: false },
+    ghostFrequency: { path: './audio/ambience/TheGhostFrequency.ogg', volume: 0.6, loop: true, bus: 'ambience', autostart: false },
 
     // Biophony samples
     humpbacks: { path: './audio/sonarTargets/biophony/HumpbackWhales2.ogg', volume: 0.5, loop: true, bus: 'sonar', autostart: false },
@@ -89,6 +89,7 @@ export class AudioManager {
     eyeOfSonar: { path: './audio/sfx/spooky/Eye_Of_Sonar_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     nightmareRiser: { path: './audio/sfx/spooky/Nightmare_Riser_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 0.8, loop: false, bus: 'sfx', autostart: false },
+    cinematicRiser: { path: './audio/sfx/spooky/sfx_cinematic_24.mp3', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
     
     // Music
     creditsMusic: { path: './audio/music/horrorpiano_out.ogg', volume: 0.9, loop: false, bus: 'music', autostart: false },
