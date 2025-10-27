@@ -123,13 +123,13 @@ export class GameManager {
         //this.StartGame();
     }
 
-    StartGame() {
+    async StartGame() {
 
         this.gameState = "Starting";
         this.audioManager.StopFadeOut("creditsMusic", 4);
 
         // Start the game in Portals
-        this.portalsController.StartGame();
+        await this.portalsController.StartGame();
 
         // Fade in the audio
 

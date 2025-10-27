@@ -158,17 +158,14 @@
       margin-top: 0.5rem;
     }
 
+    /* Replace your existing .fade-text/.show/.hide block with this */
     .fade-text {
       opacity: 0;
-      transition: opacity 2s ease-in-out;
+      transition: opacity var(--fade-duration, 2s) ease-in-out;
     }
 
     .fade-text.show {
       opacity: 1;
-    }
-
-    .fade-text.hide {
-      opacity: 0;
     }
 
     .dm-root {
