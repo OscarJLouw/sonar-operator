@@ -59,9 +59,9 @@
 
 
     .textOverlay {
-      display: flex;
-  align-items: center;
-  justify-content: center; 
+      display: none;
+      align-items: center;
+      justify-content: center;
       position: absolute;
       top: 0;
       bottom: 0;
@@ -69,31 +69,104 @@
       right: 0;
       background: black;
       color: white;
+      text-align: center;
+      padding: 5px;
     }
 
     .titleOverlay {
-      size: 4em;
+      display: flex;
+      font-size: clamp(1.25rem, 1.5vw, 2.25rem);
       color: white;
       text-align: center;
       font-family: "IBM Plex Mono", monospace;
     }
 
+    /* Center credits content like the intro text */
     .creditsOverlay {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem 1.5rem;
+    }
+
+    /* One section per call */
+    .credits-section {
+      max-width: min(90vw, 1200px);
+      margin: 0 auto;
+    }
+
+    /* Header: relatively small */
+    .credits-header {
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 500;
+      font-size: clamp(1.25rem, 1.5vw, 2.25rem);
+      letter-spacing: 0.06em;
+      opacity: 0.8;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      text-decoration: underline;
+    }
+
+    /* Each credit row */
+    .credit-item {
+      margin: 0.35rem 0 0.9rem;
+    }
+
+    /* Name: large */
+    .credit-name {
+      font-family: "Libre Caslon Text", serif;
+      font-weight: 700;
+      font-size: clamp(1.5rem, 1.8vw, 2.5rem);
+      line-height: 1.1;
+    }
+
+    /* Subtitle: medium */
+    .credit-subtitle {
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 400;
+      font-size: clamp(1rem, 1.4vw, 2rem);
+      opacity: 0.9;
+      margin-top: 0.2rem;
+    }
+
+    /* License + link: small */
+    .credit-meta {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+      opacity: 0.75;
+      margin-top: 0.35rem;
+      white-space: nowrap;
+    }
+
+    .credit-meta .credit-link {
+      color: #e9ecf1;
+      text-decoration: underline;
+      cursor: pointer;
+      /* remains unselectable because parent has .unselectable-element;
+     clicks still work fine */
+    }
+
+    /* A single-line subtitle-only row (no name) should look like a medium line of text */
+    .credit-item--subtitle-only .credit-subtitle {
+      font-size: clamp(1rem, 1.6vw, 1.25rem);
+      opacity: 0.9;
+    }
+
+    /* (Optional) Tighten spacing for dense lists like textures block */
+    .credits-section .credit-item+.credit-item {
+      margin-top: 0.5rem;
     }
 
     .fade-text {
       opacity: 0;
       transition: opacity 2s ease-in-out;
     }
+
     .fade-text.show {
       opacity: 1;
     }
+
     .fade-text.hide {
       opacity: 0;
     }

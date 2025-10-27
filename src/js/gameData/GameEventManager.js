@@ -36,8 +36,9 @@ export class GameEventManager {
         //this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToActive);
         this.audioManager.playOneShot("echoCymbal", { bus: 'sfx', volume: 0.1, rate: 1 });
-        await this.#sleep(2);
+
         await this.overlayTextManager.PlayIntro();
+        await this.#sleep(1);
 
         this.portalsController.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToNotActive);
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
@@ -46,6 +47,8 @@ export class GameEventManager {
         //this.portalsController.SendMessage("FadeFromBlack", this.portalsController.TaskStates.AnyToComplete);
 
         await this.#sleep(1);
+
+
         this.gameManager.playerControls.hiddenOverride = false;
         this.gameManager.playerControls.ShowButtonsForValidExits();
 
@@ -621,7 +624,12 @@ export class GameEventManager {
         this.audioManager.FadeBusByID("ambience", 0.001, 5);
         this.audioManager.FadeBusByID("sonar", 0.001, 5);
         this.audioManager.FadeBusByID("sfx", 0.001, 5);
+        await this.#sleep(3);
         this.audioManager.PlayFadeIn("creditsMusic", { to: 0.3, seconds: 3, randomizeStart: false });
+
+        await this.#sleep(3);
+        await this.overlayTextManager.PlayCredits();
+
 
     }
 
