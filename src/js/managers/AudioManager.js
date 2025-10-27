@@ -89,7 +89,7 @@ export class AudioManager {
     eyeOfSonar: { path: './audio/sfx/spooky/Eye_Of_Sonar_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     nightmareRiser: { path: './audio/sfx/spooky/Nightmare_Riser_01.ogg', volume: 1, loop: false, bus: 'sfx', autostart: false },
     screechingNightmare: { path: './audio/sfx/spooky/Screeching_Nightmare_03.ogg', volume: 0.8, loop: false, bus: 'sfx', autostart: false },
-    cinematicRiser: { path: './audio/sfx/spooky/sfx_cinematic_24.mp3', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
+    cinematicRiser: { path: './audio/sfx/spooky/sfx_cinematic_24.ogg', volume: 0.6, loop: false, bus: 'sfx', autostart: false },
     
     // Music
     creditsMusic: { path: './audio/music/horrorpiano_out.ogg', volume: 0.9, loop: false, bus: 'music', autostart: false },
