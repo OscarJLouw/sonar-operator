@@ -31,7 +31,7 @@ export class PortalsController {
     }
 
     async StartGame() {
-        this.SendMessage("BlackScreen", this.portalsController.TaskStates.AnyToComplete);
+        this.SendMessage("BlackScreen", this.TaskStates.AnyToComplete);
         //this.SendMessage("FadeToBlack", this.TaskStates.AnyToActive);
         await this.#sleep(1);
         //this.SendMessage("FadeToBlack", this.TaskStates.AnyToComplete);
