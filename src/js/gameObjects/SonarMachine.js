@@ -276,6 +276,19 @@ export class SonarMachine extends GameObject {
         }
     }
 
+    FindVisualsForTarget(sonarTarget)
+    {
+        const targetIndex = this.sonarTargets.indexOf(sonarTarget);
+        
+        if (targetIndex > -1) {
+            return this.sonarTargetVisuals[targetIndex];
+        }
+
+        console.warn("Could not find SonarTargetVisual for " + sonarTarget.name);
+
+        return null;
+    }
+
     OnTargetSpawned = (event) => {
         this.AddSonarTarget(event.detail.target, "SonarTargetVisual " + event.detail.targetsSpawnedSoFar);
     }

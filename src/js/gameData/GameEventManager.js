@@ -56,26 +56,7 @@ export class GameEventManager {
 
     }
 
-    // Act 1: Tutorial events
-    async HumpbackSearch() {
-        const humpbacksConfig = new SonarTargetConfig(
-            "Humpbacks",
-            "humpbacks",
-            {
-                randomizeRadius: true,
-                minRadius: 0.05,
-                maxRadius: 0.1,
-                spawnAtRandomPosition: true
-            }
-        );
-
-        const humpbacks = this.world.SpawnSonarTarget(humpbacksConfig);
-
-        const e = await this.WaitForEvent(humpbacks, "discoveredTarget");
-
-        return e.detail?.target ?? null;
-    }
-
+    // Debug tool
     DebugSetupPrerequisites(activateSonar, addShips, addSub, movePlayerAndShips) {
         if (activateSonar) {
             const sonarMachine = SceneManager.instance.sonarMachine;
@@ -148,6 +129,10 @@ export class GameEventManager {
         }
     }
 
+
+    // Act 1: Tutorial events
+
+
     async ShipsSearch() {
 
         const melbourneConfig = new SonarTargetConfig(
@@ -175,6 +160,18 @@ export class GameEventManager {
         this.melbourne = this.world.SpawnSonarTarget(melbourneConfig);
         this.endeavour = this.world.SpawnSonarTarget(endeavourConfig);
 
+        const sonarMachine = SceneManager.instance.sonarMachine;
+
+        const melbourneVisuals = sonarMachine.FindVisualsForTarget(this.melbourne);
+        if (melbourneVisuals != null) {
+            melbourneVisuals.ShowAsHint();
+        }
+
+        const endeavourVisuals = sonarMachine.FindVisualsForTarget(this.endeavour);
+        if (endeavourVisuals != null) {
+            endeavourVisuals.ShowAsHint();
+        }
+
         const ships = [this.melbourne, this.endeavour];
 
         let melbourneDone, endeavourDone;
@@ -201,6 +198,26 @@ export class GameEventManager {
         // ...then wait for their queued dialogue sequences to finish before continuing story
         await Promise.all([melbourneDone, endeavourDone].filter(Boolean));
     }
+
+    async HumpbackSearch() {
+        const humpbacksConfig = new SonarTargetConfig(
+            "Humpbacks",
+            "humpbacks",
+            {
+                randomizeRadius: true,
+                minRadius: 0.05,
+                maxRadius: 0.1,
+                spawnAtRandomPosition: true
+            }
+        );
+
+        const humpbacks = this.world.SpawnSonarTarget(humpbacksConfig);
+
+        const e = await this.WaitForEvent(humpbacks, "discoveredTarget");
+
+        return e.detail?.target ?? null;
+    }
+
 
     // Act 2: Sector Sweep events
     async SectorSweep() {
@@ -359,7 +376,7 @@ export class GameEventManager {
             this.submarine.worldTransform,
             this.world.shipRoot.position.clone(),
             {
-                angularSpeed: -Math.PI*0.02,    // slower circle
+                angularSpeed: -Math.PI * 0.02,    // slower circle
                 signal: this.subOrbitCtrl.signal,
             }
         );
@@ -476,7 +493,7 @@ export class GameEventManager {
     }
 
     async WaitForPlayerToPing() {
-        
+
         const sonarMachine = SceneManager.instance.sonarMachine;
         const sonarParticles = sonarMachine.sonarViewController.particlesController;
         sonarParticles.CreateTentacles();
@@ -524,7 +541,7 @@ export class GameEventManager {
         sonarViewController.targetMesh.visible = false;
         sonarViewController.targetMesh.layers.set(1);
 
-        
+
         //SceneManager.instance.CreateControls(sonarParticles.transform);
         sonarMachine.SetActiveSonarAuthorised(false);
         this.gameManager.playerControls.HideAll();

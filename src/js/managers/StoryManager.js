@@ -213,7 +213,7 @@ export class StoryManager {
             {
                 id: "intro3",
                 speaker: "ASHTON",
-                text: "{>}...{p: 0.8}{>>} Haha. I told you he would fall for it! ",
+                text: "{>}...{p: 0.5}{>>} Haha. I told you he would fall for it! ",
                 next: "intro4"
             },
             {
@@ -254,13 +254,13 @@ export class StoryManager {
             {
                 id: "tutorial_exposition2",
                 speaker: "CLARK",
-                text: "Well, we're already calibrated from the last shift here. But procedure says you locate us first, verbally confirm location, and then we hone on a third party source to get aligned.",
+                text: "Well, we're already calibrated from the last shift here. But procedure says you confirm our locations first, and then we hone on a third party source to get aligned.",
                 next: "tutorial_exposition3"
             },
             {
                 id: "tutorial_exposition3",
                 speaker: "CLARK",
-                text: "Sorry Smith, it's tedious, but we have to start here. {p:0.5}{>>>} I don't think you're an idiot.",
+                text: "Sorry Smith, it's tedious, but we have to start here. {p:0.3}{>>>} I don't think you're an idiot.",
                 choices:
                     [
                         { text: "Ready to proceed.", next: "tutorial_exposition4" },
@@ -271,9 +271,16 @@ export class StoryManager {
             {
                 id: "tutorial_exposition4",
                 speaker: "CLARK",
-                text: "{>>>}Just mark both our ships and we can get started. {p:0.35}{>>}We're loud as hell, but it can still be hard to get a bead with this old array.",
+                text: "{>>>}Just confirm the location of both our ships and we can get started.",
+                next: "tutorial_exposition5"
+            },
+            {
+                id: "tutorial_exposition5",
+                speaker: "CLARK",
+                text: "Previous known locations should be visible. {p:0.35}We're loud as hell, but it can still be hard to get a bead with this old array.",
                 next: "tutorial_bonusTip1"
             },
+
 
             {
                 id: "tutorial_bonusTip1",
@@ -298,7 +305,7 @@ export class StoryManager {
             // BREAK FOR GAMEPLAY
             // Player searches for both ships.
 
-            // If they make no progress for 2 mins
+            // If they make no progress for x mins
             {
                 id: "stuck_player_hint",
                 speaker: "CLARK",
@@ -371,6 +378,18 @@ export class StoryManager {
                 id: "tutorial_hint_framing2",
                 speaker: "CLARK",
                 text: "Try making the framing area smaller than you think the target is, and moving through the area a few times. Failing that, try the opposite, go larger than you expect.",
+                next: "tutorial_hint_framing3"
+            },
+            {
+                id: "tutorial_hint_framing3",
+                speaker: "CLARK",
+                text: "A lot of newbies also forget to tune the range, since you don't get that option on your typical console.",
+                next: "tutorial_hint_framing4"
+            },
+            {
+                id: "tutorial_hint_framing4",
+                speaker: "CLARK",
+                text: "Make sure the range and spread are as small as you can make 'em, while still including the whole target.",
                 next: "tutorial_hint4"
             },
 
@@ -402,6 +421,12 @@ export class StoryManager {
                 id: "tutorial_searchForWhale2",
                 speaker: "CLARK",
                 text: "We heard a pod of whales earlier, before you rotated in. {p: 0.5}Can you locate them on your end?",
+                next: "tutorial_searchForWhale3"
+            },
+            {
+                id: "tutorial_searchForWhale3",
+                speaker: "CLARK",
+                text: "This one you're going to have to do by ear.",
                 next: null  // exit
             },
 
@@ -875,7 +900,7 @@ export class StoryManager {
                 text: "Here goes nothing",
                 next: null
             },
-            
+
 
             // Wait till player gets to console
             {
